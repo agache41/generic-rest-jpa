@@ -6,13 +6,52 @@
 
     <groupId>io.structured.api</groupId>
     <artifactId>quarkus-structured-api</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.0.1</version>
+    <packaging>jar</packaging>
+
+    <name>Structured Resources and Data Access for Quarkus</name>
+    <description>Library implementing the basis for combined Data Access and generic Rest Resources for Quarkus
+    </description>
+    <url>https://github.com/agache41/structuredAPI</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Alexandru Agache</name>
+            <email>agache41@yahoo.com</email>
+            <!--            <organization></organization>-->
+            <!--            <organizationUrl></organizationUrl>-->
+        </developer>
+    </developers>
+
+    <!--    <scm>-->
+    <!--        <connection>scm:git:git://github.com/simpligility/ossrh-demo.git</connection>-->
+    <!--        <developerConnection>scm:git:ssh://github.com:simpligility/ossrh-demo.git</developerConnection>-->
+    <!--        <url>http://github.com/simpligility/ossrh-demo/tree/master</url>-->
+    <!--    </scm>-->
+    <!--    <distributionManagement>-->
+    <!--        <snapshotRepository>-->
+    <!--            <id>ossrh</id>-->
+    <!--            <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+    <!--        </snapshotRepository>-->
+    <!--        <repository>-->
+    <!--            <id>ossrh</id>-->
+    <!--            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
+    <!--        </repository>-->
+    <!--    </distributionManagement>-->
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>jakarta.enterprise</groupId>
@@ -45,4 +84,50 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-gpg-plugin</artifactId>-->
+<!--                <version>3.1.0</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>sign-artifacts</id>-->
+<!--                        <phase>verify</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>sign</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+        </plugins>
+    </build>
 </project>
