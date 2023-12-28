@@ -2,7 +2,6 @@ package org.structured.api.quarkus.reflection;
 
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
-import org.apache.commons.lang3.StringUtils;
 import org.structured.api.quarkus.dao.PrimaryKey;
 
 import java.lang.reflect.Field;
@@ -48,7 +47,7 @@ public final class FieldReflector<T> {
                     (boolean.class.equals(field.getType()) ?
                             GETTER_PRIM_BOOL_PREFIX :
                             GETTER_PREFIX) +
-                            StringUtils.capitalize(field.getName()));
+                            capitalize(field.getName()));
         } catch (SecurityException | NoSuchMethodException e) { // getter is faulty
             throw new IllegalArgumentException(e.getMessage() + " when getting getter for " + field.getName() + " in class " + definingClass.getCanonicalName(), e);
         }
@@ -59,7 +58,7 @@ public final class FieldReflector<T> {
             // the setter method to use
             return definingClass.getDeclaredMethod(
                     SETTER_PREFIX +
-                            StringUtils.capitalize(field.getName()),
+                            capitalize(field.getName()),
                     field.getType());
         } catch (SecurityException | NoSuchMethodException e) { // setter is faulty
             throw new IllegalArgumentException(e.getMessage() + " when getting setter for " + field.getName() + " in class " + definingClass.getCanonicalName(), e);
@@ -157,5 +156,10 @@ public final class FieldReflector<T> {
 
     public boolean isValid() {
         return valid;
+    }
+
+    private static String capitalize(String input) {
+        if (input == null || input.isEmpty()) return input;
+        return input.substring(0, 1).toUpperCase() + input.substring(1);
     }
 }

@@ -1,10 +1,12 @@
 package org.structured.api.quarkus.reflection;
 
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.structured.api.quarkus.exceptions.UnexpectedException;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -15,11 +17,11 @@ public final class ClassReflector<T> {
     private final Map<String, FieldReflector<T>> reflectors;
     private final Map<String, FieldReflector<T>> updateReflectors;
 
-    private ClassReflector(Class<T> sourceClass) {
+    private ClassReflector(final Class<T> sourceClass) {
 
-        this.reflectors = FieldUtils.getAllFieldsList(sourceClass)
+        this.reflectors = getDeclaredFields(sourceClass)
                 .stream()
-                .map(field -> new FieldReflector(sourceClass, field))
+                .map(field -> new FieldReflector<>(sourceClass, field))
                 .filter(FieldReflector::isValid)
                 .collect(Collectors.toMap(FieldReflector::getName, Function.identity()));
 
