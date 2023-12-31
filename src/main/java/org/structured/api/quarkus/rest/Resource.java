@@ -87,7 +87,7 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/byIds/{ids:.*}")
+    @Path("/byIds/{ids}/asList")
     public List<T> getByIdsAsList(@PathParam("ids") List<K> ids) {
         return getDataAccess().streamByIds(ids).collect(Collectors.toList());
     }
@@ -95,7 +95,6 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
     /**
      * <pre>
      * Finds and returns the corresponding entity for the given list of ids.
-     * The id type must be basic (e.g. String, Long) or have a simple rest representation that can be used in a url path segment.
      * </pre>
      *
      * @param ids the list of ids
