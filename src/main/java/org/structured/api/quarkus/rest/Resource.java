@@ -6,6 +6,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.structured.api.quarkus.dao.DataAccess;
 import org.structured.api.quarkus.dao.PrimaryKey;
+import org.structured.api.quarkus.reflection.ClassReflector;
+import org.structured.api.quarkus.reflection.FieldReflector;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -74,6 +76,21 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
         return getDataAccess().streamAll().collect(Collectors.toList());
     }
 
+    /**
+     * <pre>
+     * Finds and returns the corresponding entity for the given list of ids.
+     * The id type must be basic (e.g. String, Long) or have a simple rest representation that can be used in a url path segment.
+     * </pre>
+     *
+     * @param ids the list of ids
+     * @return the list of entities
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/byIds/{ids:.*}")
+    public List<T> getByIdsAsList(@PathParam("ids") List<K> ids) {
+        return getDataAccess().streamByIds(ids).collect(Collectors.toList());
+    }
 
     /**
      * <pre>
@@ -87,9 +104,66 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/get/list/asList")
-    public List<T> getListAsList(List<K> ids) {
+    @Path("/byIds/asList")
+    public List<T> postByIdsAsList(List<K> ids) {
         return getDataAccess().streamByIds(ids).collect(Collectors.toList());
+    }
+
+    /**
+     * <pre>
+     * Finds all entities whose value in a specified field is equal the given value.
+     * The field can only be of String type.
+     * </pre>
+     *
+     * @param stringField the field to use in filter, can only be a string value
+     * @param value       the string value to equal
+     * @return the list of entities matching
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/filter/{stringField}/equals/{value}/asList")
+    public List<T> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value) {
+        return getDataAccess().streamByColumnEqualsValue(stringField, value).collect(Collectors.toList());
+    }
+
+    /**
+     * <pre>
+     * Finds all entities whose value in a specified field is like the given value.
+     * The SQL Like operator will be used.
+     * The field can only be of String type.
+     * </pre>
+     *
+     * @param stringField the field to use in filter, can only be a string value
+     * @param value       the string value to equal
+     * @return the list of entities matching
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/filter/{stringField}/like/{value}/asList")
+    public List<T> getFilterStringFieldLikeValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value) {
+        return getDataAccess().streamByColumnLikeValue(stringField, value).collect(Collectors.toList());
+    }
+
+    /**
+     * <pre>
+     * Finds all entities whose value in a specified field is like the given value.
+     * The SQL Like operator will be used.
+     * The field can only be of String type.
+     * </pre>
+     *
+     * @param stringField the field to use in filter, can only be a string value
+     * @param value       the string value to equal
+     * @return the list of entities matching
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("autocomplete/{stringField}/like/{value}")
+    public List<String> getAutocompleteStringFieldLikeValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value) {
+        FieldReflector<T> fieldReflector = ClassReflector.ofClass(dataAccess.getType()).getReflector(stringField);
+        return getDataAccess()
+                .streamByColumnLikeValue(stringField, value)
+                .map(entity -> (String) fieldReflector.get(entity))
+                .collect(Collectors.toList());
     }
 
 
@@ -170,6 +244,7 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
     public void delete(@PathParam("id") K id) {
         getDataAccess().removeById(id);
     }
+
     /**
      * <pre>
      * Deletes all the entities for the given ids.
@@ -182,4 +257,6 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
     public void deleteList(List<K> ids) {
         getDataAccess().removeByIds(ids);
     }
+
+
 }

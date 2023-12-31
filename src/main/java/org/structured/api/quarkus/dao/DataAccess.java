@@ -328,7 +328,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      *
      * @param column  the column to value for
      * @param value   the value to value for
-     * @param notNull specifies if the value can be null, and in this case the null is used as value.
+     * @param notNull specifies if the value can be null, and in this case the null can be used as a value.
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> streamByColumnEqualsValue(String column, Object value, boolean notNull) {
@@ -339,6 +339,41 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
                         .where(equals(column, value, notNull, entity, criteriaBuilder)))
                 .getResultStream();
 
+    }
+
+
+    /**
+     * <pre>
+     * Finds all entities whose value in a specified column are like the given value.
+     * The SQL Like operator is used.
+     * </pre>
+     *
+     * @param column  the column to value for
+     * @param value   the value to compare
+     * @return entities in a Stream&#x3C;ENTITY&#x3E;
+     */
+    public Stream<ENTITY> streamByColumnLikeValue(String column, String value) {
+        return this.streamByColumnLikeValue(column,value,true);
+    }
+
+    /**
+     * <pre>
+     * Finds all entities whose value in a specified column are like the given value.
+     * The SQL Like operator is used.
+     * </pre>
+     *
+     * @param column  the column to value for
+     * @param value   the value to compare
+     * @param notNull specifies if the value can be null, and in this case the null can be used as a value.
+     * @return entities in a Stream&#x3C;ENTITY&#x3E;
+     */
+    public Stream<ENTITY> streamByColumnLikeValue(String column, String value, boolean notNull) {
+        CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
+        CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
+        Root<ENTITY> entity = query.from(type);
+        return em().createQuery(query.select(entity)
+                        .where(like(column, value, notNull, entity, criteriaBuilder)))
+                .getResultStream();
     }
 
     /**
@@ -602,10 +637,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
     protected Expression<Boolean> like(String column, String value, boolean notNull, Root<ENTITY> entity, CriteriaBuilder criteriaBuilder) {
         column = columnFrom(column);
         if (applyFilter(value, notNull)) {
-            return criteriaBuilder.like(entity.get(columnFrom(column)), value);
+            return criteriaBuilder.like(entity.get(column), value);
         } else {
-            return entity.get(columnFrom(column))
-                    .isNull();
+            return entity.get(column).isNull();
         }
     }
 

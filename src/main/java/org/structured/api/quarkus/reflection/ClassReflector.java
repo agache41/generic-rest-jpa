@@ -27,10 +27,14 @@ import java.util.stream.Collectors;
 public final class ClassReflector<T> {
 
     private static final Map<Class<?>, ClassReflector<?>> concurrentClassDescriptorsCache = new ConcurrentHashMap<>();
+
+    private final Class<T> clazz;
     private final Map<String, FieldReflector<T>> reflectors;
     private final Map<String, FieldReflector<T>> updateReflectors;
 
     private ClassReflector(final Class<T> sourceClass) {
+
+        this.clazz = sourceClass;
 
         this.reflectors = getDeclaredFields(sourceClass)
                 .stream()
@@ -88,6 +92,22 @@ public final class ClassReflector<T> {
         return destination;
     }
 
+
+    /**
+     * <pre>
+     * Reflector for the fieldName.
+     * </pre>
+     *
+     * @param fieldName the field name
+     * @return the reflector
+     */
+    public FieldReflector<T> getReflector(String fieldName) {
+        FieldReflector<T> fieldReflector = this.reflectors.get(fieldName);
+        if (fieldReflector == null)
+            throw new UnexpectedException(" No such field " + fieldName + " in " + this.clazz.getSimpleName());
+        return fieldReflector;
+    }
+
     /**
      * <pre>
      * Getter for the fieldName in source.
@@ -98,11 +118,7 @@ public final class ClassReflector<T> {
      * @return the object
      */
     public Object get(T source, String fieldName) {
-        FieldReflector fieldReflector = this.reflectors.get(fieldName);
-        if (fieldReflector == null)
-            throw new UnexpectedException(" No such field " + fieldName + " in " + source.getClass()
-                    .getSimpleName());
-        return fieldReflector.get(source);
+        return getReflector(fieldName).get(source);
     }
 
     /**
@@ -115,11 +131,7 @@ public final class ClassReflector<T> {
      * @param value     the value
      */
     public void set(T source, String fieldName, Object value) {
-        FieldReflector fieldReflector = this.reflectors.get(fieldName);
-        if (fieldReflector == null)
-            throw new UnexpectedException(" No such field " + fieldName + " in " + source.getClass()
-                    .getSimpleName());
-        fieldReflector.set(source, value);
+        getReflector(fieldName).set(source, value);
     }
 
     /**
