@@ -2,7 +2,6 @@ package org.structured.api.quarkus.rest;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.structured.api.quarkus.dao.DataAccess;
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
  * @param <T> the type parameter
  * @param <K> the type parameter
  */
-@Transactional
 public abstract class Resource<T extends PrimaryKey<K>, K> {
 
     /**
@@ -61,6 +59,40 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
         return getDataAccess().findById(id);
     }
 
+
+    /**
+     * <pre>
+     * Returns all the entities for the given table.
+     * </pre>
+     *
+     * @return the list of entities
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/all/asList")
+    public List<T> getAllAsList() {
+        return getDataAccess().streamAll().collect(Collectors.toList());
+    }
+
+
+    /**
+     * <pre>
+     * Finds and returns the corresponding entity for the given list of ids.
+     * The id type must be basic (e.g. String, Long) or have a simple rest representation that can be used in a url path segment.
+     * </pre>
+     *
+     * @param ids the list of ids
+     * @return the list of entities
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/get/list/asList")
+    public List<T> getListAsList(List<K> ids) {
+        return getDataAccess().streamByIds(ids).collect(Collectors.toList());
+    }
+
+
     /**
      * <pre>
      * Inserts a new entity in the database or updates an existing one.
@@ -76,6 +108,23 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
         return getDataAccess().merge(source);
     }
 
+
+    /**
+     * <pre>
+     * Inserts a list of new entities in the database or updates the existing ones.
+     * </pre>
+     *
+     * @param sources the list of new data
+     * @return the inserted entities
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/list/asList")
+    public List<T> postListAsList(List<T> sources) {
+        return getDataAccess().mergeAll(sources).collect(Collectors.toList());
+    }
+
     /**
      * <pre>
      * Updates an existing entity by id.
@@ -83,13 +132,30 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
      * </pre>
      *
      * @param source the source
-     * @return the t
+     * @return the updated entity
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public T put(T source) {
         return getDataAccess().updateById(source);
+    }
+
+    /**
+     * <pre>
+     * Updates existing entities by id.
+     * The Entities with the given ids must exist in the Database or a UnexpectedException is thrown.
+     * </pre>
+     *
+     * @param sources the source
+     * @return the updated entities
+     */
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/list/asList")
+    public List<T> putListAsList(List<T> sources) {
+        return getDataAccess().updateByIds(sources).collect(Collectors.toList());
     }
 
     /**
@@ -104,19 +170,16 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
     public void delete(@PathParam("id") K id) {
         getDataAccess().removeById(id);
     }
-
     /**
      * <pre>
-     * Returns all the entities for the given table.
+     * Deletes all the entities for the given ids.
      * </pre>
      *
-     * @return the list of entities
+     * @param ids the ids
      */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/all")
-    public List<T> getAll( ){
-        return getDataAccess().streamAll().collect(Collectors.toList());
+    @DELETE
+    @Path("/list")
+    public void deleteList(List<K> ids) {
+        getDataAccess().removeByIds(ids);
     }
-
 }

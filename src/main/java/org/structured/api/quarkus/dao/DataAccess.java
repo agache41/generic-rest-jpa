@@ -118,7 +118,6 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * @param expected if a persisted entity must exist
      * @return the entity for the primary key or null if not found. If no entity is found and expected is set to true ExpectedException is thrown.
      * @see jakarta.persistence.EntityManager#find(Class, Object)
-     *
      */
     public ENTITY findById(PK id, boolean expected) {
         return assertNotNull(em().find(type, assertNotNull(id)), expected);
@@ -465,13 +464,16 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * @return the persisted entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> updateByIds(Collection<ENTITY> sources, boolean allExpected) {
-        final Map<PK, ENTITY> sourcesMap = asMap(sources);
-        Stream<ENTITY> result = streamPersisted(sources).map(persisted -> persisted.update(sourcesMap.remove(persisted.getId())));
-        if (sourcesMap.isEmpty()) return result;
-        if (allExpected) throw new UnexpectedException(this.name + ": missing entities in update !");
-        return Stream.concat(result, sourcesMap.values()
-                .stream()
-                .map(this::merge));
+        final Map<PK, ENTITY> persistedMap = asMap(streamPersisted(sources));
+        return sources.stream().map(source -> {
+            PK id = source.getId();
+            if (persistedMap.containsKey(id))
+                return persistedMap.get(id).update(source);
+            else if (allExpected)
+                throw new UnexpectedException(this.name + ": Missing Entity in Update for PK=" + id.toString());
+            else
+                return source;
+        });
     }
 
     /**
@@ -587,7 +589,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
 
     /**
      * <pre>
-     *Builder for the like expression.
+     * Builder for the like expression.
      * </pre>
      *
      * @param column          the column to filter for
@@ -621,11 +623,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
     protected Expression<Boolean> in(String column, Collection<? extends Object> values, boolean notNull, Root<ENTITY> entity) {
         column = columnFrom(column);
         if (applyFilter(values, notNull)) {
-            return entity.get(columnFrom(column))
-                    .in(values);
+            return entity.get(column).in(values);
         } else {
-            return entity.get(columnFrom(column))
-                    .isNull();
+            return entity.get(column).isNull();
         }
     }
 
@@ -766,9 +766,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * @param sources the sources
      * @return the map
      */
-    public Map<PK, ENTITY> asMap(Collection<ENTITY> sources) {
-        return sources.stream()
-                .collect(Collectors.toMap(PrimaryKey::getId, Function.identity()));
+    public Map<PK, ENTITY> asMap(Stream<ENTITY> sources) {
+        return sources.collect(Collectors.toMap(PrimaryKey::getId, Function.identity()));
     }
 
     /**
@@ -779,8 +778,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * @param sources the sources
      * @return the list
      */
-    public List<ENTITY> asList(Collection<ENTITY> sources) {
-        return sources.stream()
-                .collect(Collectors.toList());
+    public List<ENTITY> asList(Stream<ENTITY> sources) {
+        return sources.collect(Collectors.toList());
     }
 }
