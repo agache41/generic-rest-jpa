@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * @param <T> the type parameter
  * @param <K> the type parameter
  */
-public abstract class Resource<T extends PrimaryKey<K>, K> {
+public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
 
     /**
      * <pre>

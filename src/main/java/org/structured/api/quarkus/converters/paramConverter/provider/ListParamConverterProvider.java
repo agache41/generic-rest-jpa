@@ -19,13 +19,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The type List param converter provider.
+ */
 @Provider
 public class ListParamConverterProvider implements ParamConverterProvider {
+    /**
+     * The Log.
+     */
     @Inject
     Logger log;
 
     private final Map<Type, ParamConverter<?>> paramConverterMap = new HashMap<>();
 
+    /**
+     * Post construct.
+     */
     @PostConstruct
     public void postConstruct() {
         this.paramConverterMap.put(String.class, new StringListParamConverter(log));

@@ -11,23 +11,44 @@ import java.util.stream.Stream;
 
 import static org.structured.api.quarkus.util.Utils.not;
 
+/**
+ * The type Abstract list param convertor.
+ *
+ * @param <T> the type parameter
+ */
 public abstract class AbstractListParamConvertor<T> implements ParamConverter<List<T>> {
-    //private static final Logger log = Logger.getLogger(ListParamConvertor.class);
-    //todo: add logging
     private final Function<String, T> parse;
     private final Function<T, String> format;
     private final Logger log;
 
+    /**
+     * Instantiates a new Abstract list param convertor.
+     *
+     * @param parse  the parse
+     * @param format the format
+     * @param log    the log
+     */
     public AbstractListParamConvertor(Function<String, T> parse, Function<T, String> format, Logger log) {
         this.parse = parse;
         this.format = format;
         this.log = log;
     }
 
+    /**
+     * Instantiates a new Abstract list param convertor.
+     *
+     * @param parse the parse
+     * @param log   the log
+     */
     public AbstractListParamConvertor(Function<String, T> parse, Logger log) {
         this(parse, Object::toString, log);
     }
 
+    /**
+     * Instantiates a new Abstract list param convertor.
+     *
+     * @param log the log
+     */
     public AbstractListParamConvertor(Logger log) {
         this(s -> (T) s, t -> (String) t, log);
     }

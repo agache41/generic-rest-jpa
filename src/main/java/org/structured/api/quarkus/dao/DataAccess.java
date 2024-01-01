@@ -268,7 +268,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * </pre>
      *
      * @param filter the filter
-     * @return entities in a Stream&#x3C;ENTITY>
+     * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> streamPersisted(Collection<? extends PrimaryKey<? extends PK>> filter) {
         return streamByIds(filter.stream()
