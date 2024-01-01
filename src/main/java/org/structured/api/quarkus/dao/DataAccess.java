@@ -615,10 +615,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
     protected Expression<Boolean> equals(String column, Object value, boolean notNull, Root<ENTITY> entity, CriteriaBuilder criteriaBuilder) {
         column = columnFrom(column);
         if (applyFilter(value, notNull)) {
-            return criteriaBuilder.equal(entity.get(columnFrom(column)), value);
+            return criteriaBuilder.equal(entity.get(column), value);
         } else {
-            return entity.get(columnFrom(column))
-                    .isNull();
+            return entity.get(column).isNull();
         }
     }
 

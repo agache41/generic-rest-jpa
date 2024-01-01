@@ -9,7 +9,9 @@ import org.structured.api.quarkus.dao.PrimaryKey;
 import org.structured.api.quarkus.reflection.ClassReflector;
 import org.structured.api.quarkus.reflection.FieldReflector;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -60,7 +62,6 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
     public T get(@PathParam("id") K id) {
         return getDataAccess().findById(id);
     }
-
 
     /**
      * <pre>
@@ -145,6 +146,24 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
 
     /**
      * <pre>
+     * Finds all entities whose value in a specified field is in the given values list.
+     *
+     * The field can only be of String type.
+     * </pre>
+     *
+     * @param stringField the field to use in filter, can only be a string value
+     * @param values      the values list
+     * @return the list of entities matching
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/filter/{stringField}/in/{values}/asList")
+    public List<T> getFilterStringFieldInValuesAsList(@PathParam("stringField") String stringField, @PathParam("values") List<String> values) {
+        return getDataAccess().streamByColumnInValues(stringField, values).collect(Collectors.toList());
+    }
+
+    /**
+     * <pre>
      * Finds all entities whose value in a specified field is like the given value.
      * The SQL Like operator will be used.
      * The field can only be of String type.
@@ -156,15 +175,16 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("autocomplete/{stringField}/like/{value}")
-    public List<String> getAutocompleteStringFieldLikeValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value) {
+    @Path("autocomplete/{stringField}/like/{value}/asSortedSet")
+    public Set<String> getAutocompleteStringFieldLikeValueAsSortedSet(@PathParam("stringField") String stringField,
+                                                                       @PathParam("value") String value) {
         FieldReflector<T> fieldReflector = ClassReflector.ofClass(dataAccess.getType()).getReflector(stringField);
         return getDataAccess()
                 .streamByColumnLikeValue(stringField, value)
                 .map(entity -> (String) fieldReflector.get(entity))
-                .collect(Collectors.toList());
+                .sorted()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
-
 
     /**
      * <pre>
@@ -180,7 +200,6 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
     public T post(T source) {
         return getDataAccess().merge(source);
     }
-
 
     /**
      * <pre>
@@ -252,10 +271,23 @@ public abstract class Resource<T extends PrimaryKey<K>, K> {
      * @param ids the ids
      */
     @DELETE
-    @Path("/list")
-    public void deleteList(List<K> ids) {
+    @Path("/byIds")
+    public void deleteByIds(List<K> ids) {
         getDataAccess().removeByIds(ids);
     }
 
+
+    /**
+     * <pre>
+     * Deletes all the entities for the given ids.
+     * </pre>
+     *
+     * @param ids the ids
+     */
+    @DELETE
+    @Path("/byIds/{ids}")
+    public void deleteByIdsInPath(@PathParam("ids") List<K> ids) {
+        getDataAccess().removeByIds(ids);
+    }
 
 }
