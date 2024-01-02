@@ -1,51 +1,12 @@
-package org.structured.api.quarkus.rest;
+package org.structured.api.quarkus.resourceService;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import org.structured.api.quarkus.dao.DataAccess;
-import org.structured.api.quarkus.dao.PrimaryKey;
-import org.structured.api.quarkus.reflection.ClassReflector;
-import org.structured.api.quarkus.reflection.FieldReflector;
+import org.structured.api.quarkus.dataAccess.PrimaryKey;
 
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-
-/**
- * <pre>
- * Base class for resource REST APIs.
- * The class implements methods for basic REST operations on the underlying Class
- * </pre>
- *
- * @param <T> the type parameter
- * @param <K> the type parameter
- */
-public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
-
-    /**
-     * <pre>
-     * Default data access layer , used for communicating with the database.
-     * </pre>
-     */
-    @Inject
-    @Named("base")
-    protected DataAccess<T, K> dataAccess;
-
-    /**
-     * <pre>
-     * Getter for the data access layer.
-     * </pre>
-     *
-     * @return the data access
-     */
-    protected DataAccess<T, K> getDataAccess() {
-        return dataAccess;
-    }
-
+public interface ResourceService<T extends PrimaryKey<K>, K> {
     /**
      * <pre>
      * Finds and returns the corresponding entity for the given id.
@@ -59,9 +20,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
-    public T get(@PathParam("id") K id) {
-        return getDataAccess().findById(id);
-    }
+    T get(@PathParam("id") K id);
 
     /**
      * <pre>
@@ -73,9 +32,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/all/asList")
-    public List<T> getAllAsList() {
-        return getDataAccess().streamAll().collect(Collectors.toList());
-    }
+    List<T> getAllAsList();
 
     /**
      * <pre>
@@ -89,9 +46,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/byIds/{ids}/asList")
-    public List<T> getByIdsAsList(@PathParam("ids") List<K> ids) {
-        return getDataAccess().streamByIds(ids).collect(Collectors.toList());
-    }
+    List<T> getByIdsAsList(@PathParam("ids") List<K> ids);
 
     /**
      * <pre>
@@ -105,9 +60,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/byIds/asList")
-    public List<T> postByIdsAsList(List<K> ids) {
-        return getDataAccess().streamByIds(ids).collect(Collectors.toList());
-    }
+    List<T> postByIdsAsList(List<K> ids);
 
     /**
      * <pre>
@@ -122,9 +75,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/equals/{value}/asList")
-    public List<T> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value) {
-        return getDataAccess().streamByColumnEqualsValue(stringField, value).collect(Collectors.toList());
-    }
+    List<T> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value);
 
     /**
      * <pre>
@@ -140,9 +91,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/like/{value}/asList")
-    public List<T> getFilterStringFieldLikeValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value) {
-        return getDataAccess().streamByColumnLikeValue(stringField, value).collect(Collectors.toList());
-    }
+    List<T> getFilterStringFieldLikeValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value);
 
     /**
      * <pre>
@@ -158,9 +107,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/in/{values}/asList")
-    public List<T> getFilterStringFieldInValuesAsList(@PathParam("stringField") String stringField, @PathParam("values") List<String> values) {
-        return getDataAccess().streamByColumnInValues(stringField, values).collect(Collectors.toList());
-    }
+    List<T> getFilterStringFieldInValuesAsList(@PathParam("stringField") String stringField, @PathParam("values") List<String> values);
 
     /**
      * <pre>
@@ -176,15 +123,47 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("autocomplete/{stringField}/like/{value}/asSortedSet")
-    public Set<String> getAutocompleteStringFieldLikeValueAsSortedSet(@PathParam("stringField") String stringField,
-                                                                       @PathParam("value") String value) {
-        FieldReflector<T> fieldReflector = ClassReflector.ofClass(dataAccess.getType()).getReflector(stringField);
-        return getDataAccess()
-                .streamByColumnLikeValue(stringField, value)
-                .map(entity -> (String) fieldReflector.get(entity))
-                .sorted()
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
+    List<String> getAutocompleteStringFieldLikeValueAsSortedSet(@PathParam("stringField") String stringField,
+                                                                @PathParam("value") String value);
+
+    /**
+     * <pre>
+     * Finds in Database the entities that equals a given content object.
+     * The content object must contain non null values just in the fields that are taking part in the filtering.
+     * The other null fields are to be ignored.
+     * No nulls can be used in the filtering.
+     * Example :
+     * content = [name ="abcd", no=2, street=null]
+     * result is where name = "abcd" and no = 2
+     * </pre>
+     *
+     * @param value the source
+     * @return the list of entities matching
+     */
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/filter/content/equals/value/asList")
+    List<T> postFilterContentEqualsAsList(T value);
+
+
+    /**
+     * <pre>
+     * Finds in Database the entities that are in a given content list of given values.
+     * The content object must contain non null values just in the fields that are taking part in the filtering.
+     * The other null fields are to be ignored.
+     * No nulls can be used in the filtering.
+     * Example :
+     * content = [name =["abcd","bcde","1234"], no=[2,3], street=null]
+     * result is where name in ("abcd","bcde","1234") and no in (2,3)
+     * </pre>
+     *
+     * @param values the source
+     * @return the list of entities matching
+     */
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/filter/content/in/values/asList")
+    List<T> postFilterContentInAsList(List<T> values);
 
     /**
      * <pre>
@@ -197,9 +176,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public T post(T source) {
-        return getDataAccess().merge(source);
-    }
+    T post(T source);
 
     /**
      * <pre>
@@ -213,9 +190,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list/asList")
-    public List<T> postListAsList(List<T> sources) {
-        return getDataAccess().mergeAll(sources).collect(Collectors.toList());
-    }
+    List<T> postListAsList(List<T> sources);
 
     /**
      * <pre>
@@ -229,9 +204,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public T put(T source) {
-        return getDataAccess().updateById(source);
-    }
+    T put(T source);
 
     /**
      * <pre>
@@ -246,9 +219,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list/asList")
-    public List<T> putListAsList(List<T> sources) {
-        return getDataAccess().updateByIds(sources).collect(Collectors.toList());
-    }
+    List<T> putListAsList(List<T> sources);
 
     /**
      * <pre>
@@ -259,9 +230,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
      */
     @DELETE
     @Path("/{id}")
-    public void delete(@PathParam("id") K id) {
-        getDataAccess().removeById(id);
-    }
+    void delete(@PathParam("id") K id);
 
     /**
      * <pre>
@@ -272,10 +241,7 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
      */
     @DELETE
     @Path("/byIds")
-    public void deleteByIds(List<K> ids) {
-        getDataAccess().removeByIds(ids);
-    }
-
+    void deleteByIds(List<K> ids);
 
     /**
      * <pre>
@@ -286,8 +252,5 @@ public abstract class AbstractResourceService<T extends PrimaryKey<K>, K> {
      */
     @DELETE
     @Path("/byIds/{ids}")
-    public void deleteByIdsInPath(@PathParam("ids") List<K> ids) {
-        getDataAccess().removeByIds(ids);
-    }
-
+    void deleteByIdsInPath(@PathParam("ids") List<K> ids);
 }

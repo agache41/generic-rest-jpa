@@ -12,6 +12,6 @@ public class LongListParamConverter extends AbstractListParamConvertor<Long> {
      * @param log the log
      */
     public LongListParamConverter(Logger log) {
-        super(Long::parseLong,log);
+        super(Long::parseLong, log);
     }
 }

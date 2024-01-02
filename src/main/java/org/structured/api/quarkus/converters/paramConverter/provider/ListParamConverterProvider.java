@@ -59,7 +59,8 @@ public class ListParamConverterProvider implements ParamConverterProvider {
             if (paramConverter == null) {
                 log.errorf("No Parameter Converter found for Class %s with generic Type %s", rawType.getSimpleName(), genericType);
             } else {
-                log.infof(" Binding %s to param of type %s ", paramConverter.getClass().getSimpleName() , genericType);
+                log.infof(" Binding %s to param of type %s ", paramConverter.getClass()
+                                                                            .getSimpleName(), genericType);
             }
             return (ParamConverter<T>) paramConverter;
         }

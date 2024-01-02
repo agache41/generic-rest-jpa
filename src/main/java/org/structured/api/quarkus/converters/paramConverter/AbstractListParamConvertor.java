@@ -9,7 +9,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.structured.api.quarkus.util.Utils.not;
+import static java.util.function.Predicate.not;
+
+//import static org.structured.api.quarkus.util.PredicateUtils.not;
 
 /**
  * The type Abstract list param convertor.
@@ -44,27 +46,19 @@ public abstract class AbstractListParamConvertor<T> implements ParamConverter<Li
         this(parse, Object::toString, log);
     }
 
-    /**
-     * Instantiates a new Abstract list param convertor.
-     *
-     * @param log the log
-     */
-    public AbstractListParamConvertor(Logger log) {
-        this(s -> (T) s, t -> (String) t, log);
-    }
-
     @Override
     public List<T> fromString(String value) {
         if (value == null || value.length() < 2) return Collections.emptyList();
         try {
-            List<T> result = Stream.of(value.substring(1, value.length() - 1).split(","))
-                    .filter(not(String::isEmpty))
-                    .map(this.parse)
-                    .collect(Collectors.toList());
+            List<T> result = Stream.of(value.substring(1, value.length() - 1)
+                                            .split(","))
+                                   .filter(not(String::isEmpty))
+                                   .map(this.parse)
+                                   .collect(Collectors.toList());
             log.debugf("Parsed parameter %s into List%s", value, result);
             return result;
         } catch (Exception e) {
-            log.errorf(" When parsing parameter %s as a json list.",value, e);
+            log.errorf(" When parsing parameter %s as a json list.", value, e);
         }
         return Collections.emptyList();
     }
@@ -73,7 +67,9 @@ public abstract class AbstractListParamConvertor<T> implements ParamConverter<Li
     public String toString(List<T> value) {
         if (value == null || value.isEmpty()) return "[]";
         try {
-            return value.stream().map(this.format).collect(Collectors.joining(","));
+            return value.stream()
+                        .map(this.format)
+                        .collect(Collectors.joining(","));
         } catch (Exception e) {
             log.error(" When formatting list \"" + value + "\" as a json list.", e);
         }

@@ -1,4 +1,4 @@
-package org.structured.api.quarkus.dao;
+package org.structured.api.quarkus.dataAccess;
 
 
 import org.structured.api.quarkus.reflection.ClassReflector;
@@ -59,6 +59,6 @@ public interface PrimaryKey<PK> {
      */
     default <T extends PrimaryKey<PK>> T update(T source) {
         return ClassReflector.ofObject(source)
-                .update((T) this, source);
+                             .update((T) this, source);
     }
 }

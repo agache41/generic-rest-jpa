@@ -12,6 +12,6 @@ public class IntegerListParamConverter extends AbstractListParamConvertor<Intege
      * @param log the log
      */
     public IntegerListParamConverter(Logger log) {
-        super(Integer::parseInt,log);
+        super(Integer::parseInt, log);
     }
 }

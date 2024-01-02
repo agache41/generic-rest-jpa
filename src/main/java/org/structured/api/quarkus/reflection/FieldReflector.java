@@ -2,13 +2,15 @@ package org.structured.api.quarkus.reflection;
 
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
-import org.structured.api.quarkus.dao.PrimaryKey;
+import org.structured.api.quarkus.dataAccess.PrimaryKey;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
+
+import static org.structured.api.quarkus.utils.StringUtils.capitalize;
 
 /**
  * <pre>
@@ -18,14 +20,16 @@ import java.util.Map;
  *
  * @param <T> the type parameter
  */
-public final class FieldReflector<T> {
+public final class FieldReflector<T, V> {
     private static final String GETTER_PREFIX = "get";
     private static final String GETTER_PRIM_BOOL_PREFIX = "is";
     private static final String SETTER_PREFIX = "set";
     private static final Object[] NULL = new Object[]{null};
     private final String name;
-    private Method readMethod;
-    private Method writeMethod;
+    private final Class<T> enclosingClass;
+    private final Class<V> type;
+    private Method getter;
+    private Method setter;
     private boolean notNull;
     private boolean updateable;
     private boolean valid;
@@ -35,19 +39,21 @@ public final class FieldReflector<T> {
      * Instantiates a new Field reflector.
      * </pre>
      *
-     * @param workingClass the working class
-     * @param field        the field
+     * @param enclosingClass the enclosing class
+     * @param field          the field
      */
-    FieldReflector(Class<T> workingClass, Field field) {
+    FieldReflector(Class<T> enclosingClass, Field field) {
+        this.enclosingClass = enclosingClass;
         this.name = field.getName();
+        this.type = (Class<V>) field.getType();
         try {
-            this.writeMethod = FieldReflector.getSetter(workingClass, field);
-            this.readMethod = FieldReflector.getGetter(workingClass, field);
+            this.setter = this.getSetter();
+            this.getter = this.getGetter();
             this.notNull = field.getAnnotation(Write.class)
-                    .notNull()
+                                .notNull()
                     || field.isAnnotationPresent(NotNull.class);
             this.updateable = (field.isAnnotationPresent(Write.class)
-                    || workingClass.isAnnotationPresent(Write.class))
+                    || enclosingClass.isAnnotationPresent(Write.class))
                     && !field.isAnnotationPresent(Id.class)
                     && !field.isAnnotationPresent(Write.excluded.class);
             this.valid = true;
@@ -61,20 +67,18 @@ public final class FieldReflector<T> {
      * Locates the getter Method in the Class.
      * </pre>
      *
-     * @param definingClass the defining class
-     * @param field         the field
      * @return the getter
      */
-    public static Method getGetter(Class<?> definingClass, Field field) {
+    public Method getGetter() {
         try {
             // the getter method to use
-            return definingClass.getDeclaredMethod(
-                    (boolean.class.equals(field.getType()) ?
+            return this.enclosingClass.getDeclaredMethod(
+                    (boolean.class.equals(this.type) ?
                             GETTER_PRIM_BOOL_PREFIX :
                             GETTER_PREFIX) +
-                            capitalize(field.getName()));
+                            capitalize(this.name));
         } catch (SecurityException | NoSuchMethodException e) { // getter is faulty
-            throw new IllegalArgumentException(e.getMessage() + " when getting getter for " + field.getName() + " in class " + definingClass.getCanonicalName(), e);
+            throw new IllegalArgumentException(e.getMessage() + " when getting getter for " + getName() + " in class " + enclosingClass.getCanonicalName(), e);
         }
     }
 
@@ -83,19 +87,17 @@ public final class FieldReflector<T> {
      * Locates the setter Method in the class.
      * </pre>
      *
-     * @param definingClass the defining class
-     * @param field         the field
      * @return the setter
      */
-    public static Method getSetter(Class<?> definingClass, Field field) {
+    private Method getSetter() {
         try {
             // the setter method to use
-            return definingClass.getDeclaredMethod(
+            return this.enclosingClass.getDeclaredMethod(
                     SETTER_PREFIX +
-                            capitalize(field.getName()),
-                    field.getType());
+                            capitalize(this.name),
+                    this.type);
         } catch (SecurityException | NoSuchMethodException e) { // setter is faulty
-            throw new IllegalArgumentException(e.getMessage() + " when getting setter for " + field.getName() + " in class " + definingClass.getCanonicalName(), e);
+            throw new IllegalArgumentException(e.getMessage() + " when getting setter for " + getName() + " in class " + enclosingClass.getCanonicalName(), e);
         }
     }
 
@@ -158,7 +160,7 @@ public final class FieldReflector<T> {
      */
     public Object update(T destination, T source) {
         try {
-            final Object sourceValue = readMethod.invoke(source);
+            final Object sourceValue = getter.invoke(source);
             // not null default case
             if (null == sourceValue && this.notNull) {
                 return null;
@@ -172,12 +174,12 @@ public final class FieldReflector<T> {
                         // not null default case
                         return null;
                     } // set field to null to break relation.
-                    return writeMethod.invoke(destination, NULL);
+                    return setter.invoke(destination, NULL);
                 }
             }
             // fix for using cascade all on hibernate
             if (isCollection(sourceValue)) {
-                final Collection destinationCollection = (Collection) readMethod.invoke(destination);
+                final Collection destinationCollection = (Collection) getter.invoke(destination);
                 if (destinationCollection != null) {
                     destinationCollection.clear();
                     destinationCollection.addAll((Collection) sourceValue);
@@ -185,14 +187,14 @@ public final class FieldReflector<T> {
                 }
             }
             if (isMap(sourceValue)) {
-                final Map destinationMap = (Map) readMethod.invoke(destination);
+                final Map destinationMap = (Map) getter.invoke(destination);
                 if (destinationMap != null) {
                     destinationMap.clear();
                     destinationMap.putAll((Map) sourceValue);
                     return destinationMap;
                 }
             }
-            return writeMethod.invoke(destination, sourceValue);
+            return setter.invoke(destination, sourceValue);
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }
@@ -206,9 +208,9 @@ public final class FieldReflector<T> {
      * @param source the source
      * @return the object
      */
-    public Object get(T source) {
+    public V get(T source) {
         try {
-            return this.readMethod.invoke(source);
+            return (V) this.getter.invoke(source);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new IllegalArgumentException(e);
         }
@@ -222,9 +224,9 @@ public final class FieldReflector<T> {
      * @param source the source
      * @param value  the value
      */
-    public void set(T source, Object value) {
+    public void set(T source, V value) {
         try {
-            this.writeMethod.invoke(source);
+            this.setter.invoke(source);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new IllegalArgumentException(e);
         }
@@ -239,6 +241,28 @@ public final class FieldReflector<T> {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * <pre>
+     * The enclosing class.
+     * </pre>
+     *
+     * @return the enclosing class.
+     */
+    public Class<?> getEnclosingClass() {
+        return enclosingClass;
+    }
+
+    /**
+     * <pre>
+     * The data Type of this field.
+     * </pre>
+     *
+     * @return the type
+     */
+    public Class<?> getType() {
+        return type;
     }
 
     /**
@@ -263,15 +287,5 @@ public final class FieldReflector<T> {
         return valid;
     }
 
-    /**
-     * <pre>
-     * Capitalizes a string
-     * </pre>
-     * @param input
-     * @return
-     */
-    private static String capitalize(String input) {
-        if (input == null || input.isEmpty()) return input;
-        return input.substring(0, 1).toUpperCase() + input.substring(1);
-    }
+
 }

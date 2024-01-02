@@ -14,6 +14,6 @@ public class LocalDateParamConverter extends AbstractListParamConvertor<LocalDat
      * @param log the log
      */
     public LocalDateParamConverter(Logger log) {
-        super(LocalDate::parse,log);
+        super(LocalDate::parse, log);
     }
 }

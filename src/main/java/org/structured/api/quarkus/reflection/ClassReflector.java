@@ -2,14 +2,12 @@ package org.structured.api.quarkus.reflection;
 
 import org.structured.api.quarkus.exceptions.UnexpectedException;
 
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.structured.api.quarkus.utils.ReflectionUtils.getDeclaredFields;
 
 /**
  * <pre>
@@ -29,23 +27,22 @@ public final class ClassReflector<T> {
     private static final Map<Class<?>, ClassReflector<?>> concurrentClassDescriptorsCache = new ConcurrentHashMap<>();
 
     private final Class<T> clazz;
-    private final Map<String, FieldReflector<T>> reflectors;
-    private final Map<String, FieldReflector<T>> updateReflectors;
+    private final Map<String, FieldReflector<T, Object>> reflectors;
+    private final Map<String, FieldReflector<T, Object>> updateReflectors;
 
     private ClassReflector(final Class<T> sourceClass) {
 
         this.clazz = sourceClass;
 
-        this.reflectors = getDeclaredFields(sourceClass)
-                .stream()
-                .map(field -> new FieldReflector<>(sourceClass, field))
-                .filter(FieldReflector::isValid)
-                .collect(Collectors.toMap(FieldReflector::getName, Function.identity()));
+        this.reflectors = getDeclaredFields(sourceClass).stream()
+                                                        .map(field -> new FieldReflector<>(sourceClass, field))
+                                                        .filter(FieldReflector::isValid)
+                                                        .collect(Collectors.toMap(FieldReflector::getName, Function.identity()));
 
         this.updateReflectors = this.reflectors.values()
-                .stream()
-                .filter(FieldReflector::isUpdateable)
-                .collect(Collectors.toMap(FieldReflector::getName, Function.identity()));
+                                               .stream()
+                                               .filter(FieldReflector::isUpdateable)
+                                               .collect(Collectors.toMap(FieldReflector::getName, Function.identity()));
     }
 
     /**
@@ -84,11 +81,11 @@ public final class ClassReflector<T> {
      *
      * @param destination the destination
      * @param source      the source
-     * @return t
+     * @return t t
      */
     public T update(T destination, T source) {
         this.updateReflectors.values()
-                .forEach(fieldReflector -> fieldReflector.update(destination, source));
+                             .forEach(fieldReflector -> fieldReflector.update(destination, source));
         return destination;
     }
 
@@ -101,11 +98,31 @@ public final class ClassReflector<T> {
      * @param fieldName the field name
      * @return the reflector
      */
-    public FieldReflector<T> getReflector(String fieldName) {
-        FieldReflector<T> fieldReflector = this.reflectors.get(fieldName);
+    public FieldReflector<T, Object> getReflector(String fieldName) {
+        FieldReflector<T, Object> fieldReflector = this.reflectors.get(fieldName);
         if (fieldReflector == null)
             throw new UnexpectedException(" No such field " + fieldName + " in " + this.clazz.getSimpleName());
         return fieldReflector;
+    }
+
+    /**
+     * <pre>
+     * Reflector for the fieldName.
+     * </pre>
+     *
+     * @param <V>       the type parameter
+     * @param fieldName the field name
+     * @param fieldType the field type
+     * @return the reflector
+     */
+    public <V> FieldReflector<T, V> getReflector(String fieldName, Class<V> fieldType) {
+        FieldReflector<T, ?> fieldReflector = this.reflectors.get(fieldName);
+        if (fieldReflector == null)
+            throw new UnexpectedException(" No such field " + fieldName + " in " + this.clazz.getSimpleName());
+        if (!fieldType.equals(fieldReflector.getType()))
+            throw new UnexpectedException(" Field" + fieldName + " in " + this.clazz.getSimpleName() + " has type " + fieldReflector.getType()
+                                                                                                                                    .getSimpleName() + " and not " + fieldType.getSimpleName());
+        return (FieldReflector<T, V>) fieldReflector;
     }
 
     /**
@@ -135,19 +152,39 @@ public final class ClassReflector<T> {
     }
 
     /**
-     * <pre>
-     * Returns a list of declared fields in the class and in the base class(es).
-     * </pre>
+     * Map the fields with values of the source object as values in a hash map.
      *
-     * @param cls the cls
-     * @return the declared fields
+     * @param source the source
+     * @return the hash map
      */
-    private List<Field> getDeclaredFields(Class<?> cls) {
-        List<Field> declaredFields = new LinkedList<>();
-        while (cls != null) {
-            Collections.addAll(declaredFields, cls.getDeclaredFields());
-            cls = cls.getSuperclass();
+    public HashMap<String, Object> mapValues(T source) {
+        HashMap<String, Object> result = new LinkedHashMap<>();
+        for (FieldReflector<T, ?> fieldReflector : this.reflectors.values()) {
+            Object value = fieldReflector.get(source);
+            if (value == null) continue;
+            result.put(fieldReflector.getName(), value);
         }
-        return declaredFields;
+        return result;
     }
+
+    /**
+     * Map the fields with values of the source objects as values in a hash map.
+     *
+     * @param sources the sources
+     * @return the hash map
+     */
+    public HashMap<String, List<Object>> mapValues(List<T> sources) {
+        HashMap<String, List<Object>> result = new LinkedHashMap<>();
+        for (FieldReflector<T, ?> fieldReflector : this.reflectors.values()) {
+            List<Object> values = sources
+                    .stream()
+                    .map(fieldReflector::get)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            if (values.isEmpty()) continue;
+            result.put(fieldReflector.getName(), values);
+        }
+        return result;
+    }
+
 }

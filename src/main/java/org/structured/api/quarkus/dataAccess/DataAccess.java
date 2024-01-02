@@ -1,4 +1,4 @@
-package org.structured.api.quarkus.dao;
+package org.structured.api.quarkus.dataAccess;
 
 
 import jakarta.enterprise.context.Dependent;
@@ -16,13 +16,14 @@ import org.structured.api.quarkus.reflection.Write;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.structured.api.quarkus.dao.PrimaryKey.ID;
+import static org.structured.api.quarkus.dataAccess.PrimaryKey.ID;
 
 
 /**
@@ -47,6 +48,13 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * </pre>
      */
     protected final Class<ENTITY> type;
+
+    /**
+     * <pre>
+     * The ClassReflector of the persisted Object
+     * </pre>
+     */
+    protected final ClassReflector<ENTITY> classReflector;
     /**
      * <pre>
      * The type of the persisted Object Primary Key
@@ -95,6 +103,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
         this.type = type;
         this.keyType = keyType;
         this.name = DataAccess.class.getSimpleName() + "<" + this.type.getSimpleName() + "," + this.keyType.getSimpleName() + ">";
+        this.classReflector = ClassReflector.ofClass(this.type);
     }
 
     /**
@@ -117,7 +126,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * @param id       the primary key to use, must be not null
      * @param expected if a persisted entity must exist
      * @return the entity for the primary key or null if not found. If no entity is found and expected is set to true ExpectedException is thrown.
-     * @see jakarta.persistence.EntityManager#find(Class, Object)
+     * @see jakarta.persistence.EntityManager#find(Class, Object) jakarta.persistence.EntityManager#find(Class, Object)
      */
     public ENTITY findById(PK id, boolean expected) {
         return assertNotNull(em().find(type, assertNotNull(id)), expected);
@@ -168,39 +177,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
             CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
             Root<ENTITY> entity = query.from(type);
             return em().createQuery(query.select(entity)
-                            .where(equals(column, value, notNull, entity, criteriaBuilder)))
-                    .getSingleResult();
-        } catch (NoResultException exception) {
-            return resultAs(exception, expected);
-        } catch (NonUniqueResultException exception) {
-            throw new ExpectedException(this.name + ": Filtered Entity is not unique.");
-        }
-    }
-
-    /**
-     * <pre>
-     * Finds in Database one entity that equals a specific content in a specified range of columns.
-     * </pre>
-     *
-     * @param columns  the columns to equal content for, the list is separated by ","
-     * @param content  the Object holding the content (the values columns)
-     * @param notNull  specifies if the value can be null, and in this case the null can used as value.
-     * @param expected specifies if an entity should be returned, or else a ExpectedException will be thrown
-     * @return the persisted entity
-     */
-    public ENTITY findByContentEquals(String columns, ENTITY content, boolean notNull, boolean expected) {
-        try {
-            CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
-            CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
-            Root<ENTITY> entity = query.from(type);
-            Expression<Boolean> contentEquals = Stream.of(columns.split("[,]"))
-                    .map(col -> equals(col, ClassReflector.ofObject(content)
-                            .get(content, col), notNull, entity, criteriaBuilder))
-                    .collect(Collectors.reducing(criteriaBuilder::and))
-                    .orElseThrow(() -> new IllegalArgumentException(" Bad Content " + columns));
-            return em().createQuery(query.select(entity)
-                            .where(contentEquals))
-                    .getSingleResult();
+                                         .where(equals(column, value, notNull, entity, criteriaBuilder)))
+                       .getSingleResult();
         } catch (NoResultException exception) {
             return resultAs(exception, expected);
         } catch (NonUniqueResultException exception) {
@@ -225,8 +203,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
             CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
             Root<ENTITY> entity = query.from(type);
             return em().createQuery(query.select(entity)
-                            .where(like(column, value, notNull, entity, criteriaBuilder)))
-                    .getSingleResult();
+                                         .where(like(column, value, notNull, entity, criteriaBuilder)))
+                       .getSingleResult();
         } catch (NoResultException exception) {
             return resultAs(exception, expected);
         } catch (NonUniqueResultException exception) {
@@ -243,10 +221,10 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      */
     public Stream<ENTITY> streamAll() {
         CriteriaQuery<ENTITY> query = em().getCriteriaBuilder()
-                .createQuery(this.type);
+                                          .createQuery(this.type);
         Root<ENTITY> entity = query.from(type);
         return em().createQuery(query.select(entity))
-                .getResultStream();
+                   .getResultStream();
     }
 
     /**
@@ -272,40 +250,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      */
     public Stream<ENTITY> streamPersisted(Collection<? extends PrimaryKey<? extends PK>> filter) {
         return streamByIds(filter.stream()
-                .map(PrimaryKey::getId)
-                .collect(Collectors.toList()));
-    }
-
-    /**
-     * <pre>
-     * Finds all entities whose value in a specified column is in the given list of filtered values.
-     * </pre>
-     *
-     * @param column the column to equal values for
-     * @param values the list of filtered values
-     * @return entities in a Stream&#x3C;ENTITY&#x3E;
-     */
-    public Stream<ENTITY> streamByColumnInValues(String column, Collection<? extends Object> values) {
-        return streamByColumnInValues(column, values, true);
-    }
-
-    /**
-     * <pre>
-     * Finds all entities whose value in a specified column is in the given list of filtered values.
-     * </pre>
-     *
-     * @param column  the column to values for
-     * @param values  the List of filtered values
-     * @param notNull if list of filtered values can be null : specifies if the values value can be null, and in this case the null is used as values.
-     * @return entities in a Stream&#x3C;ENTITY&#x3E;
-     */
-    public Stream<ENTITY> streamByColumnInValues(String column, Collection<? extends Object> values, boolean notNull) {
-        CriteriaQuery<ENTITY> query = em().getCriteriaBuilder()
-                .createQuery(this.type);
-        Root<ENTITY> entity = query.from(type);
-        return em().createQuery(query.select(entity)
-                        .where(in(column, values, notNull, entity)))
-                .getResultStream();
+                                 .map(PrimaryKey::getId)
+                                 .collect(Collectors.toList()));
     }
 
     /**
@@ -336,11 +282,34 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
         CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
         Root<ENTITY> entity = query.from(type);
         return em().createQuery(query.select(entity)
-                        .where(equals(column, value, notNull, entity, criteriaBuilder)))
-                .getResultStream();
+                                     .where(equals(column, value, notNull, entity, criteriaBuilder)))
+                   .getResultStream();
 
     }
 
+    /**
+     * <pre>
+     * Finds in Database the entities that equals a given content object.
+     * The content object must contain non null values just in the fields that are taking part in the filtering.
+     * The other null fields are to be ignored.
+     * No nulls can be used in the filtering.
+     * Example :
+     * content = [name ="abcd", no=2, street=null]
+     * result is where name = "abcd" and no = 2
+     * </pre>
+     *
+     * @param value the Object holding the content (the values columns)
+     * @return the persisted entity
+     */
+    public Stream<ENTITY> streamByContentEquals(ENTITY value) {
+        CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
+        CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
+        Root<ENTITY> entity = query.from(type);
+        HashMap<String, Object> mapValues = this.classReflector.mapValues(value);
+        return em().createQuery(query.select(entity)
+                                     .where(equals(mapValues, entity, criteriaBuilder)))
+                   .getResultStream();
+    }
 
     /**
      * <pre>
@@ -348,12 +317,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * The SQL Like operator is used.
      * </pre>
      *
-     * @param column  the column to value for
-     * @param value   the value to compare
+     * @param column the column to value for
+     * @param value  the value to compare
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> streamByColumnLikeValue(String column, String value) {
-        return this.streamByColumnLikeValue(column,value,true);
+        return this.streamByColumnLikeValue(column, value, true);
     }
 
     /**
@@ -372,8 +341,64 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
         CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
         Root<ENTITY> entity = query.from(type);
         return em().createQuery(query.select(entity)
-                        .where(like(column, value, notNull, entity, criteriaBuilder)))
-                .getResultStream();
+                                     .where(like(column, value, notNull, entity, criteriaBuilder)))
+                   .getResultStream();
+    }
+
+    /**
+     * <pre>
+     * Finds all entities whose value in a specified column is in the given list of filtered values.
+     * </pre>
+     *
+     * @param column the column to equal values for
+     * @param values the list of filtered values
+     * @return entities in a Stream&#x3C;ENTITY&#x3E;
+     */
+    public Stream<ENTITY> streamByColumnInValues(String column, Collection<? extends Object> values) {
+        return streamByColumnInValues(column, values, true);
+    }
+
+    /**
+     * <pre>
+     * Finds all entities whose value in a specified column is in the given list of filtered values.
+     * </pre>
+     *
+     * @param column  the column to values for
+     * @param values  the List of filtered values
+     * @param notNull if list of filtered values can be null : specifies if the values value can be null, and in this case the null is used as values.
+     * @return entities in a Stream&#x3C;ENTITY&#x3E;
+     */
+    public Stream<ENTITY> streamByColumnInValues(String column, Collection<? extends Object> values, boolean notNull) {
+        CriteriaQuery<ENTITY> query = em().getCriteriaBuilder()
+                                          .createQuery(this.type);
+        Root<ENTITY> entity = query.from(type);
+        return em().createQuery(query.select(entity)
+                                     .where(in(column, values, notNull, entity)))
+                   .getResultStream();
+    }
+
+    /**
+     * <pre>
+     * Finds in Database the entities that are in a given content list of given values.
+     * The content object must contain non null values just in the fields that are taking part in the filtering.
+     * The other null fields are to be ignored.
+     * No nulls can be used in the filtering.
+     * Example :
+     * content = [name =["abcd","bcde","1234"], no=[2,3], street=null]
+     * result is where name in ("abcd","bcde","1234") and no in (2,3)
+     * </pre>
+     *
+     * @param values the values
+     * @return the persisted entity
+     */
+    public Stream<ENTITY> streamByContentInValues(List<ENTITY> values) {
+        CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
+        CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
+        Root<ENTITY> entity = query.from(type);
+        HashMap<String, List<Object>> mapValues = this.classReflector.mapValues(values);
+        return em().createQuery(query.select(entity)
+                                     .where(in(mapValues, entity, criteriaBuilder)))
+                   .getResultStream();
     }
 
     /**
@@ -382,7 +407,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * </pre>
      *
      * @param entity the given entity
-     * @see jakarta.persistence.EntityManager#remove(Object)
+     * @see jakarta.persistence.EntityManager#remove(Object) jakarta.persistence.EntityManager#remove(Object)
      */
     public void remove(ENTITY entity) {
         em().remove(assertNotNull(entity));
@@ -425,7 +450,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
         CriteriaDelete<ENTITY> delete = criteriaBuilder.createCriteriaDelete(this.type);
         Root<ENTITY> entity = delete.from(type);
         em().createQuery(delete.where(equals(column, value, notNull, entity, criteriaBuilder)))
-                .executeUpdate();
+            .executeUpdate();
     }
 
     /**
@@ -442,7 +467,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
         CriteriaDelete<ENTITY> delete = criteriaBuilder.createCriteriaDelete(this.type);
         Root<ENTITY> entity = delete.from(type);
         em().createQuery(delete.where(in(column, values, notNull, entity)))
-                .executeUpdate();
+            .executeUpdate();
     }
 
     /**
@@ -452,9 +477,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      */
     public void removeAll() {
         CriteriaDelete<ENTITY> delete = em().getCriteriaBuilder()
-                .createCriteriaDelete(this.type);
+                                            .createCriteriaDelete(this.type);
         em().createQuery(delete)
-                .executeUpdate();
+            .executeUpdate();
     }
 
     /**
@@ -500,15 +525,15 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      */
     public Stream<ENTITY> updateByIds(Collection<ENTITY> sources, boolean allExpected) {
         final Map<PK, ENTITY> persistedMap = asMap(streamPersisted(sources));
-        return sources.stream().map(source -> {
-            PK id = source.getId();
-            if (persistedMap.containsKey(id))
-                return persistedMap.get(id).update(source);
-            else if (allExpected)
-                throw new UnexpectedException(this.name + ": Missing Entity in Update for PK=" + id.toString());
-            else
-                return source;
-        });
+        return sources.stream()
+                      .map(source -> {
+                          PK id = source.getId();
+                          if (persistedMap.containsKey(id)) return persistedMap.get(id)
+                                                                               .update(source);
+                          else if (allExpected)
+                              throw new UnexpectedException(this.name + ": Missing Entity in Update for PK=" + id.toString());
+                          else return source;
+                      });
     }
 
     /**
@@ -518,7 +543,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      *
      * @param entity the entity
      * @return the merged entity
-     * @see jakarta.persistence.EntityManager#merge(Object)
+     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)
      */
     public ENTITY merge(ENTITY entity) {
         return em().merge(assertNotNull(entity));
@@ -531,11 +556,11 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      *
      * @param sources the sources
      * @return the merged entities in a Stream&#x3C;ENTITY&#x3E;
-     * @see jakarta.persistence.EntityManager#merge(Object)
+     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)
      */
     public Stream<ENTITY> mergeAll(Collection<ENTITY> sources) {
         return sources.stream()
-                .map(this::merge);
+                      .map(this::merge);
     }
 
     /**
@@ -545,7 +570,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      *
      * @param source the source
      * @return the persisted entity
-     * @see jakarta.persistence.EntityManager#persist(Object)
+     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)
      */
     public ENTITY persist(ENTITY source) {
         em().persist(assertNotNull(source));
@@ -559,11 +584,11 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      *
      * @param sources the sources
      * @return the merged entities in a Stream&#x3C;ENTITY&#x3E;
-     * @see jakarta.persistence.EntityManager#persist(Object)
+     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)
      */
     public Stream<ENTITY> persistAll(Collection<ENTITY> sources) {
         return sources.stream()
-                .map(this::persist);
+                      .map(this::persist);
     }
 
 
@@ -574,7 +599,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * </pre>
      *
      * @param source the source
-     * @return entity
+     * @return entity entity
      */
     public ENTITY put(ENTITY source) {
         if (null == source.getId()) {
@@ -592,11 +617,11 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * </pre>
      *
      * @param sources the sources
-     * @return stream
+     * @return stream stream
      */
     public Stream<ENTITY> putAll(Collection<ENTITY> sources) {
         return sources.stream()
-                .map(this::put);
+                      .map(this::put);
 
     }
 
@@ -617,8 +642,30 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
         if (applyFilter(value, notNull)) {
             return criteriaBuilder.equal(entity.get(column), value);
         } else {
-            return entity.get(column).isNull();
+            return entity.get(column)
+                         .isNull();
         }
+    }
+
+    /**
+     * <pre>
+     * Builder for the equals expression extracting the matching values from a given map.
+     * Example :
+     * map = name ="abc", no =2;
+     * result is where name = "abc" and no=2
+     * </pre>
+     *
+     * @param values          the values in a hash map
+     * @param entity          the entity root
+     * @param criteriaBuilder the criteria builder
+     * @return the criteria builder expression
+     */
+    protected Expression<Boolean> equals(HashMap<String, Object> values, Root<ENTITY> entity, CriteriaBuilder criteriaBuilder) {
+        return values.entrySet()
+                     .stream()
+                     .map(entry -> criteriaBuilder.equal(entity.get(entry.getKey()), entry.getValue()))
+                     .collect(Collectors.reducing(criteriaBuilder::and))
+                     .orElseThrow(() -> new IllegalArgumentException(" Bad Content " + values));
     }
 
     /**
@@ -638,13 +685,14 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
         if (applyFilter(value, notNull)) {
             return criteriaBuilder.like(entity.get(column), value);
         } else {
-            return entity.get(column).isNull();
+            return entity.get(column)
+                         .isNull();
         }
     }
 
     /**
      * <pre>
-     * Builder for the in expression.
+     * Builder for the in expression
      * </pre>
      *
      * @param column  the column to filter for
@@ -656,10 +704,36 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
     protected Expression<Boolean> in(String column, Collection<? extends Object> values, boolean notNull, Root<ENTITY> entity) {
         column = columnFrom(column);
         if (applyFilter(values, notNull)) {
-            return entity.get(column).in(values);
+            return entity.get(column)
+                         .in(values);
         } else {
-            return entity.get(column).isNull();
+            return entity.get(column)
+                         .isNull();
         }
+    }
+
+
+    /**
+     * <pre>
+     * Builder for the in expression extracting the matching values from a given map.
+     * Example :
+     *     map = name =["abc","bcd","123"], no =2;
+     *     result is
+     *      where name in ("abc","bcd","123") and no in (2)
+     * </pre>
+     *
+     * @param values          the map of values to filter for
+     * @param entity          the entity root
+     * @param criteriaBuilder the criteria builder
+     * @return the criteria builder expression
+     */
+    protected Expression<Boolean> in(Map<String, List<Object>> values, Root<ENTITY> entity, CriteriaBuilder criteriaBuilder) {
+        return values.entrySet()
+                     .stream()
+                     .map(entry -> entity.get(entry.getKey())
+                                         .in(entry.getValue()))
+                     .collect(Collectors.reducing(criteriaBuilder::and))
+                     .orElseThrow(() -> new IllegalArgumentException(" Bad Content " + values));
     }
 
     /**
