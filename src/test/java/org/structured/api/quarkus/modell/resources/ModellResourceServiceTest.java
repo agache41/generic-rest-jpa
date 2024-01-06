@@ -75,12 +75,14 @@ public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<M
 
     @BeforeEach
     void beforeEach() {
+        System.out.println("beforeEach");
         ((ModellResourceService) this.getClient()).getDataAccess()
                                                   .beginTransaction();
     }
 
     @AfterEach
     void afterEach() {
+        System.out.println("afterEach");
         ((ModellResourceService) this.getClient()).getDataAccess()
                                                   .commitTransaction();
     }
