@@ -17,6 +17,9 @@
 
 package org.structured.api.quarkus.resourceService;
 
+import io.restassured.RestAssured;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import org.structured.api.quarkus.dataAccess.PrimaryKey;
 
@@ -26,12 +29,17 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class AbstractResourceServiceTest<T extends PrimaryKey<K>, K> implements ResourceService<T, K> {
+public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements ResourceService<T, K> {
+
+
+    static {
+        RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
+    }
 
     protected final Class<T> clazz;
     protected final String path;
 
-    public AbstractResourceServiceTest(Class<T> clazz, String path) {
+    public ResourceServiceTestClient(Class<T> clazz, String path) {
         assertNotNull(clazz, " Please provide a class !");
         this.clazz = clazz;
         assertFalse(path == null || path.isEmpty(), " Please provide a ResourceService Path !");
@@ -141,7 +149,7 @@ public class AbstractResourceServiceTest<T extends PrimaryKey<K>, K> implements 
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
-                      .get(this.path + "/autocomplete/{stringField}/like/{value}/asSortedSet", stringField, value + "%")
+                      .get(this.path + "/autocomplete/{stringField}/like/{value}/asSortedSet", stringField, value)
                       .then()
                       .statusCode(200)
                       .extract()

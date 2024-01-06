@@ -18,10 +18,6 @@
 package org.structured.api.quarkus.resourceService;
 
 
-import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
-import io.restassured.http.ContentType;
 import org.junit.jupiter.api.*;
 import org.structured.api.quarkus.dataAccess.PrimaryKey;
 import org.structured.api.quarkus.reflection.ClassReflector;
@@ -32,25 +28,29 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
 
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K> extends AbstractResourceServiceTest<T, K> {
+public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K> {
 
     private final List<T> insertData;
     private final List<T> updateData;
     private final FieldReflector<T, String> fieldReflector;
     private final String stringField;
+    private final ResourceService<T, K> client;
 
     public AbstractResourceServiceImplTest(Class<T> clazz, String path, List<T> insertData, List<T> updateData, String stringField) {
-        super(clazz, path);
+        this(new ResourceServiceTestClient<>(clazz, path), clazz, insertData, updateData, stringField);
+    }
+
+    public AbstractResourceServiceImplTest(ResourceService<T, K> client, Class<T> clazz, List<T> insertData, List<T> updateData, String stringField) {
+        this.client = client;
         assertEquals(insertData.size(), updateData.size(), " Please use two data lists of equal size!");
         this.insertData = insertData;
         this.updateData = updateData;
         if (stringField != null) {
-            this.fieldReflector = ClassReflector.ofClass(this.clazz)
+            this.fieldReflector = ClassReflector.ofClass(clazz)
                                                 .getReflector(stringField, String.class);
             this.stringField = stringField;
         } else {
@@ -59,9 +59,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
         }
     }
 
-    @BeforeAll
-    public static void beforeAll() {
-        RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
+    public ResourceService<T, K> getClient() {
+        return client;
     }
 
     @Test
@@ -75,7 +74,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
             assertNull(req.getId());
 
             //when
-            T res = this.post(req);
+            T res = this.getClient()
+                        .post(req);
 
             //then
             assertNotNull(res);
@@ -93,16 +93,16 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
     @Test
     @Order(20)
     public void testGet() {
-        for (int index = 0; index < insertData.size(); index++) {
+        for (T req : insertData) {
 
             //given
-            T req = this.insertData.get(index);
             assertNotNull(req);
             K id = req.getId();
             assertNotNull(id);
 
             //when
-            T res = get(id);
+            T res = this.getClient()
+                        .get(id);
 
             //then
             assertNotNull(res);
@@ -116,7 +116,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
     @Order(21)
     public void testGetAllAsList() {
         //when
-        List<T> res = this.getAllAsList();
+        List<T> res = this.getClient()
+                          .getAllAsList();
 
         //then
         assertNotNull(res);
@@ -133,7 +134,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
                                      .collect(Collectors.toList());
 
         //when
-        List<T> res = this.getByIdsAsList(ids);
+        List<T> res = this.getClient()
+                          .getByIdsAsList(ids);
 
         //then
         assertNotNull(res);
@@ -150,7 +152,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
                                      .collect(Collectors.toList());
 
         //when
-        List<T> res = this.postByIdsAsList(ids);
+        List<T> res = this.getClient()
+                          .postByIdsAsList(ids);
 
         //then
         assertNotNull(res);
@@ -162,16 +165,16 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
     @Test
     @Order(30)
     public void testPut() {
-        for (int index = 0; index < updateData.size(); index++) {
+        for (T req : updateData) {
 
             //given
-            T req = this.updateData.get(index);
             assertNotNull(req);
             K id = req.getId();
             assertNotNull(id);
 
             //when
-            T res = put(req);
+            T res = this.getClient()
+                        .put(req);
 
             //then
             assertNotNull(res);
@@ -183,20 +186,21 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
     @Test
     @Order(40)
     public void testDelete() {
-        for (int index = 0; index < updateData.size(); index++) {
+        for (T req : updateData) {
 
             //given
-            T req = this.updateData.get(index);
             assertNotNull(req);
             K id = req.getId();
             assertNotNull(id);
 
             //when
-            this.delete(id);
+            this.getClient()
+                .delete(id);
         }
 
         //then
-        Assertions.assertTrue(this.getAllAsList()
+        Assertions.assertTrue(this.getClient()
+                                  .getAllAsList()
                                   .isEmpty());
     }
 
@@ -206,7 +210,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
     public void testPostListAsList() {
 
         //when
-        List<T> res = postListAsList(this.insertData);
+        List<T> res = this.getClient()
+                          .postListAsList(this.insertData);
 
         //then
         assertNotNull(res);
@@ -220,7 +225,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
                                      .getId());
         }
         assertEquals(this.insertData, res);
-        assertEquals(this.insertData, this.getAllAsList());
+        assertEquals(this.insertData, this.getClient()
+                                          .getAllAsList());
     }
 
     @Test
@@ -228,30 +234,35 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
     public void testPutListAsList() {
 
         //when
-        List<T> res = this.putListAsList(this.updateData);
+        List<T> res = this.getClient()
+                          .putListAsList(this.updateData);
 
         //then
         assertNotNull(res);
         assertEquals(this.updateData.size(), res.size());
         assertEquals(this.updateData, res);
-        assertEquals(this.updateData, this.getAllAsList());
+        assertEquals(this.updateData, this.getClient()
+                                          .getAllAsList());
     }
 
     @Test
     @Order(70)
     public void testDeleteByIds() {
         //given
-        List<K> ids = this.getAllAsList()
+        List<K> ids = this.getClient()
+                          .getAllAsList()
                           .stream()
                           .map(PrimaryKey::getId)
                           .collect(Collectors.toList());
         assertFalse(ids.isEmpty());
 
         //when
-        this.deleteByIds(ids);
+        this.getClient()
+            .deleteByIds(ids);
 
         //then
-        Assertions.assertTrue(this.getAllAsList()
+        Assertions.assertTrue(this.getClient()
+                                  .getAllAsList()
                                   .isEmpty());
     }
 
@@ -260,15 +271,18 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
     public void testDeleteByIdsInPath() {
         //given
         this.testPostListAsList();
-        List<K> ids = this.getAllAsList()
+        List<K> ids = this.getClient()
+                          .getAllAsList()
                           .stream()
                           .map(PrimaryKey::getId)
                           .collect(Collectors.toList());
         assertFalse(ids.isEmpty());
         //when
-        this.deleteByIdsInPath(ids);
+        this.getClient()
+            .deleteByIdsInPath(ids);
         //then
-        Assertions.assertTrue(this.getAllAsList()
+        Assertions.assertTrue(this.getClient()
+                                  .getAllAsList()
                                   .isEmpty());
     }
 
@@ -278,25 +292,28 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
     public void testGetFilterStringFieldEqualsValueAsList() {
         //given
         if (this.stringField == null) return;
-        List<T> insertedData = this.postListAsList(this.insertData);
-        assertEquals(this.insertData.size(), this.getAllAsList()
+        List<T> insertedData = this.getClient()
+                                   .postListAsList(this.insertData);
+        assertEquals(this.insertData.size(), this.getClient()
+                                                 .getAllAsList()
                                                  .size());
 
-        for (int index = 0; index < insertedData.size(); index++) {
-            T source = insertedData.get(index);
+        for (T source : insertedData) {
             String value = this.fieldReflector.get(source);
 
             //when
-            List<T> res = this.getFilterStringFieldEqualsValueAsList(this.stringField, value);
+            List<T> res = this.getClient()
+                              .getFilterStringFieldEqualsValueAsList(this.stringField, value);
 
             //then
             assertNotNull(res);
             assertEquals(1, res.size());
             assertEquals(source, res.get(0));
         }
-        this.deleteAll(insertedData.stream()
-                                   .map(PrimaryKey::getId)
-                                   .collect(Collectors.toList()));
+        this.getClient()
+            .deleteByIds(insertedData.stream()
+                                     .map(PrimaryKey::getId)
+                                     .collect(Collectors.toList()));
     }
 
     @Test
@@ -305,25 +322,28 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
         if (this.stringField == null) return;
 
         //given
-        List<T> insertedData = this.postListAsList(this.insertData);
-        assertEquals(this.insertData.size(), this.getAllAsList()
+        List<T> insertedData = this.getClient()
+                                   .postListAsList(this.insertData);
+        assertEquals(this.insertData.size(), this.getClient()
+                                                 .getAllAsList()
                                                  .size());
 
-        for (int index = 0; index < insertedData.size(); index++) {
-            T source = insertedData.get(index);
+        for (T source : insertedData) {
             String value = this.fieldReflector.get(source);
 
             //when
-            List<T> res = this.getFilterStringFieldLikeValueAsList(stringField, value);
+            List<T> res = this.getClient()
+                              .getFilterStringFieldLikeValueAsList(stringField, value);
 
             //then
             assertNotNull(res);
             assertEquals(1, res.size());
             assertEquals(source, res.get(0));
         }
-        this.deleteAll(insertedData.stream()
-                                   .map(PrimaryKey::getId)
-                                   .collect(Collectors.toList()));
+        this.getClient()
+            .deleteByIds(insertedData.stream()
+                                     .map(PrimaryKey::getId)
+                                     .collect(Collectors.toList()));
     }
 
     @Test
@@ -331,22 +351,26 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
     public void testGetFilterStringFieldInValuesAsList() {
         if (this.stringField == null) return;
         //given
-        List<T> insertedData = this.postListAsList(this.insertData);
-        assertEquals(this.insertData.size(), this.getAllAsList()
+        List<T> insertedData = this.getClient()
+                                   .postListAsList(this.insertData);
+        assertEquals(this.insertData.size(), this.getClient()
+                                                 .getAllAsList()
                                                  .size());
 
         List<String> values = insertedData.stream()
                                           .map(this.fieldReflector::get)
                                           .collect(Collectors.toList());
         //when
-        List<T> res = this.getFilterStringFieldInValuesAsList(stringField, values);
+        List<T> res = this.getClient()
+                          .getFilterStringFieldInValuesAsList(stringField, values);
 
         //then
         assertNotNull(res);
         assertEquals(insertedData.size(), res.size());
-        this.deleteAll(insertedData.stream()
-                                   .map(PrimaryKey::getId)
-                                   .collect(Collectors.toList()));
+        this.getClient()
+            .deleteByIds(insertedData.stream()
+                                     .map(PrimaryKey::getId)
+                                     .collect(Collectors.toList()));
     }
 
 
@@ -355,8 +379,10 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
     public void testGetAutocompleteStringFieldLikeValueAsSortedSet() {
         if (this.stringField == null) return;
         //given
-        List<T> insertedData = this.postListAsList(this.insertData);
-        assertEquals(this.insertData.size(), this.getAllAsList()
+        List<T> insertedData = this.getClient()
+                                   .postListAsList(this.insertData);
+        assertEquals(this.insertData.size(), this.getClient()
+                                                 .getAllAsList()
                                                  .size());
 
         List<String> values = insertedData.stream()
@@ -367,7 +393,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
                                          .filter(v -> v.startsWith(value))
                                          .collect(Collectors.toSet());
             //when
-            Set<String> res = new HashSet<>(this.getAutocompleteStringFieldLikeValueAsSortedSet(stringField, value));
+            Set<String> res = new HashSet<>(this.getClient()
+                                                .getAutocompleteStringFieldLikeValueAsSortedSet(stringField, value + "%"));
 
             //then
             assertNotNull(res);
@@ -375,35 +402,40 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
             assertEquals(expected, res);
         }
 
-        this.deleteAll(insertedData.stream()
-                                   .map(PrimaryKey::getId)
-                                   .collect(Collectors.toList()));
+        this.getClient()
+            .deleteByIds(insertedData.stream()
+                                     .map(PrimaryKey::getId)
+                                     .collect(Collectors.toList()));
     }
 
     @Test
     @Order(130)
     public void testPostFilterContentEqualsAsList() {
         //given
-        List<T> insertedData = this.postListAsList(this.insertData);
-        assertEquals(this.insertData.size(), this.getAllAsList()
+        List<T> insertedData = this.getClient()
+                                   .postListAsList(this.insertData);
+        assertEquals(this.insertData.size(), this.getClient()
+                                                 .getAllAsList()
                                                  .size());
         for (T value : insertedData) {
-            K id = value.getId();
-            value.setId(null);
+            // K id = value.getId();
+            // value.setId(null);
 
             //when
-            List<T> res = postFilterContentEqualsAsList(value);
+            List<T> res = this.getClient()
+                              .postFilterContentEqualsAsList(value);
 
             //then
             assertNotNull(res);
             assertEquals(1, res.size());
-            value.setId(id);
+            // value.setId(id);
             assertEquals(value, res.get(0));
         }
 
-        this.deleteAll(insertedData.stream()
-                                   .map(PrimaryKey::getId)
-                                   .collect(Collectors.toList()));
+        this.getClient()
+            .deleteByIds(insertedData.stream()
+                                     .map(PrimaryKey::getId)
+                                     .collect(Collectors.toList()));
     }
 
 
@@ -411,37 +443,30 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
     @Order(140)
     public void postFilterContentInAsList() {
         //given
-        List<T> insertedData = this.postListAsList(this.insertData);
-        assertEquals(this.insertData.size(), this.getAllAsList()
+        List<T> insertedData = this.getClient()
+                                   .postListAsList(this.insertData);
+        assertEquals(this.insertData.size(), this.getClient()
+                                                 .getAllAsList()
                                                  .size());
         for (T value : insertedData) {
-            K id = value.getId();
-            value.setId(null);
+            // K id = value.getId();
+            // value.setId(null);
             List<T> values = List.of(value);
 
             //when
-            List<T> res = this.postFilterContentInAsList(values);
+            List<T> res = this.getClient()
+                              .postFilterContentInAsList(values);
 
             //then
             assertNotNull(res);
             assertEquals(1, res.size());
-            value.setId(id);
+            // value.setId(id);
             assertEquals(value, res.get(0));
         }
 
-
-        this.deleteAll(insertedData.stream()
-                                   .map(PrimaryKey::getId)
-                                   .collect(Collectors.toList()));
-    }
-
-    protected void deleteAll(List<K> ids) {
-        given().contentType(ContentType.JSON)
-               .body(ids)
-               .when()
-               .accept(ContentType.JSON)
-               .delete(this.path + "/byIds")
-               .then()
-               .statusCode(204);
+        this.getClient()
+            .deleteByIds(insertedData.stream()
+                                     .map(PrimaryKey::getId)
+                                     .collect(Collectors.toList()));
     }
 }

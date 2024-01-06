@@ -209,7 +209,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     public List<String> getAutocompleteStringFieldLikeValueAsSortedSet(@PathParam("stringField") String stringField,
                                                                        @PathParam("value") String value) {
         if (value == null || value.length() < 4) return Collections.emptyList();
-        FieldReflector<T, String> fieldReflector = ClassReflector.ofClass(dataAccess.getType())
+        FieldReflector<T, String> fieldReflector = ClassReflector.ofClass(getDataAccess().getType())
                                                                  .getReflector(stringField, String.class);
         return getDataAccess()
                 .streamByColumnLikeValue(stringField, value)
