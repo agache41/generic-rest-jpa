@@ -1,9 +1,7 @@
 package org.structured.api.quarkus.modell.resources;
 
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.structured.api.quarkus.modell.entities.Modell;
 import org.structured.api.quarkus.resourceService.AbstractResourceServiceImplTest;
 
@@ -13,6 +11,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 
 @TestInstance(PER_CLASS)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<Modell, Long> {
     static final Modell modell1 = Modell.builder()
                                         .name("aaaa")
