@@ -32,6 +32,7 @@ public class AbstractLocalH2DataAccess<ENTITY extends PrimaryKey<PK>, PK> extend
     public void beginTransaction() {
         EntityTransaction transaction = this.em.getTransaction();
         transaction.begin();
+        System.out.println("Transaction Begin");
     }
 
     public void commitTransaction() {
@@ -39,5 +40,6 @@ public class AbstractLocalH2DataAccess<ENTITY extends PrimaryKey<PK>, PK> extend
         EntityTransaction transaction = this.em.getTransaction();
         transaction.commit();
         this.em.clear();
+        System.out.println("Transaction Commit");
     }
 }
