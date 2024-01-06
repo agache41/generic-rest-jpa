@@ -48,7 +48,6 @@ public class H2HEntityManagerFactory {
 
     public H2HEntityManagerFactory() {
         this.entityManagerFactory = new HibernatePersistenceProvider().createContainerEntityManagerFactory(archiverPersistenceUnitInfo(), config());
-        System.out.println("Configuring H2 with Hibernate " + config());
     }
 
     public EntityManagerFactory getEntityManagerFactory() {
