@@ -23,6 +23,12 @@ import org.structured.api.quarkus.dataAccess.PrimaryKey;
 
 import java.util.List;
 
+/**
+ * The interface Resource service defines the REST Methods to be used on the Entity Domain Model
+ *
+ * @param <T> the type parameter
+ * @param <K> the type parameter
+ */
 public interface ResourceService<T extends PrimaryKey<K>, K> {
     /**
      * <pre>
