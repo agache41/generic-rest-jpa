@@ -134,7 +134,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
 
     /**
      * <pre>
-     * Finds all entities whose value in a specified field is like the given value.
+     * Finds all values in a database column whose value is like the given value.
      * The SQL Like operator will be used.
      * The field can only be of String type.
      * </pre>
@@ -145,7 +145,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("autocomplete/{stringField}/like/{value}/asSortedSet")
+    @Path("/autocomplete/{stringField}/like/{value}/asSortedSet")
     List<String> getAutocompleteStringFieldLikeValueAsSortedSet(@PathParam("stringField") String stringField,
                                                                 @PathParam("value") String value);
 
@@ -257,7 +257,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
 
     /**
      * <pre>
-     * Deletes all the entities for the given ids.
+     * Deletes all the entities for the given ids in the request Body
      * </pre>
      *
      * @param ids the ids

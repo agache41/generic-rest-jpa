@@ -12,7 +12,8 @@ needed methods to each domain entity.
 The idea behind it is that just by adding these generic services on each entity of your database you get a general 70 -
 90% implementation of the services needed by the application, thus allowing the developer to focus just on the complex
 cases, in other words removing as much as "boilerplate code" as possible.
-And that comes with an already developed [test units](https://junit.org/junit5/) that bring 100% coverage to
+
+And that comes with already developed [test units](https://junit.org/junit5/) that bring 100% coverage to
 all of the provided service methods.
 
 The library can be very easily extended to add more functionality by reusing the provided components.
@@ -41,14 +42,13 @@ Initially designed for [Quarkus](https://quarkus.io/) it can also be used in any
 
 Let's start with a database table named Modell and the associated JPA Entity.
 
-1. Let the **entity** implement the [PrimaryKey](/jpa/src/main/java/org/structured/api/quarkus/dataAccess) interface:
+1. Let the **entity** implement
+   the [PrimaryKey](src/main/java/org/structured/api/quarkus/dataAccess/PrimaryKey.java) interface :
 
 ```java
 
 @Data
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 public class Modell implements PrimaryKey<Long> {
 
@@ -72,12 +72,44 @@ public class Modell implements PrimaryKey<Long> {
 }
 ```
 
-2. Extend your **resource service** from [JpaRepo](/jpa/src/main/java/io/github/cepr0/crud/repo/JpaRepo.java):
+2. Extend your **resource service**
+   from [AbstractResourceServiceImpl](src/main/java/org/structured/api/quarkus/resourceService/AbstractResourceServiceImpl.java):
 
 ```java
-public interface ModelRepo extends JpaRepo<Model, Integer> {
+
+@Path("/modell")
+@Transactional
+public class ModellResourceService extends AbstractResourceServiceImpl<Modell, Long> {
 }
 ```
+
+and ... you're pretty much done. For real.
+
+For the **Modell** entity the following REST services are available :
+
+- GET /modell/{id} - finds and returns the corresponding entity for the given id.
+- GET /modell/all/asList - returns all the entities for the given table.
+- GET /modell/byIds/{ids}/asList - finds and returns the corresponding entity for the given list of ids.
+- POST /modell/byIds/asList - finds and returns the corresponding entity for the given list of ids using post.
+- GET /modell/filter/{stringField}/equals/{value}/asList - finds all entities whose value in a specified string field is
+  equal
+  the given value.
+- GET /modell/filter/{stringField}/like/{value}/asList - finds all entities whose value in a specified field is like the
+  given value.
+- GET /modell/filter/{stringField}/in/{values}/asList - finds all entities whose value in a specified field is in the
+  given values list.
+- GET /modell/autocomplete/{stringField}/like/{value}/asSortedSet - finds all values in a database column whose value is
+  like the given value.
+- POST /modell/filter/content/equals/value/asList - finds in Database the entities that equals a given content object.
+- POST /modell/filter/content/in/values/asList - finds in Database the entities that are in a given content list of
+  given values.
+- POST /modell/ - inserts a new entity in the database or updates an existing one.
+- POST /modell/list/asList - inserts a list of new entities in the database or updates the existing ones.
+- PUT /modell/ - updates an existing entity by id.
+- PUT /modell/list/asList - updates existing entities by id.
+- DELETE /modell/{id}/ - deletes the entity for the given id.
+- DELETE /modell/byIds - deletes all the entities for the given ids in the request body
+- DELETE /modell/byIds/{ids} - deletes all the entities for the given ids.
 
 3. Prepare request and response **DTOs** of your entity - inherit them
    from [CrudRequest](/base/src/main/java/io/github/cepr0/crud/dto/CrudRequest.java)
