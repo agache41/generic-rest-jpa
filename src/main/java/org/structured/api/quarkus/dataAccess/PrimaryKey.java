@@ -19,6 +19,7 @@ package org.structured.api.quarkus.dataAccess;
 
 
 import org.structured.api.quarkus.reflection.ClassReflector;
+import org.structured.api.quarkus.reflection.Update;
 
 /**
  * <pre>
@@ -65,7 +66,7 @@ public interface PrimaryKey<PK> {
     /**
      * <pre>
      * Updates the current object from the given source.
-     * The method works in tandem with the {@link org.structured.api.quarkus.reflection.Write @Write } annotation
+     * The method works in tandem with the @ {@link Update } annotation
      * Only the marked fields will be updated, null values rules are respected.
      * {@link  jakarta.validation.constraints.NotNull jakarta.validation.constraints.@NotNull } annotation on the fields is checked.
      * </pre>

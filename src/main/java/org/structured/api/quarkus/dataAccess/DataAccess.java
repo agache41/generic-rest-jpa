@@ -29,7 +29,7 @@ import jakarta.persistence.criteria.*;
 import org.structured.api.quarkus.exceptions.ExpectedException;
 import org.structured.api.quarkus.exceptions.UnexpectedException;
 import org.structured.api.quarkus.reflection.ClassReflector;
-import org.structured.api.quarkus.reflection.Write;
+import org.structured.api.quarkus.reflection.Update;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
@@ -503,7 +503,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * Updates an entity.
      * The code locates the corresponding persisted entity based on the provided primary key.
      * The Entity with the given id must exist in the Database or a UnexpectedException is thrown.
-     * The persisted entity is then updated from the source entity using only the fields marked with {@link Write @Write} annotation
+     * The persisted entity is then updated from the source entity using only the fields marked with @ {@link Update } annotation
      * </pre>
      *
      * @param source the object that contains the id and is the source for update
@@ -518,7 +518,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * Updates multiple entities.
      * The code locates the corresponding persisted entities based on the provided primary keys.
      * All the Entities with the given id must exist in the Database or a UnexpectedException is thrown.
-     * The persisted entities are then updated from the source entities using only the fields marked with {@link Write @Write} annotation
+     * The persisted entities are then updated from the source entities using only the fields marked with @ {@link Update } annotation
      * </pre>
      *
      * @param sources the Collection of objects that contains the ids and is the source for update
@@ -532,7 +532,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * <pre>
      * Updates multiple entities.
      * The code locates the corresponding persisted entities based on the provided primary keys.
-     * The persisted entities are then updated from the source entities using only the fields marked with {@link Write @Write} annotation
+     * The persisted entities are then updated from the source entities using only the fields marked with @ {@link Update } annotation
      * </pre>
      *
      * @param sources     the Collection of objects that contains the ids and is the source for update
@@ -610,7 +610,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
 
     /**
      * <pre>
-     * Persists or updates an entity using the update mechanism of the annotation {@link Write @Write},
+     * Persists or updates an entity using the update mechanism of the annotation @ {@link Update },
      * depending on the entity state, if it is already persisted or not.
      * </pre>
      *
@@ -628,7 +628,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
     /**
      * <pre>
      * Persists or updates a list of entities
-     * using the update mechanism of the annotation {@link Write @Write},
+     * using the update mechanism of the annotation @ {@link Update},
      * depending on the entity state, if it is already persisted or not.
      * </pre>
      *

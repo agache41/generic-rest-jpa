@@ -28,13 +28,13 @@ import static org.structured.api.quarkus.utils.ReflectionUtils.getDeclaredFields
 
 /**
  * <pre>
- * The type Classreflector.
+ * The type {@link ClassReflector}
  * The class processes a given class and builds the necessary structure for implementing the update pattern.
  * It reflects the properties and methods of the given class and builds a dynamic class cache.
  * Typical usage :
  *      T source;
  *      T destination;
- *      destination = ClassReflector.ofObject(destination).update(destination, source);
+ *      destination = {@link ClassReflector#ofClass(Class)}.update(destination, source);
  * </pre>
  *
  * @param <T> the type parameter
@@ -93,12 +93,13 @@ public final class ClassReflector<T> {
 
     /**
      * <pre>
-     * Given a source and destination, it will update all corresponding fields according to the @Write annotation.
+     * Given a source and a destination,
+     * it will update all corresponding fields annotated with the @ {@link Update} annotation.
      * </pre>
      *
      * @param destination the destination
      * @param source      the source
-     * @return t t
+     * @return the destination
      */
     public T update(T destination, T source) {
         this.updateReflectors.values()
@@ -203,5 +204,4 @@ public final class ClassReflector<T> {
         }
         return result;
     }
-
 }

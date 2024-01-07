@@ -66,13 +66,13 @@ public final class FieldReflector<T, V> {
         try {
             this.setter = this.getSetter();
             this.getter = this.getGetter();
-            this.notNull = field.getAnnotation(Write.class)
+            this.notNull = field.getAnnotation(Update.class)
                                 .notNull()
                     || field.isAnnotationPresent(NotNull.class);
-            this.updateable = (field.isAnnotationPresent(Write.class)
-                    || enclosingClass.isAnnotationPresent(Write.class))
+            this.updateable = (field.isAnnotationPresent(Update.class)
+                    || enclosingClass.isAnnotationPresent(Update.class))
                     && !field.isAnnotationPresent(Id.class)
-                    && !field.isAnnotationPresent(Write.excluded.class);
+                    && !field.isAnnotationPresent(Update.excluded.class);
             this.valid = true;
         } catch (Exception e) {
             //
@@ -150,7 +150,7 @@ public final class FieldReflector<T, V> {
      * @param c the c
      * @return the boolean
      */
-    public static boolean isMapCollection(Class c) {
+    public static boolean isClassMap(Class c) {
         return Map.class.isAssignableFrom(c);
     }
 
@@ -163,7 +163,7 @@ public final class FieldReflector<T, V> {
      * @return the boolean
      */
     public static boolean isMap(Object ob) {
-        return ob != null && isMapCollection(ob.getClass());
+        return ob != null && isClassMap(ob.getClass());
     }
 
     /**

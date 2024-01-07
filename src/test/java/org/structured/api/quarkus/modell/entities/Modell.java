@@ -19,15 +19,12 @@ package org.structured.api.quarkus.modell.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.structured.api.quarkus.dataAccess.PrimaryKey;
-import org.structured.api.quarkus.reflection.Write;
+import org.structured.api.quarkus.reflection.Update;
 
 @Data
 @Builder
@@ -38,18 +35,19 @@ public class Modell implements PrimaryKey<Long> {
 
     @Id
     @NotNull
-    @SequenceGenerator(name = "modellSeq", sequenceName = "modell_id_seq", allocationSize = 1)
-    @GeneratedValue(generator = "modellSeq")
-    // or alternative
-    // @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Write
+    @Update
     private String name;
 
-    @Write(notNull = false)
+    @Update(notNull = false)
     private String street;
 
-    @Write(notNull = false)
-    private Integer no;
+    @Update(notNull = false)
+    private Integer number;
+
+    @EqualsAndHashCode.Exclude
+    private long age;
+
 }

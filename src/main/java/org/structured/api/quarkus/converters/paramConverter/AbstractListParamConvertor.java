@@ -28,8 +28,6 @@ import java.util.stream.Stream;
 
 import static java.util.function.Predicate.not;
 
-//import static org.structured.api.quarkus.util.PredicateUtils.not;
-
 /**
  * The type Abstract list param convertor.
  *

@@ -25,11 +25,11 @@ import java.lang.annotation.*;
  * This is a marker Annotation for the fields of the Entities to be updated from a GUI request.
  *
  * When a field is annotated, it will be updated from the provided source when the update method is called.
- * When used on the class, all fields will be updated, except the ones annotated with @Write.exclude
+ * When used on the class, all fields will be updated, except the ones annotated with @ {@link Update.excluded} annotation.
  *
  * By default the values can not be set to null, so if a null value is received, it will be skipped,
  * and the previous value will be kept.
- * The notNull() set to false means that the field will be updated also when a null value is provided.
+ * The {@link Update#notNull()}  set to false means that the field will be updated also when a null value is provided.
  * This is only recommended to be used when the transfer object is always complete.
  * </pre>
  */
@@ -37,7 +37,7 @@ import java.lang.annotation.*;
 @Target({ElementType.TYPE, ElementType.FIELD})
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Write {
+public @interface Update {
     /**
      * <pre>
      * Indicates that a set to null operation is allowed.
@@ -50,6 +50,7 @@ public @interface Write {
     /**
      * <pre>
      * Indicates that this field is to be skipped in update.
+     * Used in conjunction with the @ {@link Update} Annotation placed at class level.
      * </pre>
      */
     @Documented
