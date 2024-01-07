@@ -230,7 +230,7 @@ public class ModellResourceService extends AbstractResourceServiceImpl<Modell, L
 
 and we're ready to go:
 
-- [GET] /modell/oder/100 - Finds and returns all the models over 100
+- [GET] /modell/over/100 - Finds and returns all the models over 100
 
 Please do notice the this.getDataAccess() method that gets overridden behind the scenes
 with [Lombok](https://projectlombok.org/)
@@ -287,9 +287,64 @@ public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<M
 
 ```
 
-###   
+Notice the use of the @Order(1000) annotation, this will ensure the correct order of running.
 
-Notice tha use of the @Order(1000) annotation, this will ensure the correct order of running.
+### Generating Front End model classes and services.
+
+My application grows steadily and every day I add new entities. It's time to present the resource services in a
+code-ready manner.
+The smallrye-openapi open API setting ensures the generation of the open API yaml file.
+
+```properties
+quarkus.smallrye-openapi.store-schema-directory=openapi/api
+quarkus.smallrye-openapi.open-api-version=3.0.3
+```
+
+Then the `org.openapitools:openapi-generator-maven-plugin:7.0.1` plugin will generate the classes for the front end.
+Here is an example for [Angular](https://angular.io/) using [Typescript](https://www.typescriptlang.org/).
+
+```xml
+
+<profile>
+    <id>generate</id>
+    <activation>
+        <property>
+            <name>generate</name>
+        </property>
+    </activation>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <!-- RELEASE_VERSION -->
+                <version>7.0.1</version>
+                <!-- /RELEASE_VERSION -->
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/openapi/api/openapi.yaml</inputSpec>
+                            <generatorName>typescript-angular</generatorName>
+                            <configOptions>
+                                <sourceFolder>src/gen/java/main</sourceFolder>
+                            </configOptions>
+                            <output>${project.basedir}/openapi/generated</output>
+                            <verbose>true</verbose>
+                            <cleanupOutput>true</cleanupOutput>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</profile>
+```
+
+![OpenapiGeneration](/readme.res/OpenapiGeneration.png)
 
 ## Demo
 
