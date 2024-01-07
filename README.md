@@ -28,6 +28,7 @@ Initially designed for [Quarkus](https://quarkus.io/) it can also be used in any
     - [Data Access](#data-access)
     - [Resource Service again](#resource-service-again)
     - [Testing](#testing)
+    - [Testing my own methods](#testing-my-own-methods)
 - [Demo](#demo)
 - [Requirements](#requirements)
 - [Installation](#installation)
@@ -219,7 +220,7 @@ public class ModellResourceService extends AbstractResourceServiceImpl<Modell, L
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/over/100")
-    public List<Modell> get() {
+    public List<Modell> getAllModellsOver100() {
         return this.getDataAccess()
                    .getAllModellsOver100();
     }
@@ -258,153 +259,37 @@ public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<M
 ```
 
 The test goes through all the provided methods :
-![ModelResourcesServiceTest](/res/ModelResourcesServiceTest.png)
 
-##
+![ModelResourcesServiceTest](/readme.res/ModelResourcesServiceTest.png)
 
-##
+Notice that the entities used in the test are omitted for simplicity from the example.
 
-#
+### Testing my own methods
 
-#
-
-#
-
-#
-
-#
-
-#
-
-#
-
-#
-
-#
-
-#
-
-#
-
-#
-
-#
-
-#
-
-#
-
-#
-
-from [CrudRequest](/base/src/main/java/io/github/cepr0/crud/dto/CrudRequest.java)
-and [CrudResponse](/base/src/main/java/io/github/cepr0/crud/dto/CrudResponse.java) interfaces:
+The ModellResourceServiceTest ist a UnitTest where test methods can be further added :
 
 ```java
 
-@Data
-public class ModelRequest implements CrudRequest {
-    private String name;
+@QuarkusTest
+public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<Modell, Long> {
+    public ModellResourceServiceTest() {
+        /// .....
+    }
+
+    @Test
+    @Order(1000)
+    void testGetAllModellsOver100() {
+
+        /// your favorite method gets tested here 
+    }
+
 }
 
-@Data
-public class ModelResponse implements CrudResponse<Integer> {
-    private Integer id;
-    private String name;
-}
 ```
 
-4. Prepare a **mapper** between the entity and its DTOs based
-   on [CrudMapper](/base/src/main/java/io/github/cepr0/crud/mapper/CrudMapper.java):
+###   
 
-```java
-
-@Mapper(config = CrudMapper.class)
-public abstract class ModelMapper implements CrudMapper<Model, ModelRequest, ModelResponse> {
-}
-```
-
-(The library uses [MapStruct](http://mapstruct.org/) framework to generate code of the mappers, so you have to add its
-dependency to your project. Note that you should use `CrudMapper.class` to config your mapper. )
-
-5. Prepare a service which will serve your DTOs and entities, extending it from
-   [AbstractCrudService](/base/src/main/java/io/github/cepr0/crud/service/AbstractCrudService.java):
-
-```java
-
-@Service
-public class ModelService extends AbstractCrudService<Model, Integer, ModelRequest, ModelResponse> {
-    public ModelService(ModelRepo repo, ModelMapper mapper) {
-        super(repo, mapper);
-    }
-}
-```
-
-6. And finally extend your REST controller
-   from [AbstractCrudController](/web/src/main/java/io/github/cepr0/crud/api/AbstractCrudController.java):
-
-```java
-
-@RestController
-@RequestMapping("models")
-public class ModelController extends AbstractCrudController<Model, Integer, ModelRequest, ModelResponse> {
-
-    public ModelController(ModelService service) {
-        super(service);
-    }
-
-    @PostMapping
-    @Override
-    public ResponseEntity<ModelResponse> create(@Valid @RequestBody ModelRequest request) {
-        return super.create(request);
-    }
-
-    @PatchMapping("/{id}")
-    @Override
-    public ResponseEntity<ModelResponse> update(@PathVariable("id") Integer id, @Valid @RequestBody ModelRequest request) {
-        return super.update(id, request);
-    }
-
-    @DeleteMapping("/{id}")
-    @Override
-    public ResponseEntity delete(@PathVariable("id") Integer id) {
-        return super.delete(id);
-    }
-
-    @GetMapping("/{id}")
-    @Override
-    public ResponseEntity<ModelResponse> getOne(@PathVariable("id") Integer id) {
-        return super.getOne(id);
-    }
-
-    @GetMapping
-    @Override
-    public ResponseEntity<List<ModelResponse>> getAll() {
-        return super.getAll();
-    }
-}
-```
-
-Then your application is fully setup to perform CRUD operations.
-
-If you need to work with MongoDB you should extend your entities (documents)
-from [IdentifiableEntity](/model/src/main/java/io/github/cepr0/crud/model/IdentifiableEntity.java), and your
-repositories from [MongoRepo](/mongo/src/main/java/io/github/cepr0/crud/repo/MongoRepo.java):
-
-```java
-
-@Data
-@Document
-public class Model implements IdentifiableEntity<String> {
-    @Id
-    private String id;
-    // other stuff
-}
-
-public interface ModelRepo extends MongoRepo<Model, String> {
-}
-```
-
-Other steps (from 3 to 6) are the same.
+Notice tha use of the @Order(1000) annotation, this will ensure the correct order of running.
 
 ## Demo
 
@@ -412,95 +297,34 @@ Other steps (from 3 to 6) are the same.
 
 ## Requirements
 
-The library works with Java 8+, Spring Framework 4.3+ (Spring Boot 1.5+) and MapStruct 1.3+.
+The library works with Java 11+, Quarkus 3.4.3+, JPA 2+
 
 ## Installation
 
-Depending on the type of your database, add `io.github.cepr0:generic-crud-jpa` or `io.github.cepr0:generic-crud-mongo`
-dependency to your project. Additionally you can add `io.github.cepr0:generic-crud-web` if you have a web layer in your
-application and if you want to use `AbstractCrudCtroller` (and other features) from this module:
+Simply add  `io.structured.api:quarkus-structured-api` dependency to your project.
 
 ```xml
 
-<properties>
-    <!-- ... -->
-    <generic-crud.version>0.3.1</generic-crud.version>
-</properties>
-
-<dependensies>
-<!-- ... -->
-
-<!-- For JPA databases -->
 <dependency>
-    <groupId>io.github.cepr0</groupId>
-    <artifactId>generic-crud-jpa</artifactId>
-    <version>${generic-crud.version}</version>
+    <groupId>io.structured.api</groupId>
+    <artifactId>quarkus-structured-api</artifactId>
+    <version>0.0.1</version>
 </dependency>
-
-<!-- For MongoDB -->
-<dependency>
-    <groupId>io.github.cepr0</groupId>
-    <artifactId>generic-crud-mongo</artifactId>
-    <version>${generic-crud.version}</version>
-</dependency>
-
-<dependency>
-    <groupId>io.github.cepr0</groupId>
-    <artifactId>generic-crud-web</artifactId>
-    <version>${generic-crud.version}</version>
-</dependency>
-
-<!-- ... -->
-</dependensies>
 ```
 
-The library uses [MapStruct](http://mapstruct.org) framework, so add its dependency
-and [configuration](http://mapstruct.org/documentation/dev/reference/html/#setup):
+For the test context the tests-classified jar is needed:
 
 ```xml
 
-<properties>
-    <!-- ... -->
-    <mapstruct.version>1.3.0.Final</mapstruct.version>
-</properties>
-
-<dependensies>
-<!-- ... -->
 <dependency>
-    <groupId>org.mapstruct</groupId>
-    <artifactId>mapstruct</artifactId>
-    <version>${mapstruct.version}</version>
-    <scope>provided</scope>
+    <groupId>io.structured.api</groupId>
+    <artifactId>quarkus-structured-api</artifactId>
+    <version>0.0.1</version>
+    <classifier>tests</classifier>
+    <type>test-jar</type>
+    <scope>test</scope>
 </dependency>
-<!-- ... -->
-</dependensies>
-
-<build>
-<plugins>
-    <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-            <annotationProcessorPaths>
-                <path>
-                    <groupId>org.mapstruct</groupId>
-                    <artifactId>mapstruct-processor</artifactId>
-                    <version>${mapstruct.version}</version>
-                </path>
-                <path>
-                    <groupId>org.projectlombok</groupId>
-                    <artifactId>lombok</artifactId>
-                    <version>${lombok.version}</version>
-                </path>
-            </annotationProcessorPaths>
-        </configuration>
-    </plugin>
-</plugins>
-</build>
 ```
-
-Note that the second `path` in the `annotationProcessorPaths` section is necessary
-only if you are using [Lombok](https://projectlombok.org/) in your project.
 
 ## Features
 
