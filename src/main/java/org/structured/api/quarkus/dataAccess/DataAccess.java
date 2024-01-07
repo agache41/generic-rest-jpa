@@ -28,8 +28,8 @@ import jakarta.persistence.NonUniqueResultException;
 import jakarta.persistence.criteria.*;
 import org.structured.api.quarkus.exceptions.ExpectedException;
 import org.structured.api.quarkus.exceptions.UnexpectedException;
-import org.structured.api.quarkus.reflection.ClassReflector;
-import org.structured.api.quarkus.reflection.Update;
+import org.structured.api.quarkus.update.ClassReflector;
+import org.structured.api.quarkus.update.Update;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;

@@ -23,8 +23,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.structured.api.quarkus.dataAccess.DataAccess;
 import org.structured.api.quarkus.dataAccess.PrimaryKey;
-import org.structured.api.quarkus.reflection.ClassReflector;
-import org.structured.api.quarkus.reflection.FieldReflector;
+import org.structured.api.quarkus.update.ClassReflector;
+import org.structured.api.quarkus.update.FieldReflector;
 
 import java.util.Collections;
 import java.util.List;

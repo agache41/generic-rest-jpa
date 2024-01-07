@@ -3,8 +3,9 @@
 Structured Resources Service and Data Access API for Quarkus
 
 **structuredAPI** is a [JEE](https://en.wikipedia.org/wiki/Jakarta_EE) library targeted on
-creating generic Resource Service and Data Access Layers on top
-of [JPA](https://en.wikipedia.org/wiki/Jakarta_Persistence).
+creating generic Resource Services and Data Access Layers on top
+of [JPA](https://en.wikipedia.org/wiki/Jakarta_Persistence)
+and [CDI](https://docs.oracle.com/javaee/6/tutorial/doc/giwhl.html).
 It develops [REST](https://en.wikipedia.org/wiki/REST) Services starting from
 the [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) pattern and extends it by adding frequently
 needed methods to each domain entity.
@@ -14,13 +15,19 @@ The idea behind it is that just by adding these generic services on each entity 
 cases, in other words removing as much as "boilerplate code" as possible.
 
 And that comes with already developed [test units](https://junit.org/junit5/) that bring 100% coverage to
-all of the provided service methods.
+all provided service methods.
 
-The library can be very easily extended to add more functionality by reusing the provided components.
+The library can be very easily extended to add more functionality by reusing and extending the provided components.
 
-Initially designed for [Quarkus](https://quarkus.io/) it can also be used in any JEE/CDI/JPA compliant environment.
+Initially designed for [Quarkus](https://quarkus.io/) it can also be used in any JEE / CDI / JPA compliant environment.
 
 - [Quick start](#quick-start)
+    - [Entity](#entity)
+    - [Resource Service](#resource-service)
+    - [Updating](#updating)
+    - [Data Access](#data-access)
+    - [Resource Service again](#resource-service-again)
+    - [Testing](#testing)
 - [Demo](#demo)
 - [Requirements](#requirements)
 - [Installation](#installation)
@@ -42,8 +49,10 @@ Initially designed for [Quarkus](https://quarkus.io/) it can also be used in any
 
 Let's start with a database table named Modell and the associated JPA Entity.
 
-1. Let the **entity** implement
-   the [PrimaryKey](src/main/java/org/structured/api/quarkus/dataAccess/PrimaryKey.java) interface :
+### Entity
+
+Let the **entity** implement the [PrimaryKey](src/main/java/org/structured/api/quarkus/dataAccess/PrimaryKey.java)
+interface :
 
 ```java
 
@@ -72,8 +81,12 @@ public class Modell implements PrimaryKey<Long> {
 }
 ```
 
-2. Extend your **resource service**
-   from [AbstractResourceServiceImpl](src/main/java/org/structured/api/quarkus/resourceService/AbstractResourceServiceImpl.java):
+Notice the used @Data annotation from [Lombok](https://projectlombok.org/).
+
+### Resource Service
+
+Extend your **resource service**
+from [AbstractResourceServiceImpl](src/main/java/org/structured/api/quarkus/resourceService/AbstractResourceServiceImpl.java):
 
 ```java
 
@@ -83,7 +96,7 @@ public class ModellResourceService extends AbstractResourceServiceImpl<Modell, L
 }
 ```
 
-and ... you're pretty much done. For real.
+and ... you're pretty much done.
 
 For the **Modell** entity the following REST services are available :
 
@@ -111,9 +124,180 @@ For the **Modell** entity the following REST services are available :
 - DELETE /modell/byIds - deletes all the entities for the given ids in the request body
 - DELETE /modell/byIds/{ids} - deletes all the entities for the given ids.
 
-3. Prepare request and response **DTOs** of your entity - inherit them
-   from [CrudRequest](/base/src/main/java/io/github/cepr0/crud/dto/CrudRequest.java)
-   and [CrudResponse](/base/src/main/java/io/github/cepr0/crud/dto/CrudResponse.java) interfaces:
+### Updating
+
+What does the [@Update](src/main/java/org/structured/api/quarkus/update/Update.java) annotation do ?
+
+The Resource Service uses the entity as both [DAO](https://en.wikipedia.org/wiki/Data_access_object)
+and [DTO](https://en.wikipedia.org/wiki/Data_transfer_object). Upon update though it is important to be able to
+configure which fields participate in the update process and how null values impact that.
+
+When a field is annotated, it will be updated from the provided source during a PUT or POST operation.
+
+When used on the class, all fields will be updated, except the ones annotated with @Update.excluded annotation.
+
+If a field is not annotated, it will not participate in the update process. That is general the case for the id field
+and for our last field in the example (age).
+
+By default, during the update the value can not be set to null, so if a null value is received, it will be skipped.
+Exception can be enforced with @Update(notNull = false) but only when @NotNull is not used on the field.
+This is only recommended to be used when the update source transfer object is always complete.
+
+### Data Access
+
+Extending the [DAO](https://en.wikipedia.org/wiki/Data_access_object) layer
+
+In complex cases the **Data Access** of the entity must be extended, by adding the new data methods.
+Let's start by extending [DataAccess](src/main/java/org/structured/api/quarkus/dataAccess/DataAccess.java).
+
+```java
+
+@Dependent
+public class ModellDataAccess extends DataAccess<Modell, Long> {
+    @Inject
+    public ModellDataAccess() {
+        super(Modell.class, Long.class);
+    }
+
+    public List<Modell> getAllModellsOver100() {
+        CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
+        CriteriaQuery<Modell> query = criteriaBuilder.createQuery(type);
+        Root<Modell> entity = query.from(type);
+        return em().createQuery(query.select(entity)
+                                     .where(criteriaBuilder.greaterThan(entity.get("age"), 100L)))
+                   .getResultList();
+    }
+
+}
+
+```
+
+The method getAllModellsOver100() uses the underlining em() method to access
+the available [EntityManager](https://docs.oracle.com/javaee%2F7%2Fapi%2F%2F/javax/persistence/EntityManager.html) and
+builds the query using
+the [CriteriaBuilder](https://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/querycriteria.html).
+
+Or if a [JPQL](https://en.wikibooks.org/wiki/Java_Persistence/JPQL) approach is to be considered :
+
+```java
+
+@Dependent
+public class ModellDataAccess extends DataAccess<Modell, Long> {
+    @Inject
+    public ModellDataAccess() {
+        super(Modell.class, Long.class);
+    }
+
+    public List<Modell> getAllModellsOver100() {
+        return em().createQuery(" select t from Modell where t.age > 100")
+                   .getResultList();
+    }
+}
+
+```
+
+### Resource Service again
+
+Now let's use this newly ModellDataAccess in our Resource Service:
+
+```java
+
+@Getter
+@Path("/modell")
+@Transactional
+
+public class ModellResourceService extends AbstractResourceServiceImpl<Modell, Long> {
+
+    @Inject
+    ModellDataAccess dataAccess;
+
+    /**
+     * Finds and returns all the models over 100
+     *
+     * @return the models list.
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/over/100")
+    public List<Modell> get() {
+        return this.getDataAccess()
+                   .getAllModellsOver100();
+    }
+}
+
+```
+
+and we're ready to go:
+
+- [GET] /modell/oder/100 - Finds and returns all the models over 100
+
+Please do notice the this.getDataAccess() method that gets overridden behind the scenes
+with [Lombok](https://projectlombok.org/)
+
+### Testing
+
+So far so good. But how can I be sure that the generated services do really work on my platform or with my entities ?
+Not to mention that there are already 17 methods in the service, and that goes for each entity.
+
+Let's start by creating the **TestUnit** by
+extending  [AbstractResourceServiceImplTest](src/main/java/org/structured/api/quarkus/resourceService/AbstractResourceServiceImpl.java).
+
+```java
+
+@QuarkusTest
+public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<Modell, Long> {
+    public ModellResourceServiceTest() {
+        super(Modell.class, // - the entity class
+                "/modell", //  - the controller path
+                Arrays.asList(modell1, modell2, modell3, modell4, modell5), // - one list of entities to insert
+                Arrays.asList(modell1updated, modell2updated, modell3updated, modell4updated, modell5updated), // - one list of entities to update 
+                "name"); // - the name of field of type string to take part in filter methods
+    }
+}
+
+```
+
+The test goes through all the provided methods :
+![ModelResourcesServiceTest](/res/ModelResourcesServiceTest.png)
+
+##
+
+##
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+from [CrudRequest](/base/src/main/java/io/github/cepr0/crud/dto/CrudRequest.java)
+and [CrudResponse](/base/src/main/java/io/github/cepr0/crud/dto/CrudResponse.java) interfaces:
 
 ```java
 

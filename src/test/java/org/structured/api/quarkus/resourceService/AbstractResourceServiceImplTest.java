@@ -20,8 +20,8 @@ package org.structured.api.quarkus.resourceService;
 
 import org.junit.jupiter.api.*;
 import org.structured.api.quarkus.dataAccess.PrimaryKey;
-import org.structured.api.quarkus.reflection.ClassReflector;
-import org.structured.api.quarkus.reflection.FieldReflector;
+import org.structured.api.quarkus.update.ClassReflector;
+import org.structured.api.quarkus.update.FieldReflector;
 
 import java.util.HashSet;
 import java.util.List;

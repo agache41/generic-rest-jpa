@@ -24,7 +24,7 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.structured.api.quarkus.dataAccess.PrimaryKey;
-import org.structured.api.quarkus.reflection.Update;
+import org.structured.api.quarkus.update.Update;
 
 @Data
 @Builder

@@ -15,7 +15,7 @@
  *    limitations under the License.
  */
 
-package org.structured.api.quarkus.reflection;
+package org.structured.api.quarkus.update;
 
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;

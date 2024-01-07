@@ -18,8 +18,8 @@
 package org.structured.api.quarkus.dataAccess;
 
 
-import org.structured.api.quarkus.reflection.ClassReflector;
-import org.structured.api.quarkus.reflection.Update;
+import org.structured.api.quarkus.update.ClassReflector;
+import org.structured.api.quarkus.update.Update;
 
 /**
  * <pre>
