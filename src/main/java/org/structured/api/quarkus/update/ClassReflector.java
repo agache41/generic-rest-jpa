@@ -58,7 +58,7 @@ public final class ClassReflector<T> {
 
         this.updateReflectors = this.reflectors.values()
                                                .stream()
-                                               .filter(FieldReflector::isUpdateable)
+                                               .filter(FieldReflector::isUpdatable)
                                                .collect(Collectors.toMap(FieldReflector::getName, Function.identity()));
     }
 
@@ -134,13 +134,13 @@ public final class ClassReflector<T> {
      * @return the reflector
      */
     public <V> FieldReflector<T, V> getReflector(String fieldName, Class<V> fieldType) {
-        FieldReflector<T, ?> fieldReflector = this.reflectors.get(fieldName);
+        FieldReflector<T, V> fieldReflector = (FieldReflector<T, V>) this.reflectors.get(fieldName);
         if (fieldReflector == null)
             throw new UnexpectedException(" No such field " + fieldName + " in " + this.clazz.getSimpleName());
         if (!fieldType.equals(fieldReflector.getType()))
             throw new UnexpectedException(" Field" + fieldName + " in " + this.clazz.getSimpleName() + " has type " + fieldReflector.getType()
                                                                                                                                     .getSimpleName() + " and not " + fieldType.getSimpleName());
-        return (FieldReflector<T, V>) fieldReflector;
+        return fieldReflector;
     }
 
     /**

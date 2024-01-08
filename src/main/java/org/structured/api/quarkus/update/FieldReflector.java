@@ -17,7 +17,6 @@
 
 package org.structured.api.quarkus.update;
 
-import jakarta.validation.constraints.NotNull;
 import org.structured.api.quarkus.dataAccess.PrimaryKey;
 
 import java.lang.reflect.Field;
@@ -44,11 +43,11 @@ public final class FieldReflector<T, V> {
     private final String name;
     private final Class<T> enclosingClass;
     private final Class<V> type;
-    private Method getter;
-    private Method setter;
-    private boolean notNull;
-    private boolean updateable;
-    private boolean valid;
+    private final Method getter;
+    private final Method setter;
+    private final boolean notNull;
+    private final boolean updatable;
+    private final boolean valid;
 
     /**
      * <pre>
@@ -62,22 +61,41 @@ public final class FieldReflector<T, V> {
         this.enclosingClass = enclosingClass;
         this.name = field.getName();
         this.type = (Class<V>) field.getType();
+
+        boolean lValid;
+        Method lGetter = null;
+        Method lSetter = null;
         try {
-            this.setter = this.getSetter();
-            this.getter = this.getGetter();
-            this.updateable = field.isAnnotationPresent(Update.class) // if the field is annotated
-                    || (enclosingClass.isAnnotationPresent(Update.class)  // or the class is annotated
-                    && !field.isAnnotationPresent(Update.excluded.class)); // and the field is not excluded
-            this.notNull = this.updateable // wil be used only on updatable fields
-                    && ((field.isAnnotationPresent(NotNull.class) // if the field has notnull
-                    || (field.isAnnotationPresent(Update.class) && field.getAnnotation(Update.class) // or the field is annotated
-                                                                        .notNull()))
-                    || (enclosingClass.isAnnotationPresent(Update.class) && enclosingClass.getAnnotation(Update.class) // or the class is annotated
-                                                                                          .notNull())
-            );
-            this.valid = true;
+            lGetter = this.getGetter();
+            lSetter = this.getSetter();
+            lValid = true;
         } catch (Exception e) {
-            //
+            lValid = false;
+        }
+        this.valid = lValid;
+
+        if (!this.valid) {
+            this.getter = null;
+            this.setter = null;
+            this.updatable = false;
+            this.notNull = false;
+            return;
+        }
+        this.getter = lGetter;
+        this.setter = lSetter;
+        // if the field is annotated
+        if (field.isAnnotationPresent(Update.class)) {
+            this.updatable = true;
+            this.notNull = field.getAnnotation(Update.class)
+                                .notNull();
+            // or the class is annotated and the field is not excluded
+        } else if (enclosingClass.isAnnotationPresent(Update.class) && !field.isAnnotationPresent(Update.excluded.class)) {
+            this.updatable = true;
+            this.notNull = enclosingClass.getAnnotation(Update.class)
+                                         .notNull();
+        } else {
+            this.updatable = false;
+            this.notNull = false;
         }
     }
 
@@ -128,7 +146,7 @@ public final class FieldReflector<T, V> {
      * @param c the c
      * @return the boolean
      */
-    public static boolean isClassCollection(Class c) {
+    public static boolean isClassCollection(Class<?> c) {
         return Collection.class.isAssignableFrom(c);
     }
 
@@ -152,7 +170,7 @@ public final class FieldReflector<T, V> {
      * @param c the c
      * @return the boolean
      */
-    public static boolean isClassMap(Class c) {
+    public static boolean isClassMap(Class<?> c) {
         return Map.class.isAssignableFrom(c);
     }
 
@@ -186,7 +204,7 @@ public final class FieldReflector<T, V> {
             }
             // null case for entities
             if (sourceValue instanceof PrimaryKey<?>) {
-                PrimaryKey<?> entity = (PrimaryKey) sourceValue;
+                PrimaryKey<?> entity = (PrimaryKey<?>) sourceValue;
                 //if the provide entity is nullified
                 if (entity.getId() == null) {
                     if (this.notNull) {
@@ -198,7 +216,7 @@ public final class FieldReflector<T, V> {
             }
             // fix for using cascade all on hibernate
             if (isCollection(sourceValue)) {
-                final Collection destinationCollection = (Collection) getter.invoke(destination);
+                final Collection<?> destinationCollection = (Collection<?>) getter.invoke(destination);
                 if (destinationCollection != null) {
                     destinationCollection.clear();
                     destinationCollection.addAll((Collection) sourceValue);
@@ -206,7 +224,7 @@ public final class FieldReflector<T, V> {
                 }
             }
             if (isMap(sourceValue)) {
-                final Map destinationMap = (Map) getter.invoke(destination);
+                final Map<?, ?> destinationMap = (Map<?, ?>) getter.invoke(destination);
                 if (destinationMap != null) {
                     destinationMap.clear();
                     destinationMap.putAll((Map) sourceValue);
@@ -245,7 +263,7 @@ public final class FieldReflector<T, V> {
      */
     public void set(T source, V value) {
         try {
-            this.setter.invoke(source);
+            this.setter.invoke(source, value);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new IllegalArgumentException(e);
         }
@@ -291,8 +309,8 @@ public final class FieldReflector<T, V> {
      *
      * @return the boolean
      */
-    public boolean isUpdateable() {
-        return updateable;
+    public boolean isUpdatable() {
+        return updatable;
     }
 
     /**
