@@ -17,7 +17,6 @@
 
 package org.structured.api.quarkus.update;
 
-import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import org.structured.api.quarkus.dataAccess.PrimaryKey;
 
@@ -66,13 +65,16 @@ public final class FieldReflector<T, V> {
         try {
             this.setter = this.getSetter();
             this.getter = this.getGetter();
-            this.notNull = field.getAnnotation(Update.class)
-                                .notNull()
-                    || field.isAnnotationPresent(NotNull.class);
-            this.updateable = (field.isAnnotationPresent(Update.class)
-                    || enclosingClass.isAnnotationPresent(Update.class))
-                    && !field.isAnnotationPresent(Id.class)
-                    && !field.isAnnotationPresent(Update.excluded.class);
+            this.updateable = field.isAnnotationPresent(Update.class) // if the field is annotated
+                    || (enclosingClass.isAnnotationPresent(Update.class)  // or the class is annotated
+                    && !field.isAnnotationPresent(Update.excluded.class)); // and the field is not excluded
+            this.notNull = this.updateable // wil be used only on updatable fields
+                    && ((field.isAnnotationPresent(NotNull.class) // if the field has notnull
+                    || (field.isAnnotationPresent(Update.class) && field.getAnnotation(Update.class) // or the field is annotated
+                                                                        .notNull()))
+                    || (enclosingClass.isAnnotationPresent(Update.class) && enclosingClass.getAnnotation(Update.class) // or the class is annotated
+                                                                                          .notNull())
+            );
             this.valid = true;
         } catch (Exception e) {
             //

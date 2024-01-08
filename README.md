@@ -282,7 +282,7 @@ Notice the use of the @Order(1000) annotation, this will ensure the correct orde
 
 My application grows steadily and every day I add new entities. It's time to present the resource services to my clients
 in a
-code-ready manner.
+ready to code manner.
 The smallrye-openapi open API setting ensures the generation of the open API yaml file.
 
 ```properties
