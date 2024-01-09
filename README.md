@@ -76,7 +76,7 @@ Notice the used @Data annotation from [Lombok](https://projectlombok.org/).
 ### Resource Service
 
 Extend your **resource service**
-from [AbstractResourceServiceImpl](src/main/java/io/klebrit/generic/api/resourceService/AbstractResourceServiceImpl.java):
+from [AbstractResourceServiceImpl](src/main/java/io/smartlib/generic/rest/jpa/resourceService/AbstractResourceServiceImpl.java):
 
 ```java
 
@@ -116,7 +116,7 @@ For the **Modell** entity the following REST services are available :
 
 ### Updating
 
-What does the [@Update](src/main/java/io/klebrit/generic/api/update/Update.java) annotation do ?
+What does the [@Update](src/main/java/io/smartlib/generic/rest/jpa/update/Update.java) annotation do ?
 
 The Resource Service uses the entity as both [DAO](https://en.wikipedia.org/wiki/Data_access_object)
 and [DTO](https://en.wikipedia.org/wiki/Data_transfer_object). Upon update though it is important to be able to
@@ -230,7 +230,7 @@ So far so good. But how can I be sure that the generated services do really work
 Not to mention that there are already 17 methods in the service, and that goes for each entity.
 
 Let's start by creating the **TestUnit** by
-extending  [AbstractResourceServiceImplTest](src/main/java/io/klebrit/generic/api/resourceService/AbstractResourceServiceImpl.java).
+extending  [AbstractResourceServiceImplTest](src/main/java/io/smartlib/generic/rest/jpa/resourceService/AbstractResourceServiceImpl.java).
 
 ```java
 
