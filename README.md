@@ -41,7 +41,7 @@ Let's start with a database table named Modell and the associated JPA Entity.
 
 ### Entity
 
-Let the **entity** implement the [PrimaryKey](src/main/java/org/structured/api/quarkus/dataAccess/PrimaryKey.java)
+Let the **entity** implement the [PrimaryKey](src/main/java/io/klebrit/generic/api/dataAccess/PrimaryKey.java)
 interface :
 
 ```java
@@ -76,7 +76,7 @@ Notice the used @Data annotation from [Lombok](https://projectlombok.org/).
 ### Resource Service
 
 Extend your **resource service**
-from [AbstractResourceServiceImpl](src/main/java/org/structured/api/quarkus/resourceService/AbstractResourceServiceImpl.java):
+from [AbstractResourceServiceImpl](src/main/java/io/klebrit/generic/api/resourceService/AbstractResourceServiceImpl.java):
 
 ```java
 
@@ -116,7 +116,7 @@ For the **Modell** entity the following REST services are available :
 
 ### Updating
 
-What does the [@Update](src/main/java/org/structured/api/quarkus/update/Update.java) annotation do ?
+What does the [@Update](src/main/java/io/klebrit/generic/api/update/Update.java) annotation do ?
 
 The Resource Service uses the entity as both [DAO](https://en.wikipedia.org/wiki/Data_access_object)
 and [DTO](https://en.wikipedia.org/wiki/Data_transfer_object). Upon update though it is important to be able to
@@ -138,7 +138,7 @@ This is only recommended to be used when the update source transfer object is al
 Extending the [DAO](https://en.wikipedia.org/wiki/Data_access_object) layer
 
 In complex cases the **Data Access** of the entity must be extended, by adding the new data methods.
-Let's start by extending [DataAccess](src/main/java/org/structured/api/quarkus/dataAccess/DataAccess.java).
+Let's start by extending [DataAccess](src/main/java/io/klebrit/generic/api/dataAccess/DataAccess.java).
 
 ```java
 
@@ -230,7 +230,7 @@ So far so good. But how can I be sure that the generated services do really work
 Not to mention that there are already 17 methods in the service, and that goes for each entity.
 
 Let's start by creating the **TestUnit** by
-extending  [AbstractResourceServiceImplTest](src/main/java/org/structured/api/quarkus/resourceService/AbstractResourceServiceImpl.java).
+extending  [AbstractResourceServiceImplTest](src/main/java/io/klebrit/generic/api/resourceService/AbstractResourceServiceImpl.java).
 
 ```java
 
