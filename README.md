@@ -1,8 +1,8 @@
-# structuredAPI
+# Generic REST JPA
 
-Structured Resources Service and Data Access API for Quarkus
+Generic REST Resources Service API and Data Access over JPA for JEE / Quarkus
 
-**structuredAPI** is a [JEE](https://en.wikipedia.org/wiki/Jakarta_EE) library targeted on
+**Generic REST JPA** is a [JEE](https://en.wikipedia.org/wiki/Jakarta_EE) library targeted on
 creating generic Resource Services and Data Access Layers on top
 of [JPA](https://en.wikipedia.org/wiki/Jakarta_Persistence)
 and [CDI](https://docs.oracle.com/javaee/6/tutorial/doc/giwhl.html).
