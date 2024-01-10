@@ -14,7 +14,7 @@
         on top of JPA and CDI. It develops REST Services starting from the CRUD pattern and extends it by adding
         frequently needed methods to each domain entity.
     </description>
-    <url>https://github.com/agache41/structuredAPI</url>
+    <url>https://github.com/agache41/generic-rest-jpa</url>
 
     <licenses>
         <license>
@@ -30,11 +30,11 @@
         </developer>
     </developers>
 
-    <!--    <scm>-->
-    <!--        <connection>scm:git:git://github.com/simpligility/ossrh-demo.git</connection>-->
-    <!--        <developerConnection>scm:git:ssh://github.com:simpligility/ossrh-demo.git</developerConnection>-->
-    <!--        <url>http://github.com/simpligility/ossrh-demo/tree/master</url>-->
-    <!--    </scm>-->
+    <scm>
+        <connection>scm:git:https://github.com/agache41/generic-rest-jpa.git</connection>
+        <developerConnection>scm:git:https://github.com/agache41/generic-rest-jpa.git</developerConnection>
+        <url>https://github.com/agache41/generic-rest-jpa</url>
+    </scm>
 
     <distributionManagement>
         <snapshotRepository>
@@ -42,6 +42,7 @@
             <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
+
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
@@ -152,6 +153,37 @@
                     </execution>
                 </executions>
             </plugin>
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-gpg-plugin</artifactId>-->
+            <!--                <version>3.1.0</version>-->
+            <!--                <executions>-->
+            <!--                    <execution>-->
+            <!--                        <id>sign-artifacts</id>-->
+            <!--                        <phase>verify</phase>-->
+            <!--                        <goals>-->
+            <!--                            <goal>sign</goal>-->
+            <!--                        </goals>-->
+            <!--                    </execution>-->
+            <!--                </executions>-->
+            <!--            </plugin>-->
+            <plugin>
+                <groupId>org.simplify4u.plugins</groupId>
+                <artifactId>sign-maven-plugin</artifactId>
+                <version>1.0.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+
+                    </execution>
+                </executions>
+                <configuration>
+                    <!-- the same id as in settings.xml -->
+                    <!--                    <serverId>sign-key-id</serverId>-->
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <profiles>
@@ -159,20 +191,20 @@
             <id>release</id>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.1.0</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
+                    <!--                    <plugin>-->
+                    <!--                        <groupId>org.apache.maven.plugins</groupId>-->
+                    <!--                        <artifactId>maven-gpg-plugin</artifactId>-->
+                    <!--                        <version>3.1.0</version>-->
+                    <!--                        <executions>-->
+                    <!--                            <execution>-->
+                    <!--                                <id>sign-artifacts</id>-->
+                    <!--                                <phase>verify</phase>-->
+                    <!--                                <goals>-->
+                    <!--                                    <goal>sign</goal>-->
+                    <!--                                </goals>-->
+                    <!--                            </execution>-->
+                    <!--                        </executions>-->
+                    <!--                    </plugin>-->
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
