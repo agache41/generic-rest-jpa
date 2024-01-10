@@ -180,6 +180,8 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <!-- the same id as in settings.xml -->
+                    <serverId>sign-key-id</serverId>
                     <skipNoKey>false</skipNoKey>
                 </configuration>
             </plugin>
