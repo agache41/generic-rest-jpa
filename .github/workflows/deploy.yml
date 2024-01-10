@@ -22,6 +22,9 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
+          server-id: 'ossrh' # must match the serverId configured for the nexus-staging-maven-plugin
+          server-username: OSSRH_USERNAME # Env var that holds your OSSRH user name
+          server-password: OSSRH_PASSWORD # Env var that holds your OSSRH user pw
           cache: maven
       - name: Install Maven
         uses: yuzhiyongcn/setup-maven@v1.0.0
