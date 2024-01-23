@@ -24,51 +24,30 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.util.List;
-import java.util.Map;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Modell implements PrimaryKey<Long>, Updateable<Modell> {
-
+public class MapEntity implements PrimaryKey<Long>, Updateable<Modell> {
     @Id
     @NotNull
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Update
-    private String name;
+    private String subName;
 
     @Update(notNull = false)
-    private String street;
+    private String subStreet;
 
     @Update(notNull = false)
-    private Integer number;
+    private Integer subNumber;
 
     @EqualsAndHashCode.Exclude
-    private long age;
+    private long subAge;
 
-    @Update
-    @OneToOne(mappedBy = "modell")
-    private ValueEntity valueEntity;
-
-    @Update
-    private List<Integer> collectionValues;
-
-    @Update
-    @OneToMany(mappedBy = "modell")
-    private List<CollectionEntity> collectionEntities;
-
-    @Update
-    @MapKey(name = "id")
-    @OneToMany(mappedBy = "modell")
-    private Map<Long, CollectionEntity> mapEntities;
-
-    @Update
-    @ElementCollection
-    private Map<Long, String> mapValues;
-
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "modell_id", referencedColumnName = "id")
+    private Modell modell;
 }

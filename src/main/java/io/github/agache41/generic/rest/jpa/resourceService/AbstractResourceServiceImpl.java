@@ -21,6 +21,7 @@ import io.github.agache41.generic.rest.jpa.dataAccess.DataAccess;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.FieldReflector;
+import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.*;
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
  * @param <T> the type parameter
  * @param <K> the type parameter
  */
-public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> implements ResourceService<T, K> {
+public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Updateable<T>, K> implements ResourceService<T, K> {
 
     /**
      * <pre>

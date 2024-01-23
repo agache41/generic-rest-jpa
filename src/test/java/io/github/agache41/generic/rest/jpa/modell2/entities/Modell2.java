@@ -15,24 +15,24 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.modell.entities;
+package io.github.agache41.generic.rest.jpa.modell2.entities;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
-import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Modell implements PrimaryKey<Long>, Updateable<Modell> {
+public class Modell2 implements PrimaryKey<Long>, Updateable<Modell2> {
 
     @Id
     @NotNull
@@ -51,24 +51,9 @@ public class Modell implements PrimaryKey<Long>, Updateable<Modell> {
     @EqualsAndHashCode.Exclude
     private long age;
 
-    @Update
-    @OneToOne(mappedBy = "modell")
-    private ValueEntity valueEntity;
-
-    @Update
-    private List<Integer> collectionValues;
-
-    @Update
-    @OneToMany(mappedBy = "modell")
-    private List<CollectionEntity> collectionEntities;
-
-    @Update
-    @MapKey(name = "id")
-    @OneToMany(mappedBy = "modell")
-    private Map<Long, CollectionEntity> mapEntities;
-
-    @Update
-    @ElementCollection
-    private Map<Long, String> mapValues;
-
+    @Override
+    public boolean update(Modell2 source) {
+        //boolean result = update(Modell2::setName, Modell2::getName, true, this, source);
+        return false;
+    }
 }

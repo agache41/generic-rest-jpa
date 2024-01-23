@@ -18,13 +18,15 @@
 package io.github.agache41.generic.rest.jpa.update;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.utils.StringUtils;
+import io.github.agache41.generic.rest.jpa.update.updater.*;
+import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * <pre>
@@ -34,19 +36,18 @@ import java.util.Map;
  *
  * @param <T> the type parameter
  */
-public final class FieldReflector<T, V> {
-    private static final String GETTER_PREFIX = "get";
-    private static final String GETTER_PRIM_BOOL_PREFIX = "is";
-    private static final String SETTER_PREFIX = "set";
-    private static final Object[] NULL = new Object[]{null};
+public final class FieldReflector<T extends Updateable<T>, V> {
     private final String name;
     private final Class<T> enclosingClass;
     private final Class<V> type;
-    private final Method getter;
-    private final Method setter;
+    private final Class<?> firstParameter;
+    private final Class<?> secondParameter;
+    private final Function<T, V> getter;
+    private final BiConsumer<T, V> setter;
     private final boolean notNull;
     private final boolean updatable;
     private final boolean valid;
+    private final Updater<T, T> updater;
 
     /**
      * <pre>
@@ -60,13 +61,14 @@ public final class FieldReflector<T, V> {
         this.enclosingClass = enclosingClass;
         this.name = field.getName();
         this.type = (Class<V>) field.getType();
-
+        this.firstParameter = ReflectionUtils.getParameterType(field, 0);
+        this.secondParameter = ReflectionUtils.getParameterType(field, 1);
         boolean lValid;
-        Method lGetter = null;
-        Method lSetter = null;
+        Function<T, V> lGetter = null;
+        BiConsumer<T, V> lSetter = null;
         try {
-            lGetter = this.getGetter();
-            lSetter = this.getSetter();
+            lGetter = ReflectionUtils.getGetter(this.enclosingClass, this.name, this.type);
+            lSetter = ReflectionUtils.getSetter(this.enclosingClass, this.name, this.type);
             lValid = true;
         } catch (Exception e) {
             lValid = false;
@@ -76,12 +78,14 @@ public final class FieldReflector<T, V> {
         if (!this.valid) {
             this.getter = null;
             this.setter = null;
+            this.updater = null;
             this.updatable = false;
             this.notNull = false;
             return;
         }
         this.getter = lGetter;
         this.setter = lSetter;
+
         // if the field is annotated
         if (field.isAnnotationPresent(Update.class)) {
             this.updatable = true;
@@ -96,93 +100,62 @@ public final class FieldReflector<T, V> {
             this.updatable = false;
             this.notNull = false;
         }
-    }
 
-    /**
-     * <pre>
-     * Locates the getter Method in the Class.
-     * </pre>
-     *
-     * @return the getter
-     */
-    public Method getGetter() {
-        try {
-            // the getter method to use
-            return this.enclosingClass.getDeclaredMethod(
-                    (boolean.class.equals(this.type) ?
-                            GETTER_PRIM_BOOL_PREFIX :
-                            GETTER_PREFIX) +
-                            StringUtils.capitalize(this.name));
-        } catch (SecurityException | NoSuchMethodException e) { // getter is faulty
-            throw new IllegalArgumentException(e.getMessage() + " when getting getter for " + getName() + " in class " + enclosingClass.getCanonicalName(), e);
+        System.out.println("private\t"
+                + this.type.getSimpleName()
+                + (this.firstParameter == null ? "" : "<" + this.firstParameter.getSimpleName()
+                + (this.secondParameter == null ? "" : "," + this.secondParameter.getSimpleName())
+                + ">")
+                + "\t\t"
+                + this.name + ";");
+
+        if (ReflectionUtils.isClassCollection(this.type) && this.firstParameter != null) {
+            if (Updateable.class.isAssignableFrom(firstParameter)
+                    && PrimaryKey.class.isAssignableFrom(firstParameter)) {
+                //collection of entities
+                this.updater = new EntityCollectionUpdater<>(
+                        (BiConsumer<T, Collection<UpdateableAndPrimaryKey>>) this.setter,
+                        (Function<T, Collection<UpdateableAndPrimaryKey>>) this.getter,
+                        this.notNull,
+                        (Function<T, Collection<UpdateableAndPrimaryKey>>) this.getter,
+                        (Supplier<UpdateableAndPrimaryKey>) ReflectionUtils.supplierOf(firstParameter));
+            } else {
+                //collection of simple objects
+                this.updater = new CollectionUpdater<>(
+                        (BiConsumer<T, Collection<Object>>) setter,
+                        (Function<T, Collection<Object>>) getter,
+                        this.notNull,
+                        (Function<T, Collection<Object>>) getter);
+            }
+        } else if (ReflectionUtils.isClassMap(this.type) && firstParameter != null && secondParameter != null) {
+            if (Updateable.class.isAssignableFrom(secondParameter)) {
+                //map of entities
+                this.updater = new EntityMapUpdater<>(
+                        (BiConsumer<T, Map<Object, Updateable>>) setter,
+                        (Function<T, Map<Object, Updateable>>) getter,
+                        this.notNull,
+                        (Function<T, Map<Object, Updateable>>) getter,
+                        (Supplier<Updateable>) ReflectionUtils.supplierOf(secondParameter));
+            } else {
+                //map of simple objects
+                this.updater = new MapUpdater<>(
+                        (BiConsumer<T, Map<Object, Object>>) setter,
+                        (Function<T, Map<Object, Object>>) getter,
+                        this.notNull,
+                        (Function<T, Map<Object, Object>>) getter);
+            }
+        } else if (Updateable.class.isAssignableFrom(this.type)) {
+            // entity
+            this.updater = new ValueEntityUpdater<>(
+                    (BiConsumer<T, Updateable>) setter,
+                    (Function<T, Updateable>) getter,
+                    this.notNull,
+                    (Function<T, Updateable>) getter,
+                    (Supplier<Updateable>) ReflectionUtils.supplierOf(this.type));
+        } else {
+            // simple value
+            this.updater = new ValueUpdater<>(setter, getter, this.notNull, getter);
         }
-    }
-
-    /**
-     * <pre>
-     * Locates the setter Method in the class.
-     * </pre>
-     *
-     * @return the setter
-     */
-    private Method getSetter() {
-        try {
-            // the setter method to use
-            return this.enclosingClass.getDeclaredMethod(
-                    SETTER_PREFIX +
-                            StringUtils.capitalize(this.name),
-                    this.type);
-        } catch (SecurityException | NoSuchMethodException e) { // setter is faulty
-            throw new IllegalArgumentException(e.getMessage() + " when getting setter for " + getName() + " in class " + enclosingClass.getCanonicalName(), e);
-        }
-    }
-
-    /**
-     * <pre>
-     * Tells if the given class is a Collection.
-     * </pre>
-     *
-     * @param c the c
-     * @return the boolean
-     */
-    public static boolean isClassCollection(Class<?> c) {
-        return Collection.class.isAssignableFrom(c);
-    }
-
-    /**
-     * <pre>
-     * Tells if the given object is a Collection.
-     * </pre>
-     *
-     * @param ob the ob
-     * @return the boolean
-     */
-    public static boolean isCollection(Object ob) {
-        return ob != null && isClassCollection(ob.getClass());
-    }
-
-    /**
-     * <pre>
-     * Tells if the given class is a Map.
-     * </pre>
-     *
-     * @param c the c
-     * @return the boolean
-     */
-    public static boolean isClassMap(Class<?> c) {
-        return Map.class.isAssignableFrom(c);
-    }
-
-    /**
-     * <pre>
-     * Tells if the given objects is a Map.
-     * </pre>
-     *
-     * @param ob the ob
-     * @return the boolean
-     */
-    public static boolean isMap(Object ob) {
-        return ob != null && isClassMap(ob.getClass());
     }
 
     /**
@@ -194,46 +167,8 @@ public final class FieldReflector<T, V> {
      * @param source      the source
      * @return object
      */
-    public Object update(T destination, T source) {
-        try {
-            final Object sourceValue = getter.invoke(source);
-            // not null default case
-            if (null == sourceValue && this.notNull) {
-                return null;
-            }
-            // null case for entities
-            if (sourceValue instanceof PrimaryKey<?>) {
-                PrimaryKey<?> entity = (PrimaryKey<?>) sourceValue;
-                //if the provide entity is nullified
-                if (entity.getId() == null) {
-                    if (this.notNull) {
-                        // not null default case
-                        return null;
-                    } // set field to null to break relation.
-                    return setter.invoke(destination, NULL);
-                }
-            }
-            // fix for using cascade all on hibernate
-            if (isCollection(sourceValue)) {
-                final Collection<?> destinationCollection = (Collection<?>) getter.invoke(destination);
-                if (destinationCollection != null) {
-                    destinationCollection.clear();
-                    destinationCollection.addAll((Collection) sourceValue);
-                    return destinationCollection;
-                }
-            }
-            if (isMap(sourceValue)) {
-                final Map<?, ?> destinationMap = (Map<?, ?>) getter.invoke(destination);
-                if (destinationMap != null) {
-                    destinationMap.clear();
-                    destinationMap.putAll((Map) sourceValue);
-                    return destinationMap;
-                }
-            }
-            return setter.invoke(destination, sourceValue);
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
-        }
+    public boolean update(T destination, T source) {
+        return this.updater.update(destination, source);
     }
 
     /**
@@ -245,11 +180,7 @@ public final class FieldReflector<T, V> {
      * @return the object
      */
     public V get(T source) {
-        try {
-            return (V) this.getter.invoke(source);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException(e);
-        }
+        return this.getter.apply(source);
     }
 
     /**
@@ -261,11 +192,7 @@ public final class FieldReflector<T, V> {
      * @param value  the value
      */
     public void set(T source, V value) {
-        try {
-            this.setter.invoke(source, value);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException(e);
-        }
+        this.setter.accept(source, value);
     }
 
     /**

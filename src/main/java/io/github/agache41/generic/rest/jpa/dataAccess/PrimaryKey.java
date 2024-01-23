@@ -18,9 +18,6 @@
 package io.github.agache41.generic.rest.jpa.dataAccess;
 
 
-import io.github.agache41.generic.rest.jpa.update.ClassReflector;
-import io.github.agache41.generic.rest.jpa.update.Update;
-
 /**
  * <pre>
  *  Base Interface for entities, encapsulating the primary key getter and setter.
@@ -63,20 +60,5 @@ public interface PrimaryKey<PK> {
      */
     void setId(PK id);
 
-    /**
-     * <pre>
-     * Updates the current object from the given source.
-     * The method works in tandem with the @ {@link Update } annotation
-     * Only the marked fields will be updated, null values rules are respected.
-     * {@link  jakarta.validation.constraints.NotNull jakarta.validation.constraints.@NotNull } annotation on the fields is checked.
-     * </pre>
-     *
-     * @param <T>    the type parameter
-     * @param source to update from
-     * @return current update object
-     */
-    default <T extends PrimaryKey<PK>> T update(T source) {
-        return ClassReflector.ofObject(source)
-                             .update((T) this, source);
-    }
+
 }

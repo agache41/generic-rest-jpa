@@ -21,6 +21,7 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.FieldReflector;
+import io.github.agache41.generic.rest.jpa.update.Updateable;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K> {
+public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & Updateable<T>, K> {
 
     private final List<T> insertData;
     private final List<T> updateData;

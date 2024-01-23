@@ -22,6 +22,8 @@ import io.github.agache41.generic.rest.jpa.exceptions.ExpectedException;
 import io.github.agache41.generic.rest.jpa.exceptions.UnexpectedException;
 import io.github.agache41.generic.rest.jpa.update.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.Update;
+import io.github.agache41.generic.rest.jpa.update.Updateable;
+import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.spi.InjectionPoint;
 import jakarta.inject.Inject;
@@ -31,6 +33,8 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.NonUniqueResultException;
 import jakarta.persistence.criteria.*;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.HashMap;
@@ -55,13 +59,21 @@ import java.util.stream.Stream;
  */
 @Dependent
 @Named("base")
-public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
+public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> {
     /**
      * <pre>
      * The type of the persisted Object
      * </pre>
      */
     protected final Class<ENTITY> type;
+
+
+    /**
+     * <pre>
+     * The no arguments constructor associated for the type.
+     * </pre>
+     */
+    protected final Constructor<ENTITY> noArgsConstructor;
 
     /**
      * <pre>
@@ -115,6 +127,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      */
     public DataAccess(Class<ENTITY> type, Class<PK> keyType) {
         this.type = type;
+        this.noArgsConstructor = ReflectionUtils.getNoArgsConstructor(type);
         this.keyType = keyType;
         this.name = DataAccess.class.getSimpleName() + "<" + this.type.getSimpleName() + "," + this.keyType.getSimpleName() + ">";
         this.classReflector = ClassReflector.ofClass(this.type);
@@ -155,7 +168,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * @param source the object that contains the id.
      * @return the persisted entity, if any or ExpectedException if no entity is found
      */
-    public ENTITY findPersisted(PrimaryKey<? extends PK> source) {
+    public ENTITY findPersisted(PrimaryKey<PK> source) {
         return this.findById(assertNotNull(source.getId()));
     }
 
@@ -262,7 +275,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * @param filter the filter
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
-    public Stream<ENTITY> streamPersisted(Collection<? extends PrimaryKey<? extends PK>> filter) {
+    public Stream<ENTITY> streamPersisted(Collection<? extends PrimaryKey<PK>> filter) {
         return streamByIds(filter.stream()
                                  .map(PrimaryKey::getId)
                                  .collect(Collectors.toList()));
@@ -508,7 +521,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * @return the persisted entity.
      */
     public ENTITY updateById(ENTITY source) {
-        return findPersisted(source).update(source);
+        ENTITY persisted = findPersisted(source);
+        persisted.update(source);
+        return persisted;
     }
 
     /**
@@ -542,9 +557,11 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
         return sources.stream()
                       .map(source -> {
                           PK id = source.getId();
-                          if (persistedMap.containsKey(id)) return persistedMap.get(id)
-                                                                               .update(source);
-                          else if (allExpected)
+                          if (persistedMap.containsKey(id)) {
+                              ENTITY entity = persistedMap.get(id);
+                              entity.update(source);
+                              return entity;
+                          } else if (allExpected)
                               throw new UnexpectedException(this.name + ": Missing Entity in Update for PK=" + id.toString());
                           else return source;
                       });
@@ -587,7 +604,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)
      */
     public ENTITY persist(ENTITY source) {
-        em().persist(assertNotNull(source));
+        em().persist(newInstance(assertNotNull(source)));
         return source;
     }
 
@@ -901,5 +918,16 @@ public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
      */
     public List<ENTITY> asList(Stream<ENTITY> sources) {
         return sources.collect(Collectors.toList());
+    }
+
+
+    public ENTITY newInstance(ENTITY source) {
+        try {
+            ENTITY entity = this.noArgsConstructor.newInstance();
+            entity.update(source);
+            return entity;
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -19,7 +19,10 @@ package io.github.agache41.generic.rest.jpa.update;
 
 import io.github.agache41.generic.rest.jpa.exceptions.UnexpectedException;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
+import jakarta.validation.constraints.NotNull;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -38,17 +41,25 @@ import java.util.stream.Collectors;
  *
  * @param <T> the type parameter
  */
-public final class ClassReflector<T> {
+public final class ClassReflector<T extends Updateable<T>> {
 
     private static final Map<Class<?>, ClassReflector<?>> concurrentClassDescriptorsCache = new ConcurrentHashMap<>();
-
     private final Class<T> clazz;
+    /**
+     * <pre>
+     * The no arguments constructor associated for the type.
+     * </pre>
+     */
+    private final Constructor<T> noArgsConstructor;
     private final Map<String, FieldReflector<T, Object>> reflectors;
     private final Map<String, FieldReflector<T, Object>> updateReflectors;
 
     private ClassReflector(final Class<T> sourceClass) {
 
+        System.out.println("Class " + sourceClass.getSimpleName());
         this.clazz = sourceClass;
+
+        this.noArgsConstructor = ReflectionUtils.getNoArgsConstructor(sourceClass);
 
         this.reflectors = ReflectionUtils.getDeclaredFields(sourceClass)
                                          .stream()
@@ -72,8 +83,8 @@ public final class ClassReflector<T> {
      * @param clazz the clazz
      * @return class reflector
      */
-    public static <R> ClassReflector<R> ofClass(Class<R> clazz) {
-        return (ClassReflector<R>) concurrentClassDescriptorsCache.computeIfAbsent(clazz, ClassReflector::new);
+    public static <R extends Updateable<R>> ClassReflector<R> ofClass(@NotNull Class<R> clazz) {
+        return (ClassReflector<R>) concurrentClassDescriptorsCache.computeIfAbsent(clazz, cls -> new ClassReflector(cls));
     }
 
     /**
@@ -86,8 +97,8 @@ public final class ClassReflector<T> {
      * @param object the object
      * @return the class reflector
      */
-    public static <R> ClassReflector<R> ofObject(R object) {
-        return (ClassReflector<R>) concurrentClassDescriptorsCache.computeIfAbsent(object.getClass(), ClassReflector::new);
+    public static <R extends Updateable<R>> ClassReflector<R> ofObject(@NotNull R object) {
+        return (ClassReflector<R>) concurrentClassDescriptorsCache.computeIfAbsent(object.getClass(), cls -> new ClassReflector(cls));
     }
 
 
@@ -101,10 +112,12 @@ public final class ClassReflector<T> {
      * @param source      the source
      * @return the destination
      */
-    public T update(T destination, T source) {
-        this.updateReflectors.values()
-                             .forEach(fieldReflector -> fieldReflector.update(destination, source));
-        return destination;
+    public boolean update(T destination, T source) {
+        return this.updateReflectors.values()
+                                    .stream()
+                                    .map(fieldReflector -> fieldReflector.update(destination, source))
+                                    .reduce(false, (u, n) -> u || n);
+
     }
 
 
@@ -202,6 +215,23 @@ public final class ClassReflector<T> {
             if (values.isEmpty()) continue;
             result.put(fieldReflector.getName(), values);
         }
+        return result;
+    }
+
+    public T newInstance() {
+        try {
+            return this.noArgsConstructor.newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public static <ENTITY extends Updateable<ENTITY>> ENTITY create(ENTITY value) {
+        if (value == null) return null;
+        ENTITY result = ClassReflector.ofObject(value)
+                                      .newInstance();
+        result.update(value);
         return result;
     }
 }
