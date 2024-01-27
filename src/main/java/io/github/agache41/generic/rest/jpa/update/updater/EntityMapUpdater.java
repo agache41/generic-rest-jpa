@@ -17,6 +17,7 @@
 
 package io.github.agache41.generic.rest.jpa.update.updater;
 
+import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
 
 import java.util.Map;
@@ -28,28 +29,45 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
 
     protected final Supplier<VALUE> constructor;
 
-    public EntityMapUpdater(BiConsumer<TARGET, MAP> setter, Function<TARGET, MAP> getter, boolean notNull, Function<SOURCE, MAP> sourceGetter, Supplier<VALUE> constructor) {
+    public EntityMapUpdater(final BiConsumer<TARGET, MAP> setter,
+                            final Function<TARGET, MAP> getter,
+                            final boolean notNull,
+                            final Function<SOURCE, MAP> sourceGetter,
+                            final Supplier<VALUE> constructor) {
         super(setter, getter, notNull, sourceGetter);
         this.constructor = constructor;
     }
 
+    public static <T, S, C extends Map<K, E>, E extends Updateable<E> & PrimaryKey<K>, K> boolean updateEntityMap(
+            final BiConsumer<T, C> setter,
+            final Function<T, C> getter,
+            final boolean notNull,
+            final Function<S, C> sourceGetter,
+            final Supplier<E> constructor,
+            final T target,
+            final S source) {
+        return new EntityMapUpdater<>(setter, getter, notNull, sourceGetter, constructor).update(target, source);
+    }
+
     @Override
-    public boolean update(TARGET target, SOURCE source) {
+    public boolean update(final TARGET target,
+                          final SOURCE source) {
         // the sourceValue to be updated
-        Map<KEY, VALUE> sourceValue = sourceGetter.apply(source);
+        final Map<KEY, VALUE> sourceValue = this.sourceGetter.apply(source);
         // nulls
         if (sourceValue == null) {
-            if (notNull || getter.apply(target) == null) // null ignore
+            if (this.notNull || this.getter.apply(target) == null) // null ignore
+            {
                 return false;
-            else {
-                setter.accept(target, null);
+            } else {
+                this.setter.accept(target, null);
                 return true;
             }
         }
         // nulls
 
         // empty
-        Map<KEY, VALUE> targetValue = getter.apply(target);
+        final Map<KEY, VALUE> targetValue = this.getter.apply(target);
         if (sourceValue.isEmpty()) {
             if (targetValue.isEmpty()) {
                 return false;
@@ -58,6 +76,6 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
             return true;
         }
         // empty
-        return updateMap(targetValue, sourceValue, this.constructor);
+        return ValueUpdater.updateMap(targetValue, sourceValue, this.constructor);
     }
 }

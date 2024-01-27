@@ -39,7 +39,8 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     protected final Class<T> clazz;
     protected final String path;
 
-    public ResourceServiceTestClient(Class<T> clazz, String path) {
+    public ResourceServiceTestClient(final Class<T> clazz,
+                                     final String path) {
         assertNotNull(clazz, " Please provide a class !");
         this.clazz = clazz;
         assertFalse(path == null || path.isEmpty(), " Please provide a ResourceService Path !");
@@ -47,7 +48,12 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public T get(K id) {
+    public int getAutocompleteCut() {
+        return ResourceService.autocompleteCut;
+    }
+
+    @Override
+    public T get(final K id) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -74,7 +80,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<T> getByIdsAsList(List<K> ids) {
+    public List<T> getByIdsAsList(final List<K> ids) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -88,7 +94,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<T> postByIdsAsList(List<K> ids) {
+    public List<T> postByIdsAsList(final List<K> ids) {
         return given().contentType(ContentType.JSON)
                       .body(ids)
                       .when()
@@ -103,7 +109,8 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<T> getFilterStringFieldEqualsValueAsList(String stringField, String value) {
+    public List<T> getFilterStringFieldEqualsValueAsList(final String stringField,
+                                                         final String value) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -117,7 +124,8 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<T> getFilterStringFieldLikeValueAsList(String stringField, String value) {
+    public List<T> getFilterStringFieldLikeValueAsList(final String stringField,
+                                                       final String value) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -131,7 +139,8 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<T> getFilterStringFieldInValuesAsList(String stringField, List<String> values) {
+    public List<T> getFilterStringFieldInValuesAsList(final String stringField,
+                                                      final List<String> values) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -145,7 +154,8 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<String> getAutocompleteStringFieldLikeValueAsSortedSet(String stringField, String value) {
+    public List<String> getAutocompleteStringFieldLikeValueAsSortedSet(final String stringField,
+                                                                       final String value) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -159,7 +169,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<T> postFilterContentEqualsAsList(T value) {
+    public List<T> postFilterContentEqualsAsList(final T value) {
         return given().contentType(ContentType.JSON)
                       .body(value)
                       .when()
@@ -174,7 +184,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<T> postFilterContentInAsList(List<T> values) {
+    public List<T> postFilterContentInAsList(final List<T> values) {
         return given().contentType(ContentType.JSON)
                       .body(values)
                       .when()
@@ -189,7 +199,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public T post(T source) {
+    public T post(final T source) {
         return given().contentType(ContentType.JSON)
                       .body(source)
                       .when()
@@ -203,7 +213,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<T> postListAsList(List<T> sources) {
+    public List<T> postListAsList(final List<T> sources) {
         return given().contentType(ContentType.JSON)
                       .body(sources)
                       .when()
@@ -217,7 +227,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public T put(T source) {
+    public T put(final T source) {
         return given().contentType(ContentType.JSON)
                       .body(source)
                       .when()
@@ -231,7 +241,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<T> putListAsList(List<T> sources) {
+    public List<T> putListAsList(final List<T> sources) {
         return given().contentType(ContentType.JSON)
                       .body(sources)
                       .when()
@@ -245,7 +255,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public void delete(K id) {
+    public void delete(final K id) {
         given().contentType(ContentType.JSON)
                .when()
                .accept(ContentType.JSON)
@@ -255,7 +265,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public void deleteByIds(List<K> ids) {
+    public void deleteByIds(final List<K> ids) {
         given().contentType(ContentType.JSON)
                .body(ids)
                .when()
@@ -266,7 +276,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public void deleteByIdsInPath(List<K> ids) {
+    public void deleteByIdsInPath(final List<K> ids) {
         given().contentType(ContentType.JSON)
                .body(ids)
                .when()

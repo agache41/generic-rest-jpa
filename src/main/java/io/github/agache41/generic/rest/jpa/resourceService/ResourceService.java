@@ -30,6 +30,11 @@ import java.util.List;
  * @param <K> the type parameter
  */
 public interface ResourceService<T extends PrimaryKey<K>, K> {
+
+    int autocompleteCut = 4;
+
+    int getAutocompleteCut();
+
     /**
      * <pre>
      * Finds and returns the corresponding entity for the given id.
@@ -98,7 +103,8 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/equals/{value}/asList")
-    List<T> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value);
+    List<T> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") String stringField,
+                                                  @PathParam("value") String value);
 
     /**
      * <pre>
@@ -114,7 +120,8 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/like/{value}/asList")
-    List<T> getFilterStringFieldLikeValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value);
+    List<T> getFilterStringFieldLikeValueAsList(@PathParam("stringField") String stringField,
+                                                @PathParam("value") String value);
 
     /**
      * <pre>
@@ -130,7 +137,8 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/in/{values}/asList")
-    List<T> getFilterStringFieldInValuesAsList(@PathParam("stringField") String stringField, @PathParam("values") List<String> values);
+    List<T> getFilterStringFieldInValuesAsList(@PathParam("stringField") String stringField,
+                                               @PathParam("values") List<String> values);
 
     /**
      * <pre>

@@ -62,6 +62,7 @@ public class ReflectionUtils {
      */
     public static <T, V> Function<T, V> getGetter(Class<T> enclosingClass, String name, Class<V> type) {
         final Method getterMethod = getGetterMethod(enclosingClass, name, type);
+        if (getterMethod == null) return null;
         return object -> {
             try {
                 return (V) getterMethod.invoke(object);
@@ -84,6 +85,7 @@ public class ReflectionUtils {
      */
     public static <T, V> BiConsumer<T, V> getSetter(Class<T> enclosingClass, String name, Class<V> type) {
         final Method setterMethod = getSetterMethod(enclosingClass, name, type);
+        if (setterMethod == null) return null;
         return (object, value) -> {
             try {
                 setterMethod.invoke(object, value);
@@ -113,7 +115,9 @@ public class ReflectionUtils {
                     getSetterName(name),
                     type);
         } catch (SecurityException | NoSuchMethodException e) { // setter is faulty
-            throw new IllegalArgumentException(e.getMessage() + " looking for method " + enclosingClass.getSimpleName() + "." + getSetterName(StringUtils.capitalize(name)) + "( " + type.getSimpleName() + " value )", e);
+            // todo: add logging
+            // throw new IllegalArgumentException(e.getMessage() + " looking for method " + enclosingClass.getSimpleName() + "." + getSetterName(StringUtils.capitalize(name)) + "( " + type.getSimpleName() + " value )", e);
+            return null;
         }
     }
 
@@ -134,7 +138,9 @@ public class ReflectionUtils {
             // the getter method to use
             return enclosingClass.getDeclaredMethod(getGetterName(StringUtils.capitalize(name), type));
         } catch (SecurityException | NoSuchMethodException e) { // getter is faulty
-            throw new IllegalArgumentException(e.getMessage() + " looking for method " + enclosingClass.getCanonicalName() + "." + getGetterName(StringUtils.capitalize(name), type) + "()", e);
+            // todo: add logging
+            // throw new IllegalArgumentException(e.getMessage() + " looking for method " + enclosingClass.getCanonicalName() + "." + getGetterName(StringUtils.capitalize(name), type) + "()", e);
+            return null;
         }
     }
 

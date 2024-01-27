@@ -51,9 +51,9 @@ public class Modell2 implements PrimaryKey<Long>, Updateable<Modell2> {
     @EqualsAndHashCode.Exclude
     private long age;
 
-    @Override
-    public boolean update(Modell2 source) {
-        //boolean result = update(Modell2::setName, Modell2::getName, true, this, source);
-        return false;
-    }
+//    @Override
+//    public boolean update(Modell2 source) {
+//        //boolean result = update(Modell2::setName, Modell2::getName, true, this, source);
+//        return false;
+//    }
 }

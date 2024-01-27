@@ -20,9 +20,9 @@ package io.github.agache41.generic.rest.jpa.dataAccess;
 
 import io.github.agache41.generic.rest.jpa.exceptions.ExpectedException;
 import io.github.agache41.generic.rest.jpa.exceptions.UnexpectedException;
-import io.github.agache41.generic.rest.jpa.update.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
+import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.spi.InjectionPoint;
@@ -112,9 +112,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param ip the underlining injection point, provided by CDI.
      */
     @Inject
-    public DataAccess(InjectionPoint ip) {
+    public DataAccess(final InjectionPoint ip) {
         this(((Class<ENTITY>) (((ParameterizedType) ip.getType()).getActualTypeArguments()[0])),//
-                ((Class<PK>) (((ParameterizedType) ip.getType()).getActualTypeArguments()[1])));//
+             ((Class<PK>) (((ParameterizedType) ip.getType()).getActualTypeArguments()[1])));//
     }
 
     /**
@@ -125,7 +125,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param type    the type of the persisting Object
      * @param keyType the type of the persisting Object Primary Key
      */
-    public DataAccess(Class<ENTITY> type, Class<PK> keyType) {
+    public DataAccess(final Class<ENTITY> type,
+                      final Class<PK> keyType) {
         this.type = type;
         this.noArgsConstructor = ReflectionUtils.getNoArgsConstructor(type);
         this.keyType = keyType;
@@ -141,8 +142,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param id the primary key to use, must be not null
      * @return the entity for the primary key or throws ExpectedException if no entity is found
      */
-    public ENTITY findById(PK id) {
-        return findById(id, true);
+    public ENTITY findById(final PK id) {
+        return this.findById(id, true);
     }
 
     /**
@@ -155,8 +156,10 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return the entity for the primary key or null if not found. If no entity is found and expected is set to true ExpectedException is thrown.
      * @see jakarta.persistence.EntityManager#find(Class, Object) jakarta.persistence.EntityManager#find(Class, Object)
      */
-    public ENTITY findById(PK id, boolean expected) {
-        return assertNotNull(em().find(type, assertNotNull(id)), expected);
+    public ENTITY findById(final PK id,
+                           final boolean expected) {
+        return this.assertNotNull(this.em()
+                                      .find(this.type, this.assertNotNull(id)), expected);
     }
 
     /**
@@ -168,8 +171,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param source the object that contains the id.
      * @return the persisted entity, if any or ExpectedException if no entity is found
      */
-    public ENTITY findPersisted(PrimaryKey<PK> source) {
-        return this.findById(assertNotNull(source.getId()));
+    public ENTITY findPersisted(final PrimaryKey<PK> source) {
+        return this.findById(this.assertNotNull(source.getId()));
     }
 
     /**
@@ -183,8 +186,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param value  the value to filter for
      * @return the persisted entity, if any or ExpectedException if no entity is found
      */
-    public ENTITY findByColumnEqualsValue(String column, Object value) {
-        return findByColumnEqualsValue(column, value, true, true);
+    public ENTITY findByColumnEqualsValue(final String column,
+                                          final Object value) {
+        return this.findByColumnEqualsValue(column, value, true, true);
     }
 
     /**
@@ -198,17 +202,22 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param expected specifies if an entity should be returned, or else a ExpectedException will be thrown
      * @return the persisted entity
      */
-    public ENTITY findByColumnEqualsValue(String column, Object value, boolean notNull, boolean expected) {
+    public ENTITY findByColumnEqualsValue(final String column,
+                                          final Object value,
+                                          final boolean notNull,
+                                          final boolean expected) {
         try {
-            CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
-            CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
-            Root<ENTITY> entity = query.from(type);
-            return em().createQuery(query.select(entity)
-                                         .where(equals(column, value, notNull, entity, criteriaBuilder)))
+            final CriteriaBuilder criteriaBuilder = this.em()
+                                                        .getCriteriaBuilder();
+            final CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(this.type);
+            final Root<ENTITY> entity = query.from(this.type);
+            return this.em()
+                       .createQuery(query.select(entity)
+                                         .where(this.equals(column, value, notNull, entity, criteriaBuilder)))
                        .getSingleResult();
-        } catch (NoResultException exception) {
-            return resultAs(exception, expected);
-        } catch (NonUniqueResultException exception) {
+        } catch (final NoResultException exception) {
+            return this.resultAs(exception, expected);
+        } catch (final NonUniqueResultException exception) {
             throw new ExpectedException(this.name + ": Filtered Entity is not unique.");
         }
     }
@@ -224,17 +233,22 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param expected specifies if an entity should be returned, or else a ExpectedException will be thrown
      * @return the persisted entity
      */
-    public ENTITY findByColumnLikeValue(String column, String value, boolean notNull, boolean expected) {
+    public ENTITY findByColumnLikeValue(final String column,
+                                        final String value,
+                                        final boolean notNull,
+                                        final boolean expected) {
         try {
-            CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
-            CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
-            Root<ENTITY> entity = query.from(type);
-            return em().createQuery(query.select(entity)
-                                         .where(like(column, value, notNull, entity, criteriaBuilder)))
+            final CriteriaBuilder criteriaBuilder = this.em()
+                                                        .getCriteriaBuilder();
+            final CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(this.type);
+            final Root<ENTITY> entity = query.from(this.type);
+            return this.em()
+                       .createQuery(query.select(entity)
+                                         .where(this.like(column, value, notNull, entity, criteriaBuilder)))
                        .getSingleResult();
-        } catch (NoResultException exception) {
-            return resultAs(exception, expected);
-        } catch (NonUniqueResultException exception) {
+        } catch (final NoResultException exception) {
+            return this.resultAs(exception, expected);
+        } catch (final NonUniqueResultException exception) {
             throw new ExpectedException(this.name + ": Filtered Entity is not unique.");
         }
     }
@@ -247,10 +261,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return all the entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> streamAll() {
-        CriteriaQuery<ENTITY> query = em().getCriteriaBuilder()
-                                          .createQuery(this.type);
-        Root<ENTITY> entity = query.from(type);
-        return em().createQuery(query.select(entity))
+        final CriteriaQuery<ENTITY> query = this.em()
+                                                .getCriteriaBuilder()
+                                                .createQuery(this.type);
+        final Root<ENTITY> entity = query.from(this.type);
+        return this.em()
+                   .createQuery(query.select(entity))
                    .getResultStream();
     }
 
@@ -262,8 +278,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param ids the ids
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
-    public Stream<ENTITY> streamByIds(Collection<? extends PK> ids) {
-        return streamByColumnInValues(PrimaryKey.ID, ids);
+    public Stream<ENTITY> streamByIds(final Collection<? extends PK> ids) {
+        return this.streamByColumnInValues(PrimaryKey.ID, ids);
     }
 
     /**
@@ -275,10 +291,10 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param filter the filter
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
-    public Stream<ENTITY> streamPersisted(Collection<? extends PrimaryKey<PK>> filter) {
-        return streamByIds(filter.stream()
-                                 .map(PrimaryKey::getId)
-                                 .collect(Collectors.toList()));
+    public Stream<ENTITY> streamPersisted(final Collection<? extends PrimaryKey<PK>> filter) {
+        return this.streamByIds(filter.stream()
+                                      .map(PrimaryKey::getId)
+                                      .collect(Collectors.toList()));
     }
 
     /**
@@ -290,8 +306,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param value        the value to value for, must be not null or else exception will be thrown.
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
-    public Stream<ENTITY> streamByColumnEqualsValue(String filterColumn, Object value) {
-        return streamByColumnEqualsValue(filterColumn, value, true);
+    public Stream<ENTITY> streamByColumnEqualsValue(final String filterColumn,
+                                                    final Object value) {
+        return this.streamByColumnEqualsValue(filterColumn, value, true);
     }
 
     /**
@@ -304,12 +321,16 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param notNull specifies if the value can be null, and in this case the null can be used as a value.
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
-    public Stream<ENTITY> streamByColumnEqualsValue(String column, Object value, boolean notNull) {
-        CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
-        CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
-        Root<ENTITY> entity = query.from(type);
-        return em().createQuery(query.select(entity)
-                                     .where(equals(column, value, notNull, entity, criteriaBuilder)))
+    public Stream<ENTITY> streamByColumnEqualsValue(final String column,
+                                                    final Object value,
+                                                    final boolean notNull) {
+        final CriteriaBuilder criteriaBuilder = this.em()
+                                                    .getCriteriaBuilder();
+        final CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(this.type);
+        final Root<ENTITY> entity = query.from(this.type);
+        return this.em()
+                   .createQuery(query.select(entity)
+                                     .where(this.equals(column, value, notNull, entity, criteriaBuilder)))
                    .getResultStream();
 
     }
@@ -328,13 +349,15 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param value the Object holding the content (the values columns)
      * @return the persisted entity
      */
-    public Stream<ENTITY> streamByContentEquals(ENTITY value) {
-        CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
-        CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
-        Root<ENTITY> entity = query.from(type);
-        HashMap<String, Object> mapValues = this.classReflector.mapValues(value);
-        return em().createQuery(query.select(entity)
-                                     .where(equals(mapValues, entity, criteriaBuilder)))
+    public Stream<ENTITY> streamByContentEquals(final ENTITY value) {
+        final CriteriaBuilder criteriaBuilder = this.em()
+                                                    .getCriteriaBuilder();
+        final CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(this.type);
+        final Root<ENTITY> entity = query.from(this.type);
+        final HashMap<String, Object> mapValues = this.classReflector.mapValues(value);
+        return this.em()
+                   .createQuery(query.select(entity)
+                                     .where(this.equals(mapValues, entity, criteriaBuilder)))
                    .getResultStream();
     }
 
@@ -348,7 +371,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param value  the value to compare
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
-    public Stream<ENTITY> streamByColumnLikeValue(String column, String value) {
+    public Stream<ENTITY> streamByColumnLikeValue(final String column,
+                                                  final String value) {
         return this.streamByColumnLikeValue(column, value, true);
     }
 
@@ -363,12 +387,16 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param notNull specifies if the value can be null, and in this case the null can be used as a value.
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
-    public Stream<ENTITY> streamByColumnLikeValue(String column, String value, boolean notNull) {
-        CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
-        CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
-        Root<ENTITY> entity = query.from(type);
-        return em().createQuery(query.select(entity)
-                                     .where(like(column, value, notNull, entity, criteriaBuilder)))
+    public Stream<ENTITY> streamByColumnLikeValue(final String column,
+                                                  final String value,
+                                                  final boolean notNull) {
+        final CriteriaBuilder criteriaBuilder = this.em()
+                                                    .getCriteriaBuilder();
+        final CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(this.type);
+        final Root<ENTITY> entity = query.from(this.type);
+        return this.em()
+                   .createQuery(query.select(entity)
+                                     .where(this.like(column, value, notNull, entity, criteriaBuilder)))
                    .getResultStream();
     }
 
@@ -381,8 +409,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param values the list of filtered values
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
-    public Stream<ENTITY> streamByColumnInValues(String column, Collection<? extends Object> values) {
-        return streamByColumnInValues(column, values, true);
+    public Stream<ENTITY> streamByColumnInValues(final String column,
+                                                 final Collection<? extends Object> values) {
+        return this.streamByColumnInValues(column, values, true);
     }
 
     /**
@@ -395,12 +424,16 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param notNull if list of filtered values can be null : specifies if the values value can be null, and in this case the null is used as values.
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
-    public Stream<ENTITY> streamByColumnInValues(String column, Collection<? extends Object> values, boolean notNull) {
-        CriteriaQuery<ENTITY> query = em().getCriteriaBuilder()
-                                          .createQuery(this.type);
-        Root<ENTITY> entity = query.from(type);
-        return em().createQuery(query.select(entity)
-                                     .where(in(column, values, notNull, entity)))
+    public Stream<ENTITY> streamByColumnInValues(final String column,
+                                                 final Collection<? extends Object> values,
+                                                 final boolean notNull) {
+        final CriteriaQuery<ENTITY> query = this.em()
+                                                .getCriteriaBuilder()
+                                                .createQuery(this.type);
+        final Root<ENTITY> entity = query.from(this.type);
+        return this.em()
+                   .createQuery(query.select(entity)
+                                     .where(this.in(column, values, notNull, entity)))
                    .getResultStream();
     }
 
@@ -418,13 +451,15 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param values the values
      * @return the persisted entity
      */
-    public Stream<ENTITY> streamByContentInValues(List<ENTITY> values) {
-        CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
-        CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(type);
-        Root<ENTITY> entity = query.from(type);
-        HashMap<String, List<Object>> mapValues = this.classReflector.mapValues(values);
-        return em().createQuery(query.select(entity)
-                                     .where(in(mapValues, entity, criteriaBuilder)))
+    public Stream<ENTITY> streamByContentInValues(final List<ENTITY> values) {
+        final CriteriaBuilder criteriaBuilder = this.em()
+                                                    .getCriteriaBuilder();
+        final CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(this.type);
+        final Root<ENTITY> entity = query.from(this.type);
+        final HashMap<String, List<Object>> mapValues = this.classReflector.mapValues(values);
+        return this.em()
+                   .createQuery(query.select(entity)
+                                     .where(this.in(mapValues, entity, criteriaBuilder)))
                    .getResultStream();
     }
 
@@ -436,8 +471,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param entity the given entity
      * @see jakarta.persistence.EntityManager#remove(Object) jakarta.persistence.EntityManager#remove(Object)
      */
-    public void remove(ENTITY entity) {
-        em().remove(assertNotNull(entity));
+    public void remove(final ENTITY entity) {
+        this.em()
+            .remove(this.assertNotNull(entity));
     }
 
     /**
@@ -447,7 +483,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      *
      * @param id the primary key to look for
      */
-    public void removeById(PK id) {
+    public void removeById(final PK id) {
         this.removeByColumnEqualsValue(PrimaryKey.ID, id, false);
     }
 
@@ -459,7 +495,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      *
      * @param ids the primary key to filter for
      */
-    public void removeByIds(Collection<PK> ids) {
+    public void removeByIds(final Collection<PK> ids) {
         this.removeByColumnInValues(PrimaryKey.ID, ids, false);
     }
 
@@ -472,11 +508,15 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param value   the value to equal
      * @param notNull specifies if the value can be null, and in this case the null is used as value.
      */
-    public void removeByColumnEqualsValue(String column, Object value, boolean notNull) {
-        CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
-        CriteriaDelete<ENTITY> delete = criteriaBuilder.createCriteriaDelete(this.type);
-        Root<ENTITY> entity = delete.from(type);
-        em().createQuery(delete.where(equals(column, value, notNull, entity, criteriaBuilder)))
+    public void removeByColumnEqualsValue(final String column,
+                                          final Object value,
+                                          final boolean notNull) {
+        final CriteriaBuilder criteriaBuilder = this.em()
+                                                    .getCriteriaBuilder();
+        final CriteriaDelete<ENTITY> delete = criteriaBuilder.createCriteriaDelete(this.type);
+        final Root<ENTITY> entity = delete.from(this.type);
+        this.em()
+            .createQuery(delete.where(this.equals(column, value, notNull, entity, criteriaBuilder)))
             .executeUpdate();
     }
 
@@ -489,11 +529,15 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param values  the list of filtered values
      * @param notNull if list of filtered values can be null :  specifies if the values value can be null, and in this case the null is used as values.
      */
-    public void removeByColumnInValues(String column, Collection<? extends Object> values, boolean notNull) {
-        CriteriaBuilder criteriaBuilder = em().getCriteriaBuilder();
-        CriteriaDelete<ENTITY> delete = criteriaBuilder.createCriteriaDelete(this.type);
-        Root<ENTITY> entity = delete.from(type);
-        em().createQuery(delete.where(in(column, values, notNull, entity)))
+    public void removeByColumnInValues(final String column,
+                                       final Collection<? extends Object> values,
+                                       final boolean notNull) {
+        final CriteriaBuilder criteriaBuilder = this.em()
+                                                    .getCriteriaBuilder();
+        final CriteriaDelete<ENTITY> delete = criteriaBuilder.createCriteriaDelete(this.type);
+        final Root<ENTITY> entity = delete.from(this.type);
+        this.em()
+            .createQuery(delete.where(this.in(column, values, notNull, entity)))
             .executeUpdate();
     }
 
@@ -503,9 +547,11 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * </pre>
      */
     public void removeAll() {
-        CriteriaDelete<ENTITY> delete = em().getCriteriaBuilder()
-                                            .createCriteriaDelete(this.type);
-        em().createQuery(delete)
+        final CriteriaDelete<ENTITY> delete = this.em()
+                                                  .getCriteriaBuilder()
+                                                  .createCriteriaDelete(this.type);
+        this.em()
+            .createQuery(delete)
             .executeUpdate();
     }
 
@@ -520,8 +566,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param source the object that contains the id and is the source for update
      * @return the persisted entity.
      */
-    public ENTITY updateById(ENTITY source) {
-        ENTITY persisted = findPersisted(source);
+    public ENTITY updateById(final ENTITY source) {
+        final ENTITY persisted = this.findPersisted(source);
         persisted.update(source);
         return persisted;
     }
@@ -537,8 +583,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param sources the Collection of objects that contains the ids and is the source for update
      * @return the persisted entities in a Stream&#x3C;ENTITY&#x3E;
      */
-    public Stream<ENTITY> updateByIds(Collection<ENTITY> sources) {
-        return updateByIds(sources, true);
+    public Stream<ENTITY> updateByIds(final Collection<ENTITY> sources) {
+        return this.updateByIds(sources, true);
     }
 
     /**
@@ -552,18 +598,21 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param allExpected is set to true, all the Entities with the given id must exist in the Database or a UnexpectedException is thrown.
      * @return the persisted entities in a Stream&#x3C;ENTITY&#x3E;
      */
-    public Stream<ENTITY> updateByIds(Collection<ENTITY> sources, boolean allExpected) {
-        final Map<PK, ENTITY> persistedMap = asMap(streamPersisted(sources));
+    public Stream<ENTITY> updateByIds(final Collection<ENTITY> sources,
+                                      final boolean allExpected) {
+        final Map<PK, ENTITY> persistedMap = this.asMap(this.streamPersisted(sources));
         return sources.stream()
                       .map(source -> {
-                          PK id = source.getId();
+                          final PK id = source.getId();
                           if (persistedMap.containsKey(id)) {
-                              ENTITY entity = persistedMap.get(id);
+                              final ENTITY entity = persistedMap.get(id);
                               entity.update(source);
                               return entity;
-                          } else if (allExpected)
+                          } else if (allExpected) {
                               throw new UnexpectedException(this.name + ": Missing Entity in Update for PK=" + id.toString());
-                          else return source;
+                          } else {
+                              return source;
+                          }
                       });
     }
 
@@ -576,8 +625,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return the merged entity
      * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)
      */
-    public ENTITY merge(ENTITY entity) {
-        return em().merge(assertNotNull(entity));
+    public ENTITY merge(final ENTITY entity) {
+        return this.em()
+                   .merge(this.assertNotNull(entity));
     }
 
     /**
@@ -589,7 +639,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return the merged entities in a Stream&#x3C;ENTITY&#x3E;
      * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)
      */
-    public Stream<ENTITY> mergeAll(Collection<ENTITY> sources) {
+    public Stream<ENTITY> mergeAll(final Collection<ENTITY> sources) {
         return sources.stream()
                       .map(this::merge);
     }
@@ -603,8 +653,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return the persisted entity
      * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)
      */
-    public ENTITY persist(ENTITY source) {
-        em().persist(newInstance(assertNotNull(source)));
+    public ENTITY persist(final ENTITY source) {
+        this.em()
+            .persist(this.newInstance(this.assertNotNull(source)));
         return source;
     }
 
@@ -617,7 +668,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return the merged entities in a Stream&#x3C;ENTITY&#x3E;
      * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)
      */
-    public Stream<ENTITY> persistAll(Collection<ENTITY> sources) {
+    public Stream<ENTITY> persistAll(final Collection<ENTITY> sources) {
         return sources.stream()
                       .map(this::persist);
     }
@@ -632,7 +683,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param source the source
      * @return entity entity
      */
-    public ENTITY put(ENTITY source) {
+    public ENTITY put(final ENTITY source) {
         if (null == source.getId()) {
             return this.persist(source);
         } else {
@@ -650,7 +701,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param sources the sources
      * @return stream stream
      */
-    public Stream<ENTITY> putAll(Collection<ENTITY> sources) {
+    public Stream<ENTITY> putAll(final Collection<ENTITY> sources) {
         return sources.stream()
                       .map(this::put);
 
@@ -668,9 +719,13 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param criteriaBuilder the criteria builder
      * @return the criteria builder expression
      */
-    protected Expression<Boolean> equals(String column, Object value, boolean notNull, Root<ENTITY> entity, CriteriaBuilder criteriaBuilder) {
-        column = columnFrom(column);
-        if (applyFilter(value, notNull)) {
+    protected Expression<Boolean> equals(String column,
+                                         final Object value,
+                                         final boolean notNull,
+                                         final Root<ENTITY> entity,
+                                         final CriteriaBuilder criteriaBuilder) {
+        column = this.columnFrom(column);
+        if (this.applyFilter(value, notNull)) {
             return criteriaBuilder.equal(entity.get(column), value);
         } else {
             return entity.get(column)
@@ -691,7 +746,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param criteriaBuilder the criteria builder
      * @return the criteria builder expression
      */
-    protected Expression<Boolean> equals(HashMap<String, Object> values, Root<ENTITY> entity, CriteriaBuilder criteriaBuilder) {
+    protected Expression<Boolean> equals(final HashMap<String, Object> values,
+                                         final Root<ENTITY> entity,
+                                         final CriteriaBuilder criteriaBuilder) {
         return values.entrySet()
                      .stream()
                      .map(entry -> criteriaBuilder.equal(entity.get(entry.getKey()), entry.getValue()))
@@ -711,9 +768,13 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param criteriaBuilder the criteria builder
      * @return the criteria builder expression
      */
-    protected Expression<Boolean> like(String column, String value, boolean notNull, Root<ENTITY> entity, CriteriaBuilder criteriaBuilder) {
-        column = columnFrom(column);
-        if (applyFilter(value, notNull)) {
+    protected Expression<Boolean> like(String column,
+                                       final String value,
+                                       final boolean notNull,
+                                       final Root<ENTITY> entity,
+                                       final CriteriaBuilder criteriaBuilder) {
+        column = this.columnFrom(column);
+        if (this.applyFilter(value, notNull)) {
             return criteriaBuilder.like(entity.get(column), value);
         } else {
             return entity.get(column)
@@ -732,9 +793,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param entity  the entity root
      * @return the criteria builder expression
      */
-    protected Expression<Boolean> in(String column, Collection<? extends Object> values, boolean notNull, Root<ENTITY> entity) {
-        column = columnFrom(column);
-        if (applyFilter(values, notNull)) {
+    protected Expression<Boolean> in(String column,
+                                     final Collection<? extends Object> values,
+                                     final boolean notNull,
+                                     final Root<ENTITY> entity) {
+        column = this.columnFrom(column);
+        if (this.applyFilter(values, notNull)) {
             return entity.get(column)
                          .in(values);
         } else {
@@ -758,7 +822,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param criteriaBuilder the criteria builder
      * @return the criteria builder expression
      */
-    protected Expression<Boolean> in(Map<String, List<Object>> values, Root<ENTITY> entity, CriteriaBuilder criteriaBuilder) {
+    protected Expression<Boolean> in(final Map<String, List<Object>> values,
+                                     final Root<ENTITY> entity,
+                                     final CriteriaBuilder criteriaBuilder) {
         return values.entrySet()
                      .stream()
                      .map(entry -> entity.get(entry.getKey())
@@ -776,7 +842,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param source the source
      * @return the input if not null. If null is found, an UnexpectedException is thrown.
      */
-    protected <R> R assertNotNull(R source) {
+    protected <R> R assertNotNull(final R source) {
         if (null == source) {
             throw new UnexpectedException(this.name + ": not null expected");
         }
@@ -792,7 +858,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param expected if null is expected
      * @return the input if not null. If null is found and expected is true an ExpectedException is thrown.
      */
-    protected ENTITY assertNotNull(ENTITY source, boolean expected) {
+    protected ENTITY assertNotNull(final ENTITY source,
+                                   final boolean expected) {
         if (expected && null == source) {
             throw new ExpectedException(this.name + ": Entity was not found");
         }
@@ -809,7 +876,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param expected  if exception was expected or not and should be rethrown
      * @return the t
      */
-    protected <T> T resultAs(NoResultException exception, boolean expected) {
+    protected <T> T resultAs(final NoResultException exception,
+                             final boolean expected) {
         if (expected) {
             throw new ExpectedException(this.name + ": Entity was not found", exception);
         }
@@ -824,7 +892,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param column the column
      * @return the string
      */
-    protected String columnFrom(String column) {
+    protected String columnFrom(final String column) {
         if (column == null || column.isEmpty()) {
             throw new UnexpectedException(this.name + ":Expected a table column name.");
         }
@@ -841,7 +909,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param notNull the not null
      * @return the boolean
      */
-    protected <R> boolean applyFilter(R value, boolean notNull) {
+    protected <R> boolean applyFilter(final R value,
+                                      final boolean notNull) {
         if (null == value) {
             if (notNull) {
                 throw new UnexpectedException(this.name + ": Expecting not null value.");
@@ -860,7 +929,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return the current Entity Manager
      */
     public EntityManager em() {
-        return em;
+        return this.em;
     }
 
     /**
@@ -871,7 +940,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return the Type of the persisted Object
      */
     public Class<ENTITY> getType() {
-        return type;
+        return this.type;
     }
 
     /**
@@ -882,7 +951,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return the Type of the persisted Object Primary Key
      */
     public Class<PK> getKeyType() {
-        return keyType;
+        return this.keyType;
     }
 
     /**
@@ -893,7 +962,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return the Name of this DataAccess
      */
     public String getName() {
-        return name;
+        return this.name;
     }
 
     /**
@@ -904,7 +973,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param sources the sources
      * @return the map
      */
-    public Map<PK, ENTITY> asMap(Stream<ENTITY> sources) {
+    public Map<PK, ENTITY> asMap(final Stream<ENTITY> sources) {
         return sources.collect(Collectors.toMap(PrimaryKey::getId, Function.identity()));
     }
 
@@ -916,17 +985,17 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param sources the sources
      * @return the list
      */
-    public List<ENTITY> asList(Stream<ENTITY> sources) {
+    public List<ENTITY> asList(final Stream<ENTITY> sources) {
         return sources.collect(Collectors.toList());
     }
 
 
-    public ENTITY newInstance(ENTITY source) {
+    public ENTITY newInstance(final ENTITY source) {
         try {
-            ENTITY entity = this.noArgsConstructor.newInstance();
+            final ENTITY entity = this.noArgsConstructor.newInstance();
             entity.update(source);
             return entity;
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (final InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }

@@ -15,14 +15,17 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.update;
+package io.github.agache41.generic.rest.jpa.update.reflector;
 
 import io.github.agache41.generic.rest.jpa.exceptions.UnexpectedException;
+import io.github.agache41.generic.rest.jpa.update.Update;
+import io.github.agache41.generic.rest.jpa.update.Updateable;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 import jakarta.validation.constraints.NotNull;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -41,10 +44,11 @@ import java.util.stream.Collectors;
  *
  * @param <T> the type parameter
  */
-public final class ClassReflector<T extends Updateable<T>> {
+public final class ClassReflector<T> {
 
-    private static final Map<Class<?>, ClassReflector<?>> concurrentClassDescriptorsCache = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, ClassReflector<?>> concurrentClassReflectorCache = new ConcurrentHashMap<>();
     private final Class<T> clazz;
+
     /**
      * <pre>
      * The no arguments constructor associated for the type.
@@ -54,10 +58,17 @@ public final class ClassReflector<T extends Updateable<T>> {
     private final Map<String, FieldReflector<T, Object>> reflectors;
     private final Map<String, FieldReflector<T, Object>> updateReflectors;
 
+    private final FieldReflector[] updateReflectorsArray;
+    private final FieldReflector[] valueReflectorsArray;
+    private final String description;
+
+    private final boolean isFinal;
+
     private ClassReflector(final Class<T> sourceClass) {
 
-        System.out.println("Class " + sourceClass.getSimpleName());
         this.clazz = sourceClass;
+
+        this.isFinal = Modifier.isFinal(sourceClass.getModifiers());
 
         this.noArgsConstructor = ReflectionUtils.getNoArgsConstructor(sourceClass);
 
@@ -71,6 +82,18 @@ public final class ClassReflector<T extends Updateable<T>> {
                                                .stream()
                                                .filter(FieldReflector::isUpdatable)
                                                .collect(Collectors.toMap(FieldReflector::getName, Function.identity()));
+        this.updateReflectorsArray = this.updateReflectors.values()
+                                                          .toArray(new FieldReflector[this.updateReflectors.size()]);
+
+        final List<FieldReflector<T, Object>> valueReflectors = this.updateReflectors.values()
+                                                                                     .stream()
+                                                                                     .filter(FieldReflector::isValue)
+                                                                                     .collect(Collectors.toList());
+        this.valueReflectorsArray = valueReflectors.toArray(new FieldReflector[valueReflectors.size()]);
+
+        this.description = this.description();
+        //todo : add logging
+        System.out.println(this);
     }
 
     /**
@@ -83,8 +106,8 @@ public final class ClassReflector<T extends Updateable<T>> {
      * @param clazz the clazz
      * @return class reflector
      */
-    public static <R extends Updateable<R>> ClassReflector<R> ofClass(@NotNull Class<R> clazz) {
-        return (ClassReflector<R>) concurrentClassDescriptorsCache.computeIfAbsent(clazz, cls -> new ClassReflector(cls));
+    public static <R> ClassReflector<R> ofClass(@NotNull final Class<R> clazz) {
+        return (ClassReflector<R>) concurrentClassReflectorCache.computeIfAbsent(clazz, cls -> new ClassReflector(cls));
     }
 
     /**
@@ -97,10 +120,32 @@ public final class ClassReflector<T extends Updateable<T>> {
      * @param object the object
      * @return the class reflector
      */
-    public static <R extends Updateable<R>> ClassReflector<R> ofObject(@NotNull R object) {
-        return (ClassReflector<R>) concurrentClassDescriptorsCache.computeIfAbsent(object.getClass(), cls -> new ClassReflector(cls));
+    public static <R> ClassReflector<R> ofObject(@NotNull final R object) {
+        return (ClassReflector<R>) concurrentClassReflectorCache.computeIfAbsent(object.getClass(), cls -> new ClassReflector(cls));
     }
 
+    public static <ENTITY extends Updateable<ENTITY>> ENTITY create(final ENTITY value) {
+        if (value == null) {
+            return null;
+        }
+        final ENTITY result = ClassReflector.ofObject(value)
+                                            .newInstance();
+        result.update(value);
+        return result;
+    }
+
+    private String description() {
+        final StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("public class \t");
+        stringBuilder.append(this.clazz.getSimpleName());
+        stringBuilder.append(" { \r\n");
+        this.reflectors.values()
+                       .stream()
+                       .map(Objects::toString)
+                       .forEach(stringBuilder::append);
+        stringBuilder.append(" }\r\n");
+        return stringBuilder.toString();
+    }
 
     /**
      * <pre>
@@ -112,14 +157,14 @@ public final class ClassReflector<T extends Updateable<T>> {
      * @param source      the source
      * @return the destination
      */
-    public boolean update(T destination, T source) {
-        return this.updateReflectors.values()
-                                    .stream()
-                                    .map(fieldReflector -> fieldReflector.update(destination, source))
-                                    .reduce(false, (u, n) -> u || n);
-
+    public boolean update(final T destination,
+                          final T source) {
+        boolean updated = false;
+        for (final FieldReflector reflector : this.updateReflectorsArray) {
+            updated |= reflector.update(destination, source);
+        }
+        return updated;
     }
-
 
     /**
      * <pre>
@@ -129,10 +174,11 @@ public final class ClassReflector<T extends Updateable<T>> {
      * @param fieldName the field name
      * @return the reflector
      */
-    public FieldReflector<T, Object> getReflector(String fieldName) {
-        FieldReflector<T, Object> fieldReflector = this.reflectors.get(fieldName);
-        if (fieldReflector == null)
+    public FieldReflector<T, Object> getReflector(final String fieldName) {
+        final FieldReflector<T, Object> fieldReflector = this.reflectors.get(fieldName);
+        if (fieldReflector == null) {
             throw new UnexpectedException(" No such field " + fieldName + " in " + this.clazz.getSimpleName());
+        }
         return fieldReflector;
     }
 
@@ -146,13 +192,16 @@ public final class ClassReflector<T extends Updateable<T>> {
      * @param fieldType the field type
      * @return the reflector
      */
-    public <V> FieldReflector<T, V> getReflector(String fieldName, Class<V> fieldType) {
-        FieldReflector<T, V> fieldReflector = (FieldReflector<T, V>) this.reflectors.get(fieldName);
-        if (fieldReflector == null)
+    public <V> FieldReflector<T, V> getReflector(final String fieldName,
+                                                 final Class<V> fieldType) {
+        final FieldReflector<T, V> fieldReflector = (FieldReflector<T, V>) this.reflectors.get(fieldName);
+        if (fieldReflector == null) {
             throw new UnexpectedException(" No such field " + fieldName + " in " + this.clazz.getSimpleName());
-        if (!fieldType.equals(fieldReflector.getType()))
+        }
+        if (!fieldType.equals(fieldReflector.getType())) {
             throw new UnexpectedException(" Field" + fieldName + " in " + this.clazz.getSimpleName() + " has type " + fieldReflector.getType()
                                                                                                                                     .getSimpleName() + " and not " + fieldType.getSimpleName());
+        }
         return fieldReflector;
     }
 
@@ -165,8 +214,10 @@ public final class ClassReflector<T extends Updateable<T>> {
      * @param fieldName the field name
      * @return the object
      */
-    public Object get(T source, String fieldName) {
-        return getReflector(fieldName).get(source);
+    public Object get(final T source,
+                      final String fieldName) {
+        return this.getReflector(fieldName)
+                   .get(source);
     }
 
     /**
@@ -178,8 +229,11 @@ public final class ClassReflector<T extends Updateable<T>> {
      * @param fieldName the field name
      * @param value     the value
      */
-    public void set(T source, String fieldName, Object value) {
-        getReflector(fieldName).set(source, value);
+    public void set(final T source,
+                    final String fieldName,
+                    final Object value) {
+        this.getReflector(fieldName)
+            .set(source, value);
     }
 
     /**
@@ -188,11 +242,13 @@ public final class ClassReflector<T extends Updateable<T>> {
      * @param source the source
      * @return the hash map
      */
-    public HashMap<String, Object> mapValues(T source) {
-        HashMap<String, Object> result = new LinkedHashMap<>();
-        for (FieldReflector<T, ?> fieldReflector : this.reflectors.values()) {
-            Object value = fieldReflector.get(source);
-            if (value == null) continue;
+    public HashMap<String, Object> mapValues(final T source) {
+        final HashMap<String, Object> result = new LinkedHashMap<>();
+        for (final FieldReflector<T, ?> fieldReflector : this.valueReflectorsArray) {
+            final Object value = fieldReflector.get(source);
+            if (value == null) {
+                continue;
+            }
             result.put(fieldReflector.getName(), value);
         }
         return result;
@@ -204,15 +260,16 @@ public final class ClassReflector<T extends Updateable<T>> {
      * @param sources the sources
      * @return the hash map
      */
-    public HashMap<String, List<Object>> mapValues(List<T> sources) {
-        HashMap<String, List<Object>> result = new LinkedHashMap<>();
-        for (FieldReflector<T, ?> fieldReflector : this.reflectors.values()) {
-            List<Object> values = sources
-                    .stream()
-                    .map(fieldReflector::get)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            if (values.isEmpty()) continue;
+    public HashMap<String, List<Object>> mapValues(final List<T> sources) {
+        final HashMap<String, List<Object>> result = new LinkedHashMap<>();
+        for (final FieldReflector<T, ?> fieldReflector : this.valueReflectorsArray) {
+            final List<Object> values = sources.stream()
+                                               .map(fieldReflector::get)
+                                               .filter(Objects::nonNull)
+                                               .collect(Collectors.toList());
+            if (values.isEmpty()) {
+                continue;
+            }
             result.put(fieldReflector.getName(), values);
         }
         return result;
@@ -221,17 +278,37 @@ public final class ClassReflector<T extends Updateable<T>> {
     public T newInstance() {
         try {
             return this.noArgsConstructor.newInstance();
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (final InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }
 
+    public Constructor<T> getNoArgsConstructor() {
+        return this.noArgsConstructor;
+    }
 
-    public static <ENTITY extends Updateable<ENTITY>> ENTITY create(ENTITY value) {
-        if (value == null) return null;
-        ENTITY result = ClassReflector.ofObject(value)
-                                      .newInstance();
-        result.update(value);
-        return result;
+    public Map<String, FieldReflector<T, Object>> getReflectors() {
+        return this.reflectors;
+    }
+
+    public Map<String, FieldReflector<T, Object>> getUpdateReflectors() {
+        return this.updateReflectors;
+    }
+
+    public FieldReflector[] getUpdateReflectorsArray() {
+        return this.updateReflectorsArray;
+    }
+
+    public FieldReflector[] getValueReflectorsArray() {
+        return this.valueReflectorsArray;
+    }
+
+    public boolean isFinal() {
+        return this.isFinal;
+    }
+
+    @Override
+    public String toString() {
+        return this.description;
     }
 }

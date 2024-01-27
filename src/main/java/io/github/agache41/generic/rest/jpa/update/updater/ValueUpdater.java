@@ -34,46 +34,38 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
     protected final boolean notNull;
     protected final Function<SOURCE, VALUE> sourceGetter;
 
-    public ValueUpdater(BiConsumer<TARGET, VALUE> setter, Function<TARGET, VALUE> getter, boolean notNull, Function<SOURCE, VALUE> sourceGetter) {
+
+    public ValueUpdater(final BiConsumer<TARGET, VALUE> setter,
+                        final Function<TARGET, VALUE> getter,
+                        final boolean notNull,
+                        final Function<SOURCE, VALUE> sourceGetter) {
         this.setter = setter;
         this.getter = getter;
         this.notNull = notNull;
         this.sourceGetter = sourceGetter;
     }
 
-    @Override
-    public boolean update(TARGET target, SOURCE source) {
-        // the sourceValue to be updated
-        VALUE sourceValue = sourceGetter.apply(source);
-        // nulls
-        if (sourceValue == null) {
-            // null ignore or both null
-            if (notNull || getter.apply(target) == null)
-                return false;
-            setter.accept(target, null);
-            return true;
-        }
-        // nulls
-
-        if (!Objects.equals(getter.apply(target), sourceValue)) {
-            // equals check
-            setter.accept(target, sourceValue);
-            return true;
-        } // otherwise no update
-        return false;
+    public static <T, S, V> boolean updateValue(
+            final BiConsumer<T, V> setter,
+            final Function<T, V> getter,
+            final boolean notNull,
+            final Function<S, V> sourceGetter,
+            final T target,
+            final S source) {
+        return new ValueUpdater<>(setter, getter, notNull, sourceGetter).update(target, source);
     }
 
-    protected <KEY, VALUE extends Updateable<VALUE>> boolean updateMap(
-            Map<KEY, VALUE> targetValue,
-            Map<KEY, VALUE> sourceValue,
-            Supplier<VALUE> constructor) {
+    protected static <KEY, VALUE extends Updateable<VALUE>> boolean updateMap(
+            final Map<KEY, VALUE> targetValue,
+            final Map<KEY, VALUE> sourceValue,
+            final Supplier<VALUE> constructor) {
 
 
-        Set<KEY> targetKeys = targetValue.keySet();
+        final Set<KEY> targetKeys = targetValue.keySet();
         // make a copy to not change the input
-        Set<KEY> valueKeys = sourceValue.keySet()
-                                        .stream()
-                                        .collect(Collectors.toSet());
+        final Set<KEY> valueKeys = sourceValue.keySet()
+                                              .stream()
+                                              .collect(Collectors.toSet());
         //remove all that are now longer available
         boolean updated = targetKeys.retainAll(valueKeys);
         //update all that remained in the intersection
@@ -87,13 +79,37 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
         if (!valueKeys.isEmpty()) {
             updated = valueKeys.stream()
                                .map(key -> {
-                                   VALUE newValue = constructor.get();
-                                   boolean upd = newValue.update(sourceValue.get(key));
+                                   final VALUE newValue = constructor.get();
+                                   final boolean upd = newValue.update(sourceValue.get(key));
                                    targetValue.put(key, newValue);
                                    return upd;
                                })
                                .reduce(updated, (u, n) -> u || n);
         }
         return updated;
+    }
+
+    @Override
+    public boolean update(final TARGET target,
+                          final SOURCE source) {
+        // the sourceValue to be updated
+        final VALUE sourceValue = this.sourceGetter.apply(source);
+        // nulls
+        if (sourceValue == null) {
+            // null ignore or both null
+            if (this.notNull || this.getter.apply(target) == null) {
+                return false;
+            }
+            this.setter.accept(target, null);
+            return true;
+        }
+        // nulls
+
+        if (!Objects.equals(this.getter.apply(target), sourceValue)) {
+            // equals check
+            this.setter.accept(target, sourceValue);
+            return true;
+        } // otherwise no update
+        return false;
     }
 }

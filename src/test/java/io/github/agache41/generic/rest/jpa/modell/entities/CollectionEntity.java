@@ -20,8 +20,10 @@ package io.github.agache41.generic.rest.jpa.modell.entities;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.*;
 
 @Data
@@ -29,9 +31,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class CollectionEntity implements PrimaryKey<Long>, Updateable<Modell> {
+public class CollectionEntity implements PrimaryKey<Long>, Updateable<CollectionEntity>, Comparable<CollectionEntity> {
     @Id
-    @NotNull
+    @EqualsAndHashCode.Exclude
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -47,8 +49,17 @@ public class CollectionEntity implements PrimaryKey<Long>, Updateable<Modell> {
     @EqualsAndHashCode.Exclude
     private long subAge;
 
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "modell_id", referencedColumnName = "id")
-    private Modell modell;
+    @Override
+    public int compareTo(final CollectionEntity o) {
+        if (!this.subName.equals(o.getSubName())) {
+            return this.subName.compareTo(o.getSubName());
+        }
+        if (!this.subStreet.equals(o.getSubStreet())) {
+            return this.subStreet.compareTo(o.getSubStreet());
+        }
+        if (!this.subNumber.equals(o.getSubNumber())) {
+            return this.subNumber.compareTo(o.getSubNumber());
+        }
+        return 0;
+    }
 }

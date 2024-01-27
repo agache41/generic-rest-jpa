@@ -23,33 +23,50 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class ValueEntityUpdater<TARGET, SOURCE, VALUE extends Updateable<VALUE>> extends ValueUpdater<TARGET, SOURCE, VALUE> {
+public class EntityUpdater<TARGET, SOURCE, VALUE extends Updateable<VALUE>> extends ValueUpdater<TARGET, SOURCE, VALUE> {
     protected final Supplier<VALUE> constructor;
 
-    public ValueEntityUpdater(BiConsumer<TARGET, VALUE> setter, Function<TARGET, VALUE> getter, boolean notNull, Function<SOURCE, VALUE> sourceGetter, Supplier<VALUE> constructor) {
+    public EntityUpdater(final BiConsumer<TARGET, VALUE> setter,
+                         final Function<TARGET, VALUE> getter,
+                         final boolean notNull,
+                         final Function<SOURCE, VALUE> sourceGetter,
+                         final Supplier<VALUE> constructor) {
         super(setter, getter, notNull, sourceGetter);
         this.constructor = constructor;
     }
 
+    public static <T, S, V extends Updateable<V>> boolean updateEntity(
+            final BiConsumer<T, V> setter,
+            final Function<T, V> getter,
+            final boolean notNull,
+            final Function<S, V> sourceGetter,
+            final Supplier<V> constructor,
+            final T target,
+            final S source) {
+        return new EntityUpdater<>(setter, getter, notNull, sourceGetter, constructor).update(target, source);
+    }
+
     @Override
-    public boolean update(TARGET target, SOURCE source) {
+    public boolean update(final TARGET target,
+                          final SOURCE source) {
         // the sourceValue to be updated
-        VALUE sourceValue = sourceGetter.apply(source);
+        final VALUE sourceValue = this.sourceGetter.apply(source);
         // nulls
         if (sourceValue == null) {
             // null ignore or both null
-            if (notNull || getter.apply(target) == null)
+            if (this.notNull || this.getter.apply(target) == null) {
                 return false;
-            setter.accept(target, null);
+            }
+            this.setter.accept(target, null);
             return true;
         }
         // nulls
-        VALUE targetValue = getter.apply(target);
+        final VALUE targetValue = this.getter.apply(target);
         if (targetValue == null) {
             // previous sourceValue was null, we assign the new one
-            VALUE newValue = constructor.get();
-            boolean updated = newValue.update(sourceValue);
-            setter.accept(target, newValue);
+            final VALUE newValue = this.constructor.get();
+            final boolean updated = newValue.update(sourceValue);
+            this.setter.accept(target, newValue);
             return updated;
         }
         return targetValue.update(sourceValue);

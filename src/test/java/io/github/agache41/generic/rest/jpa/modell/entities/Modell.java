@@ -21,11 +21,11 @@ import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 @Builder
@@ -35,7 +35,7 @@ import java.util.Map;
 public class Modell implements PrimaryKey<Long>, Updateable<Modell> {
 
     @Id
-    @NotNull
+    @EqualsAndHashCode.Exclude
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -52,23 +52,31 @@ public class Modell implements PrimaryKey<Long>, Updateable<Modell> {
     private long age;
 
     @Update
-    @OneToOne(mappedBy = "modell")
-    private ValueEntity valueEntity;
-
-    @Update
-    private List<Integer> collectionValues;
-
-    @Update
-    @OneToMany(mappedBy = "modell")
-    private List<CollectionEntity> collectionEntities;
-
-    @Update
-    @MapKey(name = "id")
-    @OneToMany(mappedBy = "modell")
-    private Map<Long, CollectionEntity> mapEntities;
+    @Builder.Default
+    private List<Integer> collectionValues = new ArrayList<>();
 
     @Update
     @ElementCollection
-    private Map<Long, String> mapValues;
+    @Builder.Default
+    private Map<Long, String> mapValues = new HashMap<>();
+
+    @Update
+    @Fetch(FetchMode.JOIN)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "valueEntity_id", referencedColumnName = "id")
+    private ValueEntity valueEntity;
+
+    @Update
+    @Fetch(FetchMode.JOIN)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @Builder.Default
+    private Set<CollectionEntity> collectionEntities = new TreeSet<>();
+
+//    @Update
+//    @Fetch(FetchMode.JOIN)
+//    @MapKey(name = "id")
+//    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+//    @Builder.Default
+//    private Map<Long, MapEntity> mapEntities = new HashMap<>();
 
 }

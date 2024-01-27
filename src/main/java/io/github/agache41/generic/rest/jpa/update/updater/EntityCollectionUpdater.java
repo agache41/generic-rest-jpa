@@ -17,37 +17,57 @@
 
 package io.github.agache41.generic.rest.jpa.update.updater;
 
+import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
+import io.github.agache41.generic.rest.jpa.update.Updateable;
+
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collection<VALUE>, VALUE extends UpdateableAndPrimaryKey<VALUE, PK>, PK> extends ValueUpdater<TARGET, SOURCE, COLLECTION> {
+public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collection<VALUE>, VALUE extends Updateable<VALUE> & PrimaryKey<PK>, PK> extends ValueUpdater<TARGET, SOURCE, COLLECTION> {
 
     protected final Supplier<VALUE> constructor;
 
-    public EntityCollectionUpdater(BiConsumer<TARGET, COLLECTION> setter, Function<TARGET, COLLECTION> getter, boolean notNull, Function<SOURCE, COLLECTION> sourceGetter, Supplier<VALUE> constructor) {
+    public EntityCollectionUpdater(final BiConsumer<TARGET, COLLECTION> setter,
+                                   final Function<TARGET, COLLECTION> getter,
+                                   final boolean notNull,
+                                   final Function<SOURCE, COLLECTION> sourceGetter,
+                                   final Supplier<VALUE> constructor) {
         super(setter, getter, notNull, sourceGetter);
         this.constructor = constructor;
     }
 
+    public static <T, S, C extends Collection<E>, E extends Updateable<E> & PrimaryKey<K>, K> boolean updateEntityCollection(
+            final BiConsumer<T, C> setter,
+            final Function<T, C> getter,
+            final boolean notNull,
+            final Function<S, C> sourceGetter,
+            final Supplier<E> constructor,
+            final T target,
+            final S source) {
+        return new EntityCollectionUpdater<>(setter, getter, notNull, sourceGetter, constructor).update(target, source);
+    }
+
     @Override
-    public boolean update(TARGET target, SOURCE source) {
+    public boolean update(final TARGET target,
+                          final SOURCE source) {
         // the sourceValue to be updated
-        Collection<VALUE> sourceValue = sourceGetter.apply(source);
+        final Collection<VALUE> sourceValue = this.sourceGetter.apply(source);
         // nulls
         if (sourceValue == null) {
-            if (notNull || getter.apply(target) == null) // null ignore
+            if (this.notNull || this.getter.apply(target) == null) // null ignore
+            {
                 return false;
-            else {
-                setter.accept(target, null);
+            } else {
+                this.setter.accept(target, null);
                 return true;
             }
         }
         // nulls
 
         // empty
-        Collection<VALUE> targetValue = getter.apply(target);
+        final Collection<VALUE> targetValue = this.getter.apply(target);
         if (sourceValue.isEmpty()) {
             if (targetValue.isEmpty()) {
                 return false;
@@ -60,24 +80,26 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
         // collection work
 
         // create maps with entities that have pk.
-        Map<PK, VALUE> sourceValueMap = new HashMap<>();
-        List<VALUE> sourceValueList = new ArrayList<>(sourceValue.size());
-        for (VALUE val : sourceValue) {
-            PK PK = val.getId();
-            if (PK == null)
+        final Map<PK, VALUE> sourceValueMap = new HashMap<>();
+        final List<VALUE> sourceValueList = new ArrayList<>(sourceValue.size());
+        for (final VALUE val : sourceValue) {
+            final PK PK = val.getId();
+            if (PK == null) {
                 sourceValueList.add(val);
-            else
+            } else {
                 sourceValueMap.put(PK, val);
+            }
         }
 
-        Map<PK, VALUE> targetValueMap = new HashMap<>();
-        for (VALUE val : targetValue) {
-            PK PK = val.getId();
-            if (PK != null)
+        final Map<PK, VALUE> targetValueMap = new HashMap<>();
+        for (final VALUE val : targetValue) {
+            final PK PK = val.getId();
+            if (PK != null) {
                 targetValueMap.put(PK, val);
+            }
         }
 
-        updateMap(targetValueMap, sourceValueMap, this.constructor);
+        ValueUpdater.updateMap(targetValueMap, sourceValueMap, this.constructor);
 
         targetValue.clear();
         // add the updated entities

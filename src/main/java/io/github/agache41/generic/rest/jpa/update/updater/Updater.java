@@ -18,6 +18,6 @@
 package io.github.agache41.generic.rest.jpa.update.updater;
 
 public interface Updater<TARGET, SOURCE> {
-
-    boolean update(TARGET target, SOURCE source);
+    boolean update(TARGET target,
+                   SOURCE source);
 }

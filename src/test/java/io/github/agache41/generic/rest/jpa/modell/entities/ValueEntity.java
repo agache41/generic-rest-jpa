@@ -20,8 +20,10 @@ package io.github.agache41.generic.rest.jpa.modell.entities;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.*;
 
 @Data
@@ -29,9 +31,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class ValueEntity implements PrimaryKey<Long>, Updateable<Modell> {
+public class ValueEntity implements PrimaryKey<Long>, Updateable<ValueEntity> {
     @Id
-    @NotNull
+    @EqualsAndHashCode.Exclude
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -46,8 +48,4 @@ public class ValueEntity implements PrimaryKey<Long>, Updateable<Modell> {
 
     @EqualsAndHashCode.Exclude
     private long subAge;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "modell_id", referencedColumnName = "id")
-    private Modell modell;
 }

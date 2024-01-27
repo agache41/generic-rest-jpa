@@ -23,27 +23,42 @@ import java.util.function.Function;
 
 public class CollectionUpdater<TARGET, SOURCE, VALUE> extends ValueUpdater<TARGET, SOURCE, Collection<VALUE>> {
 
-    public CollectionUpdater(BiConsumer<TARGET, Collection<VALUE>> setter, Function<TARGET, Collection<VALUE>> getter, boolean notNull, Function<SOURCE, Collection<VALUE>> sourceGetter) {
+    public CollectionUpdater(final BiConsumer<TARGET, Collection<VALUE>> setter,
+                             final Function<TARGET, Collection<VALUE>> getter,
+                             final boolean notNull,
+                             final Function<SOURCE, Collection<VALUE>> sourceGetter) {
         super(setter, getter, notNull, sourceGetter);
     }
 
+    public static <T, S, V> boolean updateCollection(
+            final BiConsumer<T, Collection<V>> setter,
+            final Function<T, Collection<V>> getter,
+            final boolean notNull,
+            final Function<S, Collection<V>> sourceGetter,
+            final T target,
+            final S source) {
+        return new CollectionUpdater<>(setter, getter, notNull, sourceGetter).update(target, source);
+    }
+
     @Override
-    public boolean update(TARGET target, SOURCE source) {
+    public boolean update(final TARGET target,
+                          final SOURCE source) {
         // the sourceValue to be updated
-        Collection<VALUE> sourceValue = sourceGetter.apply(source);
+        final Collection<VALUE> sourceValue = this.sourceGetter.apply(source);
         // nulls
         if (sourceValue == null) {
-            if (notNull || getter.apply(target) == null) // null ignore
+            if (this.notNull || this.getter.apply(target) == null) // null ignore
+            {
                 return false;
-            else {
-                setter.accept(target, null);
+            } else {
+                this.setter.accept(target, null);
                 return true;
             }
         }
         // nulls
 
         // empty
-        Collection<VALUE> targetValue = getter.apply(target);
+        final Collection<VALUE> targetValue = this.getter.apply(target);
         if (sourceValue.isEmpty()) {
             if (targetValue.isEmpty()) {
                 return false;

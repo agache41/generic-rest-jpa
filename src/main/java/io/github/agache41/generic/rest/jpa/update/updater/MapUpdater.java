@@ -27,27 +27,42 @@ import java.util.stream.Collectors;
 public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET, SOURCE, Map<KEY, VALUE>> {
 
 
-    public MapUpdater(BiConsumer<TARGET, Map<KEY, VALUE>> setter, Function<TARGET, Map<KEY, VALUE>> getter, boolean notNull, Function<SOURCE, Map<KEY, VALUE>> sourceGetter) {
+    public MapUpdater(final BiConsumer<TARGET, Map<KEY, VALUE>> setter,
+                      final Function<TARGET, Map<KEY, VALUE>> getter,
+                      final boolean notNull,
+                      final Function<SOURCE, Map<KEY, VALUE>> sourceGetter) {
         super(setter, getter, notNull, sourceGetter);
     }
 
+    
+    public static <T, S, V, K> boolean updateMap(
+            final BiConsumer<T, Map<K, V>> setter,
+            final Function<T, Map<K, V>> getter,
+            final boolean notNull,
+            final Function<S, Map<K, V>> sourceGetter,
+            final T target,
+            final S source) {
+        return new MapUpdater<>(setter, getter, notNull, sourceGetter).update(target, source);
+    }
+
     @Override
-    public boolean update(TARGET target, SOURCE source) {
+    public boolean update(final TARGET target,
+                          final SOURCE source) {
         // the sourceValue to be updated
-        Map<KEY, VALUE> sourceValue = sourceGetter.apply(source);
+        final Map<KEY, VALUE> sourceValue = this.sourceGetter.apply(source);
         // nulls
         if (sourceValue == null) {
-            if (notNull || getter.apply(target) == null) // null ignore
+            if (this.notNull || this.getter.apply(target) == null) {
                 return false;
-            else {
-                setter.accept(target, null);
+            } else {
+                this.setter.accept(target, null);
                 return true;
             }
         }
         // nulls
 
         // empty
-        Map<KEY, VALUE> targetValue = getter.apply(target);
+        final Map<KEY, VALUE> targetValue = this.getter.apply(target);
         if (sourceValue.isEmpty()) {
             if (targetValue.isEmpty()) {
                 return false;
@@ -58,11 +73,11 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
         // empty
 
         // map work
-        Set<KEY> targetKeys = targetValue.keySet();
+        final Set<KEY> targetKeys = targetValue.keySet();
         // make a copy to not change the input
-        Set<KEY> valueKeys = sourceValue.keySet()
-                                        .stream()
-                                        .collect(Collectors.toSet());
+        final Set<KEY> valueKeys = sourceValue.keySet()
+                                              .stream()
+                                              .collect(Collectors.toSet());
         //remove all that are now longer available
         boolean updated = targetKeys.retainAll(valueKeys);
         //update all that remained in the intersection

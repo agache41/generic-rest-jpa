@@ -18,6 +18,8 @@
 package io.github.agache41.generic.rest.jpa.update;
 
 
+import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
+
 /**
  * @author Alexandru.Agache.Extern@atruvia.de
  * <p>
@@ -27,8 +29,8 @@ package io.github.agache41.generic.rest.jpa.update;
  * map based one to many relations.
  */
 public interface Updateable<ENTITY extends Updateable<ENTITY>> {
-    default boolean update(ENTITY source) {
-        return ClassReflector.ofObject(source)
-                             .update((ENTITY) this, source);
+    default boolean update(final ENTITY source) {
+        return ClassReflector.ofObject(this)
+                             .update(this, source);
     }
 }
