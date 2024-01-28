@@ -19,6 +19,7 @@ package io.github.agache41.generic.rest.jpa.update.updater;
 
 import io.github.agache41.generic.rest.jpa.update.Updateable;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -60,12 +61,11 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
             final Map<KEY, VALUE> sourceValue,
             final Supplier<VALUE> constructor) {
 
-
         final Set<KEY> targetKeys = targetValue.keySet();
         // make a copy to not change the input
         final Set<KEY> valueKeys = sourceValue.keySet()
                                               .stream()
-                                              .collect(Collectors.toSet());
+                                              .collect(Collectors.toCollection(LinkedHashSet::new));
         //remove all that are now longer available
         boolean updated = targetKeys.retainAll(valueKeys);
         //update all that remained in the intersection

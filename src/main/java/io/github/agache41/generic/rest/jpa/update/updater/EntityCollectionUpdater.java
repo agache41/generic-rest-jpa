@@ -80,7 +80,7 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
         // collection work
 
         // create maps with entities that have pk.
-        final Map<PK, VALUE> sourceValueMap = new HashMap<>();
+        final Map<PK, VALUE> sourceValueMap = new LinkedHashMap<>();
         final List<VALUE> sourceValueList = new ArrayList<>(sourceValue.size());
         for (final VALUE val : sourceValue) {
             final PK PK = val.getId();
@@ -91,7 +91,7 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
             }
         }
 
-        final Map<PK, VALUE> targetValueMap = new HashMap<>();
+        final Map<PK, VALUE> targetValueMap = new LinkedHashMap<>();
         for (final VALUE val : targetValue) {
             final PK PK = val.getId();
             if (PK != null) {

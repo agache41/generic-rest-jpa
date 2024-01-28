@@ -25,7 +25,8 @@ import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Builder
@@ -51,26 +52,26 @@ public class Modell implements PrimaryKey<Long>, Updateable<Modell> {
     @EqualsAndHashCode.Exclude
     private long age;
 
-    @Update
-    @Builder.Default
-    private List<Integer> collectionValues = new ArrayList<>();
-
-    @Update
-    @ElementCollection
-    @Builder.Default
-    private Map<Long, String> mapValues = new HashMap<>();
-
-    @Update
-    @Fetch(FetchMode.JOIN)
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "valueEntity_id", referencedColumnName = "id")
-    private ValueEntity valueEntity;
+//    @Update
+//    @Builder.Default
+//    private List<Integer> collectionValues = new ArrayList<>();
+//
+//    @Update
+//    @ElementCollection
+//    @Builder.Default
+//    private Map<Long, String> mapValues = new HashMap<>();
+//
+//    @Update
+//    @Fetch(FetchMode.JOIN)
+//    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+//    @JoinColumn(name = "valueEntity_id", referencedColumnName = "id")
+//    private ValueEntity valueEntity;
 
     @Update
     @Fetch(FetchMode.JOIN)
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @Builder.Default
-    private Set<CollectionEntity> collectionEntities = new TreeSet<>();
+    private List<CollectionEntity> collectionEntities = new ArrayList<>();
 
 //    @Update
 //    @Fetch(FetchMode.JOIN)

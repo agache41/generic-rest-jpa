@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class UpdateSupplier<T> implements java.util.function.Supplier<T> {
 
-    public static final int listSize = 128;
+    public static final int defaultCollectionSize = 64;
     private static final Map<Class<?>, UpdateSupplier<?>> feederCache = new ConcurrentHashMap<>();
 
     static {
@@ -44,14 +44,21 @@ public class UpdateSupplier<T> implements java.util.function.Supplier<T> {
         UpdateSupplier.add(new ShortRandomSupplier());
         UpdateSupplier.add(new BigDecimalRandomSupplier());
         UpdateSupplier.add(new BigIntegerRandomSupplier());
-        //feederCache.put(String.class, new StringFeeder());
     }
 
     protected final Random random = new Random();
     private final Class<T> clazz;
+    private int collectionSize;
+
+    public UpdateSupplier(final Class<T> clazz,
+                          final int collectionSize) {
+        this.clazz = clazz;
+        this.collectionSize = collectionSize;
+    }
 
     public UpdateSupplier(final Class<T> clazz) {
         this.clazz = clazz;
+        this.collectionSize = defaultCollectionSize;
     }
 
     public static void add(final UpdateSupplier<?> supplier) {
@@ -63,7 +70,7 @@ public class UpdateSupplier<T> implements java.util.function.Supplier<T> {
     }
 
     public List<T> list() {
-        return this.list(listSize);
+        return this.list(defaultCollectionSize);
     }
 
     public List<T> list(final int size) {
@@ -94,7 +101,7 @@ public class UpdateSupplier<T> implements java.util.function.Supplier<T> {
                 final Collection collection = (Collection) fieldReflector.get(result);
                 if (collection != null && collectionParameter != null) {
                     collection.addAll(UpdateSupplier.ofClass(collectionParameter)
-                                                    .list(listSize));
+                                                    .list(defaultCollectionSize));
                 }
             } else if (fieldReflector.isMap()) {
                 final Class<?> mapKeyParameter = fieldReflector.getFirstParameter();
@@ -105,12 +112,12 @@ public class UpdateSupplier<T> implements java.util.function.Supplier<T> {
                     if (!PrimaryKey.class.isAssignableFrom(mapValueParameter)) {
                         final UpdateSupplier<?> valueSupplier = UpdateSupplier.ofClass(mapValueParameter);
                         final UpdateSupplier<?> keySupplier = UpdateSupplier.ofClass(mapKeyParameter);
-                        for (int i = 0; i < listSize; i++) {
+                        for (int i = 0; i < defaultCollectionSize; i++) {
                             map.put(keySupplier.get(), valueSupplier.get());
                         }
                     } else {
                         final UpdateSupplier<PrimaryKey> valueSupplier = UpdateSupplier.ofClass((Class<PrimaryKey>) mapValueParameter);
-                        for (int i = 0; i < listSize; i++) {
+                        for (int i = 0; i < defaultCollectionSize; i++) {
                             final PrimaryKey primaryKey = valueSupplier.get();
                             map.put(primaryKey.getId(), primaryKey);
                         }
@@ -127,6 +134,14 @@ public class UpdateSupplier<T> implements java.util.function.Supplier<T> {
 
     public Class<T> getClazz() {
         return this.clazz;
+    }
+
+    public int getCollectionSize() {
+        return this.collectionSize;
+    }
+
+    public void setCollectionSize(final int collectionSize) {
+        this.collectionSize = collectionSize;
     }
 
     public static class StringRandomSupplier extends UpdateSupplier<String> {

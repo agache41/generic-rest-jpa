@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestInstance(PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<Modell, Long> {
-    static final String stringField = "name";
+    private static final String stringField = "name";
     private static final UpdateSupplier<Modell> supplier = UpdateSupplier.ofClass(Modell.class);
 
     public ModellResourceServiceTest() {
