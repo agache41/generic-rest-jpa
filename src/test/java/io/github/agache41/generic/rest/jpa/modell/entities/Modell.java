@@ -22,11 +22,9 @@ import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -35,6 +33,7 @@ import java.util.List;
 @Entity
 public class Modell implements PrimaryKey<Long>, Updateable<Modell> {
 
+    private static final long serialVersionUID = 4981653210124872352L;
     @Id
     @EqualsAndHashCode.Exclude
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,32 +51,33 @@ public class Modell implements PrimaryKey<Long>, Updateable<Modell> {
     @EqualsAndHashCode.Exclude
     private long age;
 
-//    @Update
-//    @Builder.Default
-//    private List<Integer> collectionValues = new ArrayList<>();
-//
-//    @Update
-//    @ElementCollection
-//    @Builder.Default
-//    private Map<Long, String> mapValues = new HashMap<>();
-//
-//    @Update
-//    @Fetch(FetchMode.JOIN)
-//    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-//    @JoinColumn(name = "valueEntity_id", referencedColumnName = "id")
-//    private ValueEntity valueEntity;
+    @Update
+    @ElementCollection
+    @OrderColumn
+    @Column(name = "collectionValues")
+    private List<Integer> collectionValues;
 
     @Update
-    @Fetch(FetchMode.JOIN)
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @Builder.Default
-    private List<CollectionEntity> collectionEntities = new ArrayList<>();
+    @ElementCollection
+    @Column(name = "mapValues")
+    private Map<Long, String> mapValues;
 
-//    @Update
-//    @Fetch(FetchMode.JOIN)
-//    @MapKey(name = "id")
-//    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-//    @Builder.Default
-//    private Map<Long, MapEntity> mapEntities = new HashMap<>();
+    @Update
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "valueEntity_id", referencedColumnName = "id")
+    private ValueEntity valueEntity;
+
+    @Update
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    // add this to prevent Hibernate from using PersistentBag
+    @OrderColumn(name = "id")
+    private List<CollectionEntity> collectionEntities;
+
+    @Update
+    @MapKey(name = "id")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    //add this to prevent failure at post when inserting new keys in the map, keys that will be overwritten.
+    @EqualsAndHashCode.Exclude
+    private Map<Long, MapEntity> mapEntities;
 
 }

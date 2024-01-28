@@ -18,6 +18,8 @@
 package io.github.agache41.generic.rest.jpa.dataAccess;
 
 
+import java.io.Serializable;
+
 /**
  * <pre>
  *  Base Interface for entities, encapsulating the primary key getter and setter.
@@ -33,7 +35,7 @@ package io.github.agache41.generic.rest.jpa.dataAccess;
  *
  * @param <PK> the type parameter
  */
-public interface PrimaryKey<PK> {
+public interface PrimaryKey<PK> extends Serializable {
 
     /**
      * <pre>

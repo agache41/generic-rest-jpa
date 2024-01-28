@@ -55,10 +55,13 @@ public class CollectionUpdater<TARGET, SOURCE, VALUE> extends ValueUpdater<TARGE
                 return true;
             }
         }
-        // nulls
-
-        // empty
         final Collection<VALUE> targetValue = this.getter.apply(target);
+        // collection not initialized
+        if (targetValue == null) {
+            this.setter.accept(target, sourceValue);
+            return true;
+        }
+        // empty
         if (sourceValue.isEmpty()) {
             if (targetValue.isEmpty()) {
                 return false;

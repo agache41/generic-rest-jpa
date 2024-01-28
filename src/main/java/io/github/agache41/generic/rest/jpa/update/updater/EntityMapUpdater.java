@@ -53,7 +53,7 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
     public boolean update(final TARGET target,
                           final SOURCE source) {
         // the sourceValue to be updated
-        final Map<KEY, VALUE> sourceValue = this.sourceGetter.apply(source);
+        final MAP sourceValue = this.sourceGetter.apply(source);
         // nulls
         if (sourceValue == null) {
             if (this.notNull || this.getter.apply(target) == null) // null ignore
@@ -64,10 +64,15 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
                 return true;
             }
         }
-        // nulls
+
+        final Map<KEY, VALUE> targetValue = this.getter.apply(target);
+        // map not initialized
+        if (targetValue == null) {
+            this.setter.accept(target, sourceValue);
+            return true;
+        }
 
         // empty
-        final Map<KEY, VALUE> targetValue = this.getter.apply(target);
         if (sourceValue.isEmpty()) {
             if (targetValue.isEmpty()) {
                 return false;
@@ -75,6 +80,7 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
             targetValue.clear();
             return true;
         }
+
         // empty
         return ValueUpdater.updateMap(targetValue, sourceValue, this.constructor);
     }

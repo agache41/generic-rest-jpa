@@ -22,10 +22,8 @@ import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.jboss.logging.Logger;
+import org.junit.jupiter.api.*;
 
 import java.util.List;
 import java.util.Set;
@@ -33,12 +31,16 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 
+@TestInstance(PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & Updateable<T>, K> {
 
+    private static final Logger LOG = Logger.getLogger(AbstractResourceServiceImplTest.class);
     private final List<T> insertData;
+
     private final List<T> updateData;
     private final FieldReflector<T, String> fieldReflector;
     private final String stringField;
@@ -71,6 +73,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
         }
     }
 
+
     public ResourceService<T, K> getClient() {
         return this.client;
     }
@@ -85,21 +88,22 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
             assertNotNull(req);
             assertNull(req.getId());
             //when
+            LOG.debugf("POST: Request: %s", req);
             final T res = this.getClient()
                               .post(req);
-
+            LOG.infof("POST: Response: %s", res);
             //then
             assertNotNull(res);
             final K id = res.getId();
             assertNotNull(id);
             //req.setId(id);
             assertEquals(req, res);
+            this.insertData.set(index, res);
             final T upd = this.updateData.get(index);
             assertNotNull(upd);
             upd.setId(id);
         }
     }
-
 
     @Test
     @Order(20)

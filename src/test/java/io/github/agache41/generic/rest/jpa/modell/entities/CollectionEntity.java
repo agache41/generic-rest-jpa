@@ -26,12 +26,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.*;
 
+import java.util.Objects;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class CollectionEntity implements PrimaryKey<Long>, Updateable<CollectionEntity>, Comparable<CollectionEntity> {
+public class CollectionEntity implements PrimaryKey<Long>, Updateable<CollectionEntity>/*, Comparable<CollectionEntity>*/ {
     @Id
     @EqualsAndHashCode.Exclude
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,6 +52,23 @@ public class CollectionEntity implements PrimaryKey<Long>, Updateable<Collection
     private long subAge;
 
     @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || this.getClass() != o.getClass()) {
+            return false;
+        }
+        final CollectionEntity that = (CollectionEntity) o;
+        return Objects.equals(this.subName, that.subName) && Objects.equals(this.subStreet, that.subStreet) && Objects.equals(this.subNumber, that.subNumber);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.subName, this.subStreet, this.subNumber);
+    }
+
+/*    @Override
     public int compareTo(final CollectionEntity o) {
         if (!this.subName.equals(o.getSubName())) {
             return this.subName.compareTo(o.getSubName());
@@ -61,5 +80,5 @@ public class CollectionEntity implements PrimaryKey<Long>, Updateable<Collection
             return this.subNumber.compareTo(o.getSubNumber());
         }
         return 0;
-    }
+    }*/
 }

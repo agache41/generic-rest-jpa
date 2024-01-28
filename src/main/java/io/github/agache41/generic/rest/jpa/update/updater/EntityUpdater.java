@@ -60,8 +60,8 @@ public class EntityUpdater<TARGET, SOURCE, VALUE extends Updateable<VALUE>> exte
             this.setter.accept(target, null);
             return true;
         }
-        // nulls
         final VALUE targetValue = this.getter.apply(target);
+        // target not initialized
         if (targetValue == null) {
             // previous sourceValue was null, we assign the new one
             final VALUE newValue = this.constructor.get();

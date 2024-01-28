@@ -18,10 +18,12 @@
 package io.github.agache41.generic.rest.jpa.modell.resources;
 
 
-import io.github.agache41.generic.rest.jpa.filler.UpdateSupplier;
+import io.github.agache41.generic.rest.jpa.filler.Producer;
 import io.github.agache41.generic.rest.jpa.modell.entities.Modell;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImplTest;
 import org.junit.jupiter.api.*;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
@@ -30,12 +32,15 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<Modell, Long> {
     private static final String stringField = "name";
-    private static final UpdateSupplier<Modell> supplier = UpdateSupplier.ofClass(Modell.class);
+    private static final Producer<Modell> supplier = Producer.ofClass(Modell.class);
+    private static final List<Modell> insertData = supplier.getList();
+    private static final List<Modell> updateData = supplier.applyList(insertData);
 
     public ModellResourceServiceTest() {
-        super(new ModellResourceService(), Modell.class, //
-              supplier.list(),
-              supplier.list(),
+        super(new ModellResourceService(),
+              Modell.class, //
+              insertData,   //
+              updateData,   //
               stringField); //
     }
 

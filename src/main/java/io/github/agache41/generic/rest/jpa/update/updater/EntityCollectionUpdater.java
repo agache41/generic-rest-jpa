@@ -53,7 +53,7 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
     public boolean update(final TARGET target,
                           final SOURCE source) {
         // the sourceValue to be updated
-        final Collection<VALUE> sourceValue = this.sourceGetter.apply(source);
+        final COLLECTION sourceValue = this.sourceGetter.apply(source);
         // nulls
         if (sourceValue == null) {
             if (this.notNull || this.getter.apply(target) == null) // null ignore
@@ -64,10 +64,13 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
                 return true;
             }
         }
-        // nulls
-
-        // empty
         final Collection<VALUE> targetValue = this.getter.apply(target);
+        // collection not initialized
+        if (targetValue == null) {
+            this.setter.accept(target, sourceValue);
+            return true;
+        }
+        // empty
         if (sourceValue.isEmpty()) {
             if (targetValue.isEmpty()) {
                 return false;

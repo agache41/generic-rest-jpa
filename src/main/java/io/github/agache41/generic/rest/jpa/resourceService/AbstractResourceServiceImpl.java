@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
  * @param <T> the type parameter
  * @param <K> the type parameter
  */
+
 public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Updateable<T>, K> implements ResourceService<T, K> {
 
 

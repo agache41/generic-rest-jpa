@@ -31,13 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements ResourceService<T, K> {
 
-
     static {
         RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
     }
 
     protected final Class<T> clazz;
     protected final String path;
+
 
     public ResourceServiceTestClient(final Class<T> clazz,
                                      final String path) {

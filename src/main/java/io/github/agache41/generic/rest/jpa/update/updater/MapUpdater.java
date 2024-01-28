@@ -34,7 +34,7 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
         super(setter, getter, notNull, sourceGetter);
     }
 
-    
+
     public static <T, S, V, K> boolean updateMap(
             final BiConsumer<T, Map<K, V>> setter,
             final Function<T, Map<K, V>> getter,
@@ -59,10 +59,13 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
                 return true;
             }
         }
-        // nulls
-
-        // empty
         final Map<KEY, VALUE> targetValue = this.getter.apply(target);
+        // map not initialized
+        if (targetValue == null) {
+            this.setter.accept(target, sourceValue);
+            return true;
+        }
+        // empty
         if (sourceValue.isEmpty()) {
             if (targetValue.isEmpty()) {
                 return false;
@@ -70,8 +73,6 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
             targetValue.clear();
             return true;
         }
-        // empty
-
         // map work
         final Set<KEY> targetKeys = targetValue.keySet();
         // make a copy to not change the input
