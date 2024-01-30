@@ -33,8 +33,8 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<Modell, Long> {
     private static final String stringField = "name";
     private static final Producer<Modell> supplier = Producer.ofClass(Modell.class);
-    private static final List<Modell> insertData = supplier.getList();
-    private static final List<Modell> updateData = supplier.applyList(insertData);
+    private static final List<Modell> insertData = supplier.produceList();
+    private static final List<Modell> updateData = supplier.changeList(insertData);
 
     public ModellResourceServiceTest() {
         super(new ModellResourceService(),

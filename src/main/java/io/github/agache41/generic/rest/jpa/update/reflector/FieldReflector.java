@@ -95,12 +95,13 @@ public final class FieldReflector<T, V> {
             this.updatable = false;
             this.notNull = false;
             this.updater = null;
-            this.description = this.description();
             this.value = false;
             this.collection = false;
             this.map = false;
+            this.description = this.description();
             return;
         }
+        this.description = this.description();
         if (!this.valid) {
             throw new IllegalArgumentException(" Invalid field marked for update " + this);
         }
@@ -140,7 +141,7 @@ public final class FieldReflector<T, V> {
             this.collection = false;
             this.updater = new ValueUpdater<>(this.setter, this.getter, this.notNull, this.getter);
         }
-        this.description = this.description();
+
     }
 
     /**

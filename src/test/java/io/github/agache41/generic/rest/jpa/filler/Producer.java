@@ -27,11 +27,22 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 
+/**
+ * Producer for Object Instances used for testing.
+ * The class produces simple types and Object Beans by setting values in all
+ * fields marked with the Update Annotation.
+ * The Class
+ *
+ * @param <T> the type parameter
+ */
 public class Producer<T> {
 
-    public static final int defaultCollectionSize = 10;
+    /**
+     * The default size for collections and map generation.
+     */
+    public static final int defaultSize = 64;
 
-    private static final Map<Class<?>, Producer<?>> supplierCache = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Producer<?>> producerCache = new ConcurrentHashMap<>();
 
     static {
         //UpdateSupplier.add(new StringRandomSupplier());
@@ -46,64 +57,134 @@ public class Producer<T> {
         Producer.add(new BigIntegerRandomProducer());
     }
 
+    /**
+     * The Random instance used for random values.
+     */
     protected final Random random = new Random();
-    private final Class<T> clazz;
-    private int collectionSize;
+    /**
+     * The Class type of produced objects.
+     */
+    protected final Class<T> clazz;
+    /**
+     * The Size of generated collection and maps.
+     * Defaults to the static defaultSize
+     */
+    protected int size;
 
-    public Producer(final Class<T> clazz,
-                    final int collectionSize) {
+    /**
+     * Instantiates a new Producer.
+     *
+     * @param clazz the clazz
+     */
+    protected Producer(final Class<T> clazz) {
         this.clazz = clazz;
-        this.collectionSize = collectionSize;
+        this.size = defaultSize;
     }
 
-    public Producer(final Class<T> clazz) {
-        this.clazz = clazz;
-        this.collectionSize = defaultCollectionSize;
-    }
-
+    /**
+     * Adds a new Producer to the producer cache
+     *
+     * @param supplier the supplier
+     */
     public static void add(final Producer<?> supplier) {
-        supplierCache.put(supplier.getClazz(), supplier);
+        producerCache.put(supplier.getClazz(), supplier);
     }
 
 
+    /**
+     * Of class producer.
+     *
+     * @param <R>   the type parameter
+     * @param clazz the clazz
+     * @return the producer
+     */
     public static <R> Producer<R> ofClass(@NotNull final Class<R> clazz) {
-        return (Producer<R>) supplierCache.computeIfAbsent(clazz, cls -> new Producer(cls));
+        return (Producer<R>) producerCache.computeIfAbsent(clazz, cls -> new Producer(cls));
     }
 
-    public static <K, V> Map<K, V> getMap(final Class<K> keyType,
-                                          final Class<V> valueType) {
-        final Map<K, V> result = new HashMap<>();
-        final Producer<V> valueSupplier = Producer.ofClass(valueType);
+    /**
+     * Produce map map.
+     *
+     * @param <K>     the type parameter
+     * @param keyType the key type
+     * @param size    the size
+     * @return the map
+     */
+    public <K> Map<K, T> produceMap(final Class<K> keyType,
+                                    final int... size) {
+        final Map<K, T> result = new HashMap<>();
         final Producer<K> keySupplier = Producer.ofClass(keyType);
-        for (int i = 0; i < valueSupplier.getCollectionSize(); i++) {
-            result.put(keySupplier.produce(), valueSupplier.produce());
+        for (int i = 0; i < this.optionalSize(size); i++) {
+            result.put(keySupplier.produce(), this.produce());
         }
         return result;
     }
 
-    public List<T> getList() {
-        return this.getList(this.collectionSize);
+    private int optionalSize(final int[] size) {
+        if (size == null || size.length == 0) {
+            return this.size;
+        } else {
+            return size[0];
+        }
     }
 
-    public List<T> getList(final int size) {
-        final List<T> result = new ArrayList<>(size);
-        for (int i = 0; i < size; i++)
+    /**
+     * Change map map.
+     *
+     * @param <K> the type parameter
+     * @param map the map
+     * @return the map
+     */
+    public <K> Map<K, T> changeMap(final Map<K, T> map) {
+        for (final K key : map.keySet()) {
+            map.put(key, this.change(map.get(key)));
+        }
+        return map;
+    }
+
+    /**
+     * Produce list list.
+     *
+     * @param size the size
+     * @return the list
+     */
+    public List<T> produceList(final int... size) {
+        final int actualSize = this.optionalSize(size);
+        final List<T> result = new ArrayList<>(actualSize);
+        for (int i = 0; i < actualSize; i++)
             result.add(this.produce());
         return result;
     }
 
-    public List<T> applyList(final List<T> source) {
+    /**
+     * Change list list.
+     *
+     * @param source the source
+     * @return the list
+     */
+    public List<T> changeList(final List<T> source) {
         return source.stream()
                      .map(this::change)
                      .collect(Collectors.toList());
     }
 
+    /**
+     * Produce t.
+     *
+     * @return the t
+     */
     public T produce() {
         final T result = ClassReflector.ofClass(this.clazz)
                                        .newInstance();
         return this.processFields(result);
     }
 
+    /**
+     * Change t.
+     *
+     * @param source the source
+     * @return the t
+     */
     public T change(final T source) {
         if (source == null) {
             return this.produce();
@@ -144,7 +225,7 @@ public class Producer<T> {
                     collection.clear();
                     collection.addAll(applied);
                     collection.addAll(collectionSupplier
-                                              .getList());
+                                              .produceList());
                 }
             } else if (fieldReflector.isMap()) {
                 final Class<Object> mapKeyParameter = fieldReflector.getFirstParameter();
@@ -158,10 +239,8 @@ public class Producer<T> {
                     }
                 }
                 if (map != null && mapKeyParameter != null && mapValueParameter != null) {
-                    for (final Object key : map.keySet()) {
-                        map.put(key, mapSupplier.change(map.get(key)));
-                    }
-                    map.putAll(getMap(mapKeyParameter, mapValueParameter));
+                    mapSupplier.changeMap(map);
+                    map.putAll(mapSupplier.produceMap(mapKeyParameter));
                 }
             } else {
                 // do recurse on the type
@@ -172,16 +251,31 @@ public class Producer<T> {
         return result;
     }
 
+    /**
+     * Gets clazz.
+     *
+     * @return the clazz
+     */
     public Class<T> getClazz() {
         return this.clazz;
     }
 
-    public int getCollectionSize() {
-        return this.collectionSize;
+    /**
+     * Gets size.
+     *
+     * @return the size
+     */
+    public int getSize() {
+        return this.size;
     }
 
-    public void setCollectionSize(final int collectionSize) {
-        this.collectionSize = collectionSize;
+    /**
+     * Sets size.
+     *
+     * @param size the size
+     */
+    public void setSize(final int size) {
+        this.size = size;
     }
 
 }

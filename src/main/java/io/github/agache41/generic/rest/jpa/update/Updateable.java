@@ -19,6 +19,7 @@ package io.github.agache41.generic.rest.jpa.update;
 
 
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
+import jakarta.persistence.Transient;
 
 /**
  * @author Alexandru.Agache.Extern@atruvia.de
@@ -29,6 +30,7 @@ import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
  * map based one to many relations.
  */
 public interface Updateable<ENTITY extends Updateable<ENTITY>> {
+    @Transient
     default boolean update(final ENTITY source) {
         return ClassReflector.ofObject(this)
                              .update(this, source);

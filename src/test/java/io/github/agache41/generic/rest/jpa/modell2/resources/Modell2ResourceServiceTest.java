@@ -36,8 +36,8 @@ public class Modell2ResourceServiceTest extends AbstractResourceServiceImplTest<
 
 
         super(new Modell2ResourceService(), Modell2.class, //
-              supplier.getList(5),
-              supplier.getList(5),
+              supplier.produceList(5),
+              supplier.produceList(5),
               stringField); //
     }
 
