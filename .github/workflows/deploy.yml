@@ -26,9 +26,10 @@ jobs:
           server-username: OSSRH_USERNAME # Env var that holds your OSSRH user name
           server-password: OSSRH_PASSWORD # Env var that holds your OSSRH user pw
           cache: maven
-      - name: Install Maven
-        uses: yuzhiyongcn/setup-maven@v1.0.0
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@v1.11.0
         with:
+          java-version: 11
           maven-version: 3.9.5
       - name: Build with Maven
         run: mvn -B clean deploy -P release --file pom.xml
