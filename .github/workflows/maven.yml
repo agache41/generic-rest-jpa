@@ -27,8 +27,8 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           cache: maven
-      - name: Install Maven
-        uses: s4u/setup-maven-action@1.11.0
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@v1.11.0
         with:
           java-version: 11
           maven-version: 3.9.5
