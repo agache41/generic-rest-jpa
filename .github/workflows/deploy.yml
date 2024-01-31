@@ -21,21 +21,15 @@ jobs:
         with:
           java-version: 11
           maven-version: 3.9.5
-          server-id: 'ossrh' # must match the serverId configured for the nexus-staging-maven-plugin
-          server-username: OSSRH_USERNAME # Env var that holds your OSSRH user name
-          server-password: OSSRH_PASSWORD # Env var that holds your OSSRH user pw
       - uses: s4u/maven-settings-action@v3.0.0
         with:
-          servers: '[{"id": "ossrh","username": "${{ secrets.SONATYPE_USERNAME }}", "password": "${{ secrets.OSSRH_TOKEN }}"}]'
-          
+          servers: '[{"id": "ossrh","username": "${{ secrets.OSSRH_USERNAME }}", "password": "${{ secrets.OSSRH_TOKEN }}"}]'
       - name: Build with Maven
         run: mvn -B clean deploy -P release --file pom.xml
         env:
           SIGN_KEY: ${{ secrets.SIGN_KEY }}
           SIGN_KEY_ID: ${{ secrets.SIGN_KEY_ID }}
           SIGN_KEY_PASS: ${{ secrets.SIGN_KEY_PASS }}
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     # - name: Update dependency graph
