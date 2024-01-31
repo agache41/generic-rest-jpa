@@ -66,6 +66,7 @@ public class EntityUpdater<TARGET, SOURCE, VALUE extends Updateable<VALUE>> exte
      * @param getter       the target getter
      * @param notNull      if values is not null
      * @param sourceGetter the source getter
+     * @param constructor  the Entity constructor
      * @param target       the target
      * @param source       the source
      * @return true if the target changed

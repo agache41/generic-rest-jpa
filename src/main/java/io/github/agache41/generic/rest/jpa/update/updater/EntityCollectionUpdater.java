@@ -66,12 +66,14 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
      *
      * @param <T>          the type parameter of the target object
      * @param <S>          the type parameter of the source object
+     * @param <C>          the Collection type
      * @param <E>          the type parameter of the collection values (the entity)
      * @param <K>          the type parameter of the primary key of the entity
      * @param setter       the target setter
      * @param getter       the target getter
      * @param notNull      if values is not null
      * @param sourceGetter the source getter
+     * @param constructor  the constructor for collection values
      * @param target       the target
      * @param source       the source
      * @return true if the target changed

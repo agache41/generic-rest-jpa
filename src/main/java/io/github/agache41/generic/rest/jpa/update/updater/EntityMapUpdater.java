@@ -66,12 +66,14 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
      *
      * @param <T>          the type parameter of the target object
      * @param <S>          the type parameter of the source object
+     * @param <C>          the type parameter
      * @param <E>          the type parameter of the map value (the entity)
      * @param <K>          the type parameter of the map key
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if values is not null
+     * @param notNull      if values can be not null
      * @param sourceGetter the source getter
+     * @param constructor  the constructor for the map values
      * @param target       the target
      * @param source       the source
      * @return true if the target changed
