@@ -15,45 +15,21 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.dataAccess;
+package io.github.agache41.generic.rest.jpa.filler;
 
+public class BooleanRandomProducer extends Producer<Boolean> {
 
-import java.io.Serializable;
+    public BooleanRandomProducer() {
+        super(Boolean.class);
+    }
 
-/**
- * <pre>
- *  Base Interface for entities, encapsulating the primary key getter and setter.
- *
- * </pre>
- *
- * @param <PK> the type parameter
- */
-public interface PrimaryKey<PK> extends Serializable {
+    @Override
+    public Boolean produce() {
+        return this.random.nextFloat() > 0.5;
+    }
 
-    /**
-     * <pre>
-     * The constant "id".
-     * </pre>
-     */
-    String ID = "id";
-
-    /**
-     * <pre>
-     * The entity id getter
-     * </pre>
-     *
-     * @return returns the id.
-     */
-    PK getId();
-
-    /**
-     * <pre>
-     * The entity id setter
-     * </pre>
-     *
-     * @param id to set.
-     */
-    void setId(PK id);
-
-
+    @Override
+    public Boolean change(final Boolean result) {
+        return this.produce();
+    }
 }

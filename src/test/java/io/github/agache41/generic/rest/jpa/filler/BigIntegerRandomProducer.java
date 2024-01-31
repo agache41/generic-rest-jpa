@@ -15,45 +15,24 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.dataAccess;
+package io.github.agache41.generic.rest.jpa.filler;
 
+import java.math.BigInteger;
 
-import java.io.Serializable;
+public class BigIntegerRandomProducer extends Producer<BigInteger> {
+    final short max = 10000;
 
-/**
- * <pre>
- *  Base Interface for entities, encapsulating the primary key getter and setter.
- *
- * </pre>
- *
- * @param <PK> the type parameter
- */
-public interface PrimaryKey<PK> extends Serializable {
+    public BigIntegerRandomProducer() {
+        super(BigInteger.class);
+    }
 
-    /**
-     * <pre>
-     * The constant "id".
-     * </pre>
-     */
-    String ID = "id";
+    @Override
+    public BigInteger produce() {
+        return BigInteger.valueOf((long) (this.random.nextFloat() * this.max));
+    }
 
-    /**
-     * <pre>
-     * The entity id getter
-     * </pre>
-     *
-     * @return returns the id.
-     */
-    PK getId();
-
-    /**
-     * <pre>
-     * The entity id setter
-     * </pre>
-     *
-     * @param id to set.
-     */
-    void setId(PK id);
-
-
+    @Override
+    public BigInteger change(final BigInteger result) {
+        return this.produce();
+    }
 }

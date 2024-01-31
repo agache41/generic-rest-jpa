@@ -19,8 +19,9 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.DataAccess;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.ClassReflector;
-import io.github.agache41.generic.rest.jpa.update.FieldReflector;
+import io.github.agache41.generic.rest.jpa.update.Updateable;
+import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
+import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.*;
@@ -40,7 +41,9 @@ import java.util.stream.Collectors;
  * @param <T> the type parameter
  * @param <K> the type parameter
  */
-public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> implements ResourceService<T, K> {
+
+public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Updateable<T>, K> implements ResourceService<T, K> {
+
 
     /**
      * <pre>
@@ -51,6 +54,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @Named("base")
     protected DataAccess<T, K> dataAccess;
 
+
     /**
      * <pre>
      * Getter for the data access layer.
@@ -59,7 +63,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
      * @return the data access
      */
     public DataAccess<T, K> getDataAccess() {
-        return dataAccess;
+        return this.dataAccess;
     }
 
     /**
@@ -76,8 +80,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
-    public T get(@PathParam("id") K id) {
-        return getDataAccess().findById(id);
+    public T get(@PathParam("id") final K id) {
+        return this.getDataAccess()
+                   .findById(id);
     }
 
     /**
@@ -92,8 +97,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/all/asList")
     public List<T> getAllAsList() {
-        return getDataAccess().streamAll()
-                              .collect(Collectors.toList());
+        return this.getDataAccess()
+                   .streamAll()
+                   .collect(Collectors.toList());
     }
 
     /**
@@ -109,9 +115,10 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/byIds/{ids}/asList")
-    public List<T> getByIdsAsList(@PathParam("ids") List<K> ids) {
-        return getDataAccess().streamByIds(ids)
-                              .collect(Collectors.toList());
+    public List<T> getByIdsAsList(@PathParam("ids") final List<K> ids) {
+        return this.getDataAccess()
+                   .streamByIds(ids)
+                   .collect(Collectors.toList());
     }
 
     /**
@@ -127,9 +134,10 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/byIds/asList")
-    public List<T> postByIdsAsList(List<K> ids) {
-        return getDataAccess().streamByIds(ids)
-                              .collect(Collectors.toList());
+    public List<T> postByIdsAsList(final List<K> ids) {
+        return this.getDataAccess()
+                   .streamByIds(ids)
+                   .collect(Collectors.toList());
     }
 
     /**
@@ -146,9 +154,11 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/equals/{value}/asList")
-    public List<T> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value) {
-        return getDataAccess().streamByColumnEqualsValue(stringField, value)
-                              .collect(Collectors.toList());
+    public List<T> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") final String stringField,
+                                                         @PathParam("value") final String value) {
+        return this.getDataAccess()
+                   .streamByColumnEqualsValue(stringField, value)
+                   .collect(Collectors.toList());
     }
 
     /**
@@ -166,9 +176,11 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/like/{value}/asList")
-    public List<T> getFilterStringFieldLikeValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value) {
-        return getDataAccess().streamByColumnLikeValue(stringField, value)
-                              .collect(Collectors.toList());
+    public List<T> getFilterStringFieldLikeValueAsList(@PathParam("stringField") final String stringField,
+                                                       @PathParam("value") final String value) {
+        return this.getDataAccess()
+                   .streamByColumnLikeValue(stringField, value)
+                   .collect(Collectors.toList());
     }
 
     /**
@@ -186,9 +198,11 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/in/{values}/asList")
-    public List<T> getFilterStringFieldInValuesAsList(@PathParam("stringField") String stringField, @PathParam("values") List<String> values) {
-        return getDataAccess().streamByColumnInValues(stringField, values)
-                              .collect(Collectors.toList());
+    public List<T> getFilterStringFieldInValuesAsList(@PathParam("stringField") final String stringField,
+                                                      @PathParam("values") final List<String> values) {
+        return this.getDataAccess()
+                   .streamByColumnInValues(stringField, values)
+                   .collect(Collectors.toList());
     }
 
     /**
@@ -206,17 +220,20 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("autocomplete/{stringField}/like/{value}/asSortedSet")
-    public List<String> getAutocompleteStringFieldLikeValueAsSortedSet(@PathParam("stringField") String stringField,
-                                                                       @PathParam("value") String value) {
-        if (value == null || value.length() < 4) return Collections.emptyList();
-        FieldReflector<T, String> fieldReflector = ClassReflector.ofClass(getDataAccess().getType())
-                                                                 .getReflector(stringField, String.class);
-        return getDataAccess()
-                .streamByColumnLikeValue(stringField, value)
-                .map(fieldReflector::get)
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
+    public List<String> getAutocompleteStringFieldLikeValueAsSortedSet(@PathParam("stringField") final String stringField,
+                                                                       @PathParam("value") final String value) {
+        if (value == null || value.length() < this.getAutocompleteCut()) {
+            return Collections.emptyList();
+        }
+        final FieldReflector<T, String> fieldReflector = ClassReflector.ofClass(this.getDataAccess()
+                                                                                    .getType())
+                                                                       .getReflector(stringField, String.class);
+        return this.getDataAccess()
+                   .streamByColumnLikeValue(stringField, value)
+                   .map(fieldReflector::get)
+                   .distinct()
+                   .sorted()
+                   .collect(Collectors.toList());
     }
 
     /**
@@ -237,9 +254,10 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/content/equals/value/asList")
-    public List<T> postFilterContentEqualsAsList(T value) {
-        return getDataAccess().streamByContentEquals(value)
-                              .collect(Collectors.toList());
+    public List<T> postFilterContentEqualsAsList(final T value) {
+        return this.getDataAccess()
+                   .streamByContentEquals(value)
+                   .collect(Collectors.toList());
     }
 
     /**
@@ -260,9 +278,10 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/content/in/values/asList")
-    public List<T> postFilterContentInAsList(List<T> values) {
-        return getDataAccess().streamByContentInValues(values)
-                              .collect(Collectors.toList());
+    public List<T> postFilterContentInAsList(final List<T> values) {
+        return this.getDataAccess()
+                   .streamByContentInValues(values)
+                   .collect(Collectors.toList());
     }
 
     /**
@@ -277,8 +296,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public T post(T source) {
-        return getDataAccess().merge(source);
+    public T post(final T source) {
+        return this.getDataAccess()
+                   .merge(source);
     }
 
     /**
@@ -294,9 +314,10 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list/asList")
-    public List<T> postListAsList(List<T> sources) {
-        return getDataAccess().mergeAll(sources)
-                              .collect(Collectors.toList());
+    public List<T> postListAsList(final List<T> sources) {
+        return this.getDataAccess()
+                   .mergeAll(sources)
+                   .collect(Collectors.toList());
     }
 
     /**
@@ -312,8 +333,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public T put(T source) {
-        return getDataAccess().updateById(source);
+    public T put(final T source) {
+        return this.getDataAccess()
+                   .updateById(source);
     }
 
     /**
@@ -330,9 +352,10 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list/asList")
-    public List<T> putListAsList(List<T> sources) {
-        return getDataAccess().updateByIds(sources)
-                              .collect(Collectors.toList());
+    public List<T> putListAsList(final List<T> sources) {
+        return this.getDataAccess()
+                   .updateByIds(sources)
+                   .collect(Collectors.toList());
     }
 
     /**
@@ -345,8 +368,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @Override
     @DELETE
     @Path("/{id}")
-    public void delete(@PathParam("id") K id) {
-        getDataAccess().removeById(id);
+    public void delete(@PathParam("id") final K id) {
+        this.getDataAccess()
+            .removeById(id);
     }
 
     /**
@@ -359,8 +383,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @Override
     @DELETE
     @Path("/byIds")
-    public void deleteByIds(List<K> ids) {
-        getDataAccess().removeByIds(ids);
+    public void deleteByIds(final List<K> ids) {
+        this.getDataAccess()
+            .removeByIds(ids);
     }
 
 
@@ -374,8 +399,14 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K>, K> im
     @Override
     @DELETE
     @Path("/byIds/{ids}")
-    public void deleteByIdsInPath(@PathParam("ids") List<K> ids) {
-        getDataAccess().removeByIds(ids);
+    public void deleteByIdsInPath(@PathParam("ids") final List<K> ids) {
+        this.getDataAccess()
+            .removeByIds(ids);
+    }
+
+    @Override
+    public int getAutocompleteCut() {
+        return ResourceService.autocompleteCut;
     }
 
 }

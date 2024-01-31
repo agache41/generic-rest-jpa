@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 import static java.util.function.Predicate.not;
 
 /**
- * The type Abstract list param convertor.
+ * Base class for parameter conversion
  *
  * @param <T> the type parameter
  */
@@ -45,7 +45,9 @@ public abstract class AbstractListParamConvertor<T> implements ParamConverter<Li
      * @param format the format
      * @param log    the log
      */
-    public AbstractListParamConvertor(Function<String, T> parse, Function<T, String> format, Logger log) {
+    public AbstractListParamConvertor(final Function<String, T> parse,
+                                      final Function<T, String> format,
+                                      final Logger log) {
         this.parse = parse;
         this.format = format;
         this.log = log;
@@ -57,36 +59,41 @@ public abstract class AbstractListParamConvertor<T> implements ParamConverter<Li
      * @param parse the parse
      * @param log   the log
      */
-    public AbstractListParamConvertor(Function<String, T> parse, Logger log) {
+    public AbstractListParamConvertor(final Function<String, T> parse,
+                                      final Logger log) {
         this(parse, Object::toString, log);
     }
 
     @Override
-    public List<T> fromString(String value) {
-        if (value == null || value.length() < 2) return Collections.emptyList();
+    public List<T> fromString(final String value) {
+        if (value == null || value.length() < 2) {
+            return Collections.emptyList();
+        }
         try {
-            List<T> result = Stream.of(value.substring(1, value.length() - 1)
-                                            .split(","))
-                                   .filter(not(String::isEmpty))
-                                   .map(this.parse)
-                                   .collect(Collectors.toList());
-            log.debugf("Parsed parameter %s into List%s", value, result);
+            final List<T> result = Stream.of(value.substring(1, value.length() - 1)
+                                                  .split(","))
+                                         .filter(not(String::isEmpty))
+                                         .map(this.parse)
+                                         .collect(Collectors.toList());
+            this.log.debugf("Parsed parameter %s into List%s", value, result);
             return result;
-        } catch (Exception e) {
-            log.errorf(" When parsing parameter %s as a json list.", value, e);
+        } catch (final Exception e) {
+            this.log.errorf(" When parsing parameter %s as a json list.", value, e);
         }
         return Collections.emptyList();
     }
 
     @Override
-    public String toString(List<T> value) {
-        if (value == null || value.isEmpty()) return "[]";
+    public String toString(final List<T> value) {
+        if (value == null || value.isEmpty()) {
+            return "[]";
+        }
         try {
             return value.stream()
                         .map(this.format)
                         .collect(Collectors.joining(","));
-        } catch (Exception e) {
-            log.error(" When formatting list \"" + value + "\" as a json list.", e);
+        } catch (final Exception e) {
+            this.log.error(" When formatting list \"" + value + "\" as a json list.", e);
         }
         return "[]";
     }

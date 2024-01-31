@@ -15,45 +15,15 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.dataAccess;
+package io.github.agache41.generic.rest.jpa.modell2.resources;
 
 
-import java.io.Serializable;
+import io.github.agache41.generic.rest.jpa.modell2.dataaccess.Modell2DataAccess;
+import io.github.agache41.generic.rest.jpa.modell2.entities.Modell2;
+import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImpl;
+import lombok.Getter;
 
-/**
- * <pre>
- *  Base Interface for entities, encapsulating the primary key getter and setter.
- *
- * </pre>
- *
- * @param <PK> the type parameter
- */
-public interface PrimaryKey<PK> extends Serializable {
-
-    /**
-     * <pre>
-     * The constant "id".
-     * </pre>
-     */
-    String ID = "id";
-
-    /**
-     * <pre>
-     * The entity id getter
-     * </pre>
-     *
-     * @return returns the id.
-     */
-    PK getId();
-
-    /**
-     * <pre>
-     * The entity id setter
-     * </pre>
-     *
-     * @param id to set.
-     */
-    void setId(PK id);
-
-
+@Getter
+public class Modell2ResourceService extends AbstractResourceServiceImpl<Modell2, Long> {
+    protected Modell2DataAccess dataAccess = new Modell2DataAccess();
 }

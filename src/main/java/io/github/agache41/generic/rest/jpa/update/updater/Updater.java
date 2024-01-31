@@ -15,45 +15,23 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.dataAccess;
-
-
-import java.io.Serializable;
+package io.github.agache41.generic.rest.jpa.update.updater;
 
 /**
- * <pre>
- *  Base Interface for entities, encapsulating the primary key getter and setter.
+ * The Updater defines a single method meant to update a target based on data coming from a source.
+ * The update process happens at field level and the implementing classes treat the cases for simpek types, collections ...
  *
- * </pre>
- *
- * @param <PK> the type parameter
+ * @param <TARGET> the type parameter
+ * @param <SOURCE> the type parameter
  */
-public interface PrimaryKey<PK> extends Serializable {
-
+public interface Updater<TARGET, SOURCE> {
     /**
-     * <pre>
-     * The constant "id".
-     * </pre>
-     */
-    String ID = "id";
-
-    /**
-     * <pre>
-     * The entity id getter
-     * </pre>
+     * The method updates the field in target based on the field the source
      *
-     * @return returns the id.
+     * @param target the target
+     * @param source the source
+     * @return if the update introduced changes in the target
      */
-    PK getId();
-
-    /**
-     * <pre>
-     * The entity id setter
-     * </pre>
-     *
-     * @param id to set.
-     */
-    void setId(PK id);
-
-
+    boolean update(TARGET target,
+                   SOURCE source);
 }

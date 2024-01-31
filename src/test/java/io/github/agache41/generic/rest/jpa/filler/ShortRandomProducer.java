@@ -15,45 +15,23 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.dataAccess;
+package io.github.agache41.generic.rest.jpa.filler;
 
+public class ShortRandomProducer extends Producer<Short> {
 
-import java.io.Serializable;
+    final short max = 10000;
 
-/**
- * <pre>
- *  Base Interface for entities, encapsulating the primary key getter and setter.
- *
- * </pre>
- *
- * @param <PK> the type parameter
- */
-public interface PrimaryKey<PK> extends Serializable {
+    public ShortRandomProducer() {
+        super(Short.class);
+    }
 
-    /**
-     * <pre>
-     * The constant "id".
-     * </pre>
-     */
-    String ID = "id";
+    @Override
+    public Short produce() {
+        return (short) (this.random.nextFloat() * this.max);
+    }
 
-    /**
-     * <pre>
-     * The entity id getter
-     * </pre>
-     *
-     * @return returns the id.
-     */
-    PK getId();
-
-    /**
-     * <pre>
-     * The entity id setter
-     * </pre>
-     *
-     * @param id to set.
-     */
-    void setId(PK id);
-
-
+    @Override
+    public Short change(final Short result) {
+        return this.produce();
+    }
 }

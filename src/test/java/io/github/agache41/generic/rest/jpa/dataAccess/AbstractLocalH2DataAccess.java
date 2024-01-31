@@ -17,10 +17,11 @@
 
 package io.github.agache41.generic.rest.jpa.dataAccess;
 
+import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.persistence.EntityTransaction;
 
 
-public class AbstractLocalH2DataAccess<ENTITY extends PrimaryKey<PK>, PK> extends DataAccess<ENTITY, PK> {
+public class AbstractLocalH2DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> extends DataAccess<ENTITY, PK> {
 
     public AbstractLocalH2DataAccess(Class<ENTITY> type, Class<PK> keyType) {
         super(type, keyType);

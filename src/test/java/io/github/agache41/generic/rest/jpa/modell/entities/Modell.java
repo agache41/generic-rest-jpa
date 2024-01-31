@@ -19,22 +19,23 @@ package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotNull;
+import io.github.agache41.generic.rest.jpa.update.Updateable;
+import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Modell implements PrimaryKey<Long> {
+public class Modell implements PrimaryKey<Long>, Updateable<Modell> {
 
+    private static final long serialVersionUID = 4981653210124872352L;
     @Id
-    @NotNull
+    @EqualsAndHashCode.Exclude
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -49,5 +50,34 @@ public class Modell implements PrimaryKey<Long> {
 
     @EqualsAndHashCode.Exclude
     private long age;
+
+    @Update
+    @ElementCollection
+    @OrderColumn
+    @Column(name = "collectionValues")
+    private List<Integer> collectionValues;
+
+    @Update
+    @ElementCollection
+    @Column(name = "mapValues")
+    private Map<Long, String> mapValues;
+
+    @Update
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "valueEntity_id", referencedColumnName = "id")
+    private ValueEntity valueEntity;
+
+    @Update
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    // add this to prevent Hibernate from using PersistentBag
+    @OrderColumn(name = "id")
+    private List<CollectionEntity> collectionEntities;
+
+    @Update
+    @MapKey(name = "id")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    //add this to prevent failure at post when inserting new keys in the map, keys that will be overwritten.
+    @EqualsAndHashCode.Exclude
+    private Map<Long, MapEntity> mapEntities;
 
 }

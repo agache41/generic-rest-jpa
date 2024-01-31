@@ -15,45 +15,22 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.dataAccess;
+package io.github.agache41.generic.rest.jpa.filler;
 
+public class FloatRandomProducer extends Producer<Float> {
+    final short max = 10000;
 
-import java.io.Serializable;
+    public FloatRandomProducer() {
+        super(Float.class);
+    }
 
-/**
- * <pre>
- *  Base Interface for entities, encapsulating the primary key getter and setter.
- *
- * </pre>
- *
- * @param <PK> the type parameter
- */
-public interface PrimaryKey<PK> extends Serializable {
+    @Override
+    public Float produce() {
+        return this.random.nextFloat() * this.max;
+    }
 
-    /**
-     * <pre>
-     * The constant "id".
-     * </pre>
-     */
-    String ID = "id";
-
-    /**
-     * <pre>
-     * The entity id getter
-     * </pre>
-     *
-     * @return returns the id.
-     */
-    PK getId();
-
-    /**
-     * <pre>
-     * The entity id setter
-     * </pre>
-     *
-     * @param id to set.
-     */
-    void setId(PK id);
-
-
+    @Override
+    public Float change(final Float result) {
+        return this.produce();
+    }
 }

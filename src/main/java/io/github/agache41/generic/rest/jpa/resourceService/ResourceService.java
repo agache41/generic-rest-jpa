@@ -18,8 +18,7 @@
 package io.github.agache41.generic.rest.jpa.resourceService;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.PathParam;
 
 import java.util.List;
 
@@ -30,6 +29,11 @@ import java.util.List;
  * @param <K> the type parameter
  */
 public interface ResourceService<T extends PrimaryKey<K>, K> {
+
+    int autocompleteCut = 4;
+
+    int getAutocompleteCut();
+
     /**
      * <pre>
      * Finds and returns the corresponding entity for the given id.
@@ -40,9 +44,9 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param id the id
      * @return the corresponding entity at the provided id. If no entity is found, an Expected will be thrown.
      */
-    @GET
+    /*@GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{id}")
+    @Path("/{id}")*/
     T get(@PathParam("id") K id);
 
     /**
@@ -52,9 +56,9 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      *
      * @return the list of entities
      */
-    @GET
+    /*@GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/all/asList")
+    @Path("/all/asList")*/
     List<T> getAllAsList();
 
     /**
@@ -66,9 +70,9 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param ids the list of ids
      * @return the list of entities
      */
-    @GET
+    /*@GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/byIds/{ids}/asList")
+    @Path("/byIds/{ids}/asList")*/
     List<T> getByIdsAsList(@PathParam("ids") List<K> ids);
 
     /**
@@ -79,10 +83,10 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param ids the list of ids
      * @return the list of entities
      */
-    @POST
+    /*@POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/byIds/asList")
+    @Path("/byIds/asList")*/
     List<T> postByIdsAsList(List<K> ids);
 
     /**
@@ -95,10 +99,11 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param value       the string value to equal
      * @return the list of entities matching
      */
-    @GET
+    /*@GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/filter/{stringField}/equals/{value}/asList")
-    List<T> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value);
+    @Path("/filter/{stringField}/equals/{value}/asList")*/
+    List<T> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") String stringField,
+                                                  @PathParam("value") String value);
 
     /**
      * <pre>
@@ -111,10 +116,11 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param value       the string value to equal
      * @return the list of entities matching
      */
-    @GET
+    /*@GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/filter/{stringField}/like/{value}/asList")
-    List<T> getFilterStringFieldLikeValueAsList(@PathParam("stringField") String stringField, @PathParam("value") String value);
+    @Path("/filter/{stringField}/like/{value}/asList")*/
+    List<T> getFilterStringFieldLikeValueAsList(@PathParam("stringField") String stringField,
+                                                @PathParam("value") String value);
 
     /**
      * <pre>
@@ -127,10 +133,11 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param values      the values list
      * @return the list of entities matching
      */
-    @GET
+    /*@GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/filter/{stringField}/in/{values}/asList")
-    List<T> getFilterStringFieldInValuesAsList(@PathParam("stringField") String stringField, @PathParam("values") List<String> values);
+    @Path("/filter/{stringField}/in/{values}/asList")*/
+    List<T> getFilterStringFieldInValuesAsList(@PathParam("stringField") String stringField,
+                                               @PathParam("values") List<String> values);
 
     /**
      * <pre>
@@ -143,9 +150,9 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param value       the string value to equal
      * @return the list of entities matching
      */
-    @GET
+    /*@GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/autocomplete/{stringField}/like/{value}/asSortedSet")
+    @Path("/autocomplete/{stringField}/like/{value}/asSortedSet")*/
     List<String> getAutocompleteStringFieldLikeValueAsSortedSet(@PathParam("stringField") String stringField,
                                                                 @PathParam("value") String value);
 
@@ -163,9 +170,9 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param value the source
      * @return the list of entities matching
      */
-    @POST
+    /*@POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/filter/content/equals/value/asList")
+    @Path("/filter/content/equals/value/asList")*/
     List<T> postFilterContentEqualsAsList(T value);
 
 
@@ -183,9 +190,9 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param values the source
      * @return the list of entities matching
      */
-    @POST
+    /*@POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/filter/content/in/values/asList")
+    @Path("/filter/content/in/values/asList")*/
     List<T> postFilterContentInAsList(List<T> values);
 
     /**
@@ -196,9 +203,9 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param source the source
      * @return the inserted entity
      */
-    @POST
+    /*@POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)*/
     T post(T source);
 
     /**
@@ -209,10 +216,10 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param sources the list of new data
      * @return the inserted entities
      */
-    @POST
+    /*@POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/list/asList")
+    @Path("/list/asList")*/
     List<T> postListAsList(List<T> sources);
 
     /**
@@ -224,9 +231,9 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param source the source
      * @return the updated entity
      */
-    @PUT
+    /*@PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)*/
     T put(T source);
 
     /**
@@ -238,10 +245,10 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param sources the source
      * @return the updated entities
      */
-    @PUT
+    /*@PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/list/asList")
+    @Path("/list/asList")*/
     List<T> putListAsList(List<T> sources);
 
     /**
@@ -251,8 +258,8 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      *
      * @param id the id
      */
-    @DELETE
-    @Path("/{id}")
+    /*@DELETE
+    @Path("/{id}")*/
     void delete(@PathParam("id") K id);
 
     /**
@@ -262,8 +269,8 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      *
      * @param ids the ids
      */
-    @DELETE
-    @Path("/byIds")
+    /*@DELETE
+    @Path("/byIds")*/
     void deleteByIds(List<K> ids);
 
     /**
@@ -273,7 +280,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      *
      * @param ids the ids
      */
-    @DELETE
-    @Path("/byIds/{ids}")
+    /*@DELETE
+    @Path("/byIds/{ids}")*/
     void deleteByIdsInPath(@PathParam("ids") List<K> ids);
 }

@@ -15,11 +15,11 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.modell.resources;
+package io.github.agache41.generic.rest.jpa.modell2.resources;
 
 
 import io.github.agache41.generic.rest.jpa.filler.Producer;
-import io.github.agache41.generic.rest.jpa.modell.entities.Modell;
+import io.github.agache41.generic.rest.jpa.modell2.entities.Modell2;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImplTest;
 import org.junit.jupiter.api.*;
 
@@ -30,31 +30,30 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 @TestInstance(PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<Modell, Long> {
+public class Modell2ResourceServiceTest extends AbstractResourceServiceImplTest<Modell2, Long> {
+    private static final Producer<Modell2> producer = Producer.ofClass(Modell2.class)
+                                                              .ofSize(2);
+    private static final List<Modell2> insertData = producer.produceList();
+    private static final List<Modell2> updateData = producer.changeList(insertData);
     private static final String stringField = "name";
-    private static final Producer<Modell> producer = Producer.ofClass(Modell.class)
-                                                             .ofSize(2);
-    private static final List<Modell> insertData = producer.produceList();
-    private static final List<Modell> updateData = producer.changeList(insertData);
 
 
-    public ModellResourceServiceTest() {
-        super(new ModellResourceService(),
-              Modell.class, //
-              insertData,   //
-              updateData,   //
+    public Modell2ResourceServiceTest() {
+        super(new Modell2ResourceService(), Modell2.class, //
+              insertData,
+              updateData,
               stringField); //
     }
 
     @BeforeEach
     void beforeEach() {
-        ((ModellResourceService) this.getClient()).getDataAccess()
-                                                  .beginTransaction();
+        ((Modell2ResourceService) this.getClient()).getDataAccess()
+                                                   .beginTransaction();
     }
 
     @AfterEach
     void afterEach() {
-        ((ModellResourceService) this.getClient()).getDataAccess()
-                                                  .commitTransaction();
+        ((Modell2ResourceService) this.getClient()).getDataAccess()
+                                                   .commitTransaction();
     }
 }

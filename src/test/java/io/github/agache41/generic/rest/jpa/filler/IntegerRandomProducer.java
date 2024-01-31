@@ -15,45 +15,25 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.dataAccess;
+package io.github.agache41.generic.rest.jpa.filler;
 
+public class IntegerRandomProducer extends Producer<Integer> {
+    final long min = 1000;
+    final int max = 100000;
 
-import java.io.Serializable;
+    public IntegerRandomProducer() {
+        super(Integer.class);
+    }
 
-/**
- * <pre>
- *  Base Interface for entities, encapsulating the primary key getter and setter.
- *
- * </pre>
- *
- * @param <PK> the type parameter
- */
-public interface PrimaryKey<PK> extends Serializable {
+    @Override
+    public Integer produce() {
+        return (int) (this.min + this.random.nextFloat() * this.max);
+    }
 
-    /**
-     * <pre>
-     * The constant "id".
-     * </pre>
-     */
-    String ID = "id";
-
-    /**
-     * <pre>
-     * The entity id getter
-     * </pre>
-     *
-     * @return returns the id.
-     */
-    PK getId();
-
-    /**
-     * <pre>
-     * The entity id setter
-     * </pre>
-     *
-     * @param id to set.
-     */
-    void setId(PK id);
+    @Override
+    public Integer change(final Integer result) {
+        return this.produce();
+    }
 
 
 }
