@@ -22,6 +22,7 @@ import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
 import io.github.agache41.generic.rest.jpa.update.updater.*;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
+import org.jboss.logging.Logger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -41,6 +42,8 @@ import java.util.function.Supplier;
  * @param <V> the type parameter
  */
 public final class FieldReflector<T, V> {
+
+    private static final Logger log = Logger.getLogger(ClassReflector.class);
     private final String name;
     private final Class<T> enclosingClass;
     private final Class<V> type;

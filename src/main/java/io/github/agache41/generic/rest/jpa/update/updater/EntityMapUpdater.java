@@ -25,10 +25,32 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * The updater for map of entity types (implementing PrimaryKey and Updatable).
+ * It updates the field value in the target based on the value of the field value in the source.
+ *
+ * @param <TARGET> the type parameter
+ * @param <SOURCE> the type parameter
+ * @param <MAP>    the type parameter
+ * @param <VALUE>  the type parameter
+ * @param <KEY>    the type parameter
+ */
 public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE extends Updateable<VALUE>, KEY> extends ValueUpdater<TARGET, SOURCE, MAP> {
 
+    /**
+     * The Constructor.
+     */
     protected final Supplier<VALUE> constructor;
 
+    /**
+     * Instantiates a new Entity map updater.
+     *
+     * @param setter       the target setter
+     * @param getter       the target getter
+     * @param notNull      if entity map can be null
+     * @param sourceGetter the source getter
+     * @param constructor  the entity constructor
+     */
     public EntityMapUpdater(final BiConsumer<TARGET, MAP> setter,
                             final Function<TARGET, MAP> getter,
                             final boolean notNull,
@@ -38,6 +60,22 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
         this.constructor = constructor;
     }
 
+    /**
+     * Convenient static method.
+     * It updates the field value in the target based on the value of the field value in the source.
+     *
+     * @param <T>          the type parameter of the target object
+     * @param <S>          the type parameter of the source object
+     * @param <E>          the type parameter of the map value (the entity)
+     * @param <K>          the type parameter of the map key
+     * @param setter       the target setter
+     * @param getter       the target getter
+     * @param notNull      if values is not null
+     * @param sourceGetter the source getter
+     * @param target       the target
+     * @param source       the source
+     * @return true if the target changed
+     */
     public static <T, S, C extends Map<K, E>, E extends Updateable<E> & PrimaryKey<K>, K> boolean updateEntityMap(
             final BiConsumer<T, C> setter,
             final Function<T, C> getter,
@@ -49,6 +87,13 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
         return new EntityMapUpdater<>(setter, getter, notNull, sourceGetter, constructor).update(target, source);
     }
 
+    /**
+     * The method updates the field in target based on the field the source
+     *
+     * @param target the target
+     * @param source the source
+     * @return true if the target changed
+     */
     @Override
     public boolean update(final TARGET target,
                           final SOURCE source) {

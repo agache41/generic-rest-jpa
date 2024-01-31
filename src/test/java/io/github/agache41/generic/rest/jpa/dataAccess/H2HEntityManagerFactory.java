@@ -42,28 +42,28 @@ public class H2HEntityManagerFactory {
     private static final H2HEntityManagerFactory instance = new H2HEntityManagerFactory();
     private final EntityManagerFactory entityManagerFactory;
 
+    public H2HEntityManagerFactory() {
+        this.entityManagerFactory = new HibernatePersistenceProvider().createContainerEntityManagerFactory(this.archiverPersistenceUnitInfo(), this.config());
+    }
+
     public static H2HEntityManagerFactory getInstance() {
         return instance;
     }
 
-    public H2HEntityManagerFactory() {
-        this.entityManagerFactory = new HibernatePersistenceProvider().createContainerEntityManagerFactory(archiverPersistenceUnitInfo(), config());
-    }
-
     public EntityManagerFactory getEntityManagerFactory() {
-        return entityManagerFactory;
+        return this.entityManagerFactory;
     }
 
     private Map<String, Object> config() {
-        Map<String, Object> map = new HashMap<>();
+        final Map<String, Object> map = new HashMap<>();
 
         map.put(JAKARTA_JDBC_DRIVER, "org.h2.Driver");
         map.put(JAKARTA_JDBC_URL, "jdbc:h2:mem:test");
         map.put(JAKARTA_JDBC_USER, "sa");
         map.put(JAKARTA_JDBC_PASSWORD, "");
         map.put(HBM2DDL_AUTO, "create-drop");
-        map.put(SHOW_SQL, "true");
-        map.put(FORMAT_SQL, "false");
+        //map.put(SHOW_SQL, "true");
+        map.put(FORMAT_SQL, "true");
         map.put(QUERY_STARTUP_CHECKING, "false");
         map.put(GENERATE_STATISTICS, "false");
         map.put(USE_SECOND_LEVEL_CACHE, "false");
@@ -117,7 +117,7 @@ public class H2HEntityManagerFactory {
                     return Collections.list(this.getClass()
                                                 .getClassLoader()
                                                 .getResources(""));
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     throw new UncheckedIOException(e);
                 }
             }
@@ -163,7 +163,7 @@ public class H2HEntityManagerFactory {
             }
 
             @Override
-            public void addTransformer(ClassTransformer transformer) {
+            public void addTransformer(final ClassTransformer transformer) {
 
             }
 

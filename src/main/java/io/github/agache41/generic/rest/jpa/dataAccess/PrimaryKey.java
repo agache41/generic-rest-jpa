@@ -24,13 +24,6 @@ import java.io.Serializable;
  * <pre>
  *  Base Interface for entities, encapsulating the primary key getter and setter.
  *
- *  The Interface also provides the update method as a inner method of the bean.
- *  Typical usage :
- *
- *      T destination;
- *      T source;
- *      destination.update(source);
- *
  * </pre>
  *
  * @param <PK> the type parameter

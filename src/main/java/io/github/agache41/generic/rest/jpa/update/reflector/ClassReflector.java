@@ -19,9 +19,9 @@ package io.github.agache41.generic.rest.jpa.update.reflector;
 
 import io.github.agache41.generic.rest.jpa.exceptions.UnexpectedException;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 import jakarta.validation.constraints.NotNull;
+import org.jboss.logging.Logger;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -46,7 +46,19 @@ import java.util.stream.Collectors;
  */
 public final class ClassReflector<T> {
 
+    private static final Logger log = Logger.getLogger(ClassReflector.class);
+
+    /**
+     * <pre>
+     * The cache map of available ClassReflectors, reachable by class
+     * </pre>
+     */
     private static final Map<Class<?>, ClassReflector<?>> concurrentClassReflectorCache = new ConcurrentHashMap<>();
+    /**
+     * <pre>
+     * The type of this ClassReflector
+     * </pre>
+     */
     private final Class<T> clazz;
 
     /**
@@ -55,15 +67,55 @@ public final class ClassReflector<T> {
      * </pre>
      */
     private final Constructor<T> noArgsConstructor;
+    /**
+     * <pre>
+     * The cache map of all available reflectors for fields, reachable by field name
+     * </pre>
+     */
     private final Map<String, FieldReflector<T, Object>> reflectors;
+    /**
+     * <pre>
+     * The cache map of all available reflectors for fields marked for update, reachable by field name
+     * </pre>
+     */
     private final Map<String, FieldReflector<T, Object>> updateReflectors;
 
+    /**
+     * <pre>
+     * The array of all available reflectors for fields marked for update.
+     * The array is provided for fast iteration purposes.
+     * </pre>
+     */
     private final FieldReflector[] updateReflectorsArray;
+    /**
+     * <pre>
+     *  The array of all available reflectors for fields holding simple types (no entities, collections or maps) for update.
+     *  The array is provided for fast iteration purposes.
+     * </pre>
+     */
     private final FieldReflector[] valueReflectorsArray;
+    /**
+     * <pre>
+     * The description of this ClassReflector, saved to be reused by toString  Method.
+     * It actually holds a generated copy of the type class source code,
+     * helpfully when debugging issues.
+     * </pre>
+     */
     private final String description;
 
+    /**
+     * <pre>
+     * Tells of this class is final. (Ex. String)
+     * </pre>
+     */
     private final boolean isFinal;
 
+    /**
+     * <pre>
+     * Constructs this ClassReflector.
+     * The constructor is used when invoking a .forClass() static method.
+     * </pre>
+     */
     private ClassReflector(final Class<T> sourceClass) {
 
         this.clazz = sourceClass;
@@ -92,8 +144,8 @@ public final class ClassReflector<T> {
         this.valueReflectorsArray = valueReflectors.toArray(new FieldReflector[valueReflectors.size()]);
 
         this.description = this.description();
-        //todo : add logging
-        System.out.println(this);
+
+        log.debugf("ClassReflector is parsing :\r\n %s \r\n", this.toString());
     }
 
     /**
@@ -122,16 +174,6 @@ public final class ClassReflector<T> {
      */
     public static <R> ClassReflector<R> ofObject(@NotNull final R object) {
         return (ClassReflector<R>) concurrentClassReflectorCache.computeIfAbsent(object.getClass(), cls -> new ClassReflector(cls));
-    }
-
-    public static <ENTITY extends Updateable<ENTITY>> ENTITY create(final ENTITY value) {
-        if (value == null) {
-            return null;
-        }
-        final ENTITY result = ClassReflector.ofObject(value)
-                                            .newInstance();
-        result.update(value);
-        return result;
     }
 
     private String description() {
@@ -275,6 +317,11 @@ public final class ClassReflector<T> {
         return result;
     }
 
+    /**
+     * Creates a new instance of current type;
+     *
+     * @return the t
+     */
     public T newInstance() {
         try {
             return this.noArgsConstructor.newInstance();
@@ -283,26 +330,47 @@ public final class ClassReflector<T> {
         }
     }
 
-    public Constructor<T> getNoArgsConstructor() {
-        return this.noArgsConstructor;
-    }
-
+    /**
+     * Gets the cache map of all available reflectors for fields, reachable by field name.
+     *
+     * @return the reflectors
+     */
     public Map<String, FieldReflector<T, Object>> getReflectors() {
         return this.reflectors;
     }
 
+    /**
+     * Gets the cache map of all available reflectors for fields marked for update, reachable by field name.
+     *
+     * @return the update reflectors
+     */
     public Map<String, FieldReflector<T, Object>> getUpdateReflectors() {
         return this.updateReflectors;
     }
 
+    /**
+     * Gets all available reflectors for fields marked for update.
+     *
+     * @return the field reflector [ ]
+     */
     public FieldReflector[] getUpdateReflectorsArray() {
         return this.updateReflectorsArray;
     }
 
+    /**
+     * Gets all available reflectors for fields holding values for update.
+     *
+     * @return the field reflector [ ]
+     */
     public FieldReflector[] getValueReflectorsArray() {
         return this.valueReflectorsArray;
     }
 
+    /**
+     * Tells if the class is final
+     *
+     * @return the boolean
+     */
     public boolean isFinal() {
         return this.isFinal;
     }

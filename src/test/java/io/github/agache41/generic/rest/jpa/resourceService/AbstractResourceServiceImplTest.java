@@ -91,7 +91,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
             LOG.debugf("POST: Request: %s", req);
             final T res = this.getClient()
                               .post(req);
-            LOG.infof("POST: Response: %s", res);
+            LOG.debugf("POST: Response: %s", res);
             //then
             assertNotNull(res);
             final K id = res.getId();

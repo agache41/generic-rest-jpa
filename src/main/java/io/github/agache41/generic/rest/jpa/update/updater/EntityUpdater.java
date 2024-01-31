@@ -23,9 +23,29 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * The updater for entities types (implementing PrimaryKey and Updatable).
+ * It updates the field value in the target based on the value of the field value in the source
+ *
+ * @param <TARGET> the type parameter of the target object
+ * @param <SOURCE> the type parameter of the source object
+ * @param <VALUE>  the type parameter of the updating value
+ */
 public class EntityUpdater<TARGET, SOURCE, VALUE extends Updateable<VALUE>> extends ValueUpdater<TARGET, SOURCE, VALUE> {
+    /**
+     * The Constructor.
+     */
     protected final Supplier<VALUE> constructor;
 
+    /**
+     * Instantiates a new Entity updater.
+     *
+     * @param setter       the target setter
+     * @param getter       the target getter
+     * @param notNull      if entity can be null
+     * @param sourceGetter the source getter
+     * @param constructor  the entity constructor
+     */
     public EntityUpdater(final BiConsumer<TARGET, VALUE> setter,
                          final Function<TARGET, VALUE> getter,
                          final boolean notNull,
@@ -35,6 +55,21 @@ public class EntityUpdater<TARGET, SOURCE, VALUE extends Updateable<VALUE>> exte
         this.constructor = constructor;
     }
 
+    /**
+     * Convenient static method.
+     * It updates the field value in the target based on the value of the field value in the source.
+     *
+     * @param <T>          the type parameter of the target object
+     * @param <S>          the type parameter of the source object
+     * @param <V>          the type parameter of the entity
+     * @param setter       the target setter
+     * @param getter       the target getter
+     * @param notNull      if values is not null
+     * @param sourceGetter the source getter
+     * @param target       the target
+     * @param source       the source
+     * @return true if the target changed
+     */
     public static <T, S, V extends Updateable<V>> boolean updateEntity(
             final BiConsumer<T, V> setter,
             final Function<T, V> getter,
@@ -46,6 +81,13 @@ public class EntityUpdater<TARGET, SOURCE, VALUE extends Updateable<VALUE>> exte
         return new EntityUpdater<>(setter, getter, notNull, sourceGetter, constructor).update(target, source);
     }
 
+    /**
+     * The method updates the field in target based on the field the source
+     *
+     * @param target the target
+     * @param source the source
+     * @return true if the target changed
+     */
     @Override
     public boolean update(final TARGET target,
                           final SOURCE source) {

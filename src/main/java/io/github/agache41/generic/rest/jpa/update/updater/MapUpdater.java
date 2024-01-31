@@ -24,9 +24,26 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * The updater for map with simple value types (String, Integer).
+ * It updates the field value in the target based on the value of the field value in the source.
+ *
+ * @param <TARGET> the type parameter of the target object
+ * @param <SOURCE> the type parameter of the source object
+ * @param <VALUE>  the type parameter of the map value
+ * @param <KEY>    the type parameter of the map key
+ */
 public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET, SOURCE, Map<KEY, VALUE>> {
 
 
+    /**
+     * Instantiates a new Map updater.
+     *
+     * @param setter       the target setter
+     * @param getter       the target getter
+     * @param notNull      if values is not null
+     * @param sourceGetter the source getter
+     */
     public MapUpdater(final BiConsumer<TARGET, Map<KEY, VALUE>> setter,
                       final Function<TARGET, Map<KEY, VALUE>> getter,
                       final boolean notNull,
@@ -35,6 +52,22 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
     }
 
 
+    /**
+     * Convenient static method.
+     * It updates the field value in the target based on the value of the field value in the source.
+     *
+     * @param <T>          the type parameter of the target object
+     * @param <S>          the type parameter of the source object
+     * @param <V>          the type parameter of the map value
+     * @param <K>          the type parameter of the map key
+     * @param setter       the target setter
+     * @param getter       the target getter
+     * @param notNull      if values is not null
+     * @param sourceGetter the source getter
+     * @param target       the target
+     * @param source       the source
+     * @return true if the target changed
+     */
     public static <T, S, V, K> boolean updateMap(
             final BiConsumer<T, Map<K, V>> setter,
             final Function<T, Map<K, V>> getter,
@@ -45,6 +78,13 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
         return new MapUpdater<>(setter, getter, notNull, sourceGetter).update(target, source);
     }
 
+    /**
+     * The method updates the field in target based on the field the source
+     *
+     * @param target the target
+     * @param source the source
+     * @return true if the target changed
+     */
     @Override
     public boolean update(final TARGET target,
                           final SOURCE source) {

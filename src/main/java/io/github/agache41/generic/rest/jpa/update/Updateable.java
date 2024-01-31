@@ -25,9 +25,8 @@ import jakarta.persistence.Transient;
  * @author Alexandru.Agache.Extern@atruvia.de
  * <p>
  * Generic Interface for updatable Database Entities
- * It consists of one method to be implemented in the entity to coordinate the update process
- * and default working methods that update single default types fields and, respectively
- * map based one to many relations.
+ * It consists of one method to be implemented in the entity to coordinate the update process.
+ * The default implementation uses the ClassReflector mechanism to update the fields.
  */
 public interface Updateable<ENTITY extends Updateable<ENTITY>> {
     @Transient

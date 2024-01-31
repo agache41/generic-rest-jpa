@@ -112,9 +112,10 @@ public class Producer<T> {
      */
     public <K> Map<K, T> produceMap(final Class<K> keyType,
                                     final int... size) {
-        final Map<K, T> result = new HashMap<>();
+        final int mapSize = this.optionalSize(size);
+        final Map<K, T> result = new HashMap<>(mapSize);
         final Producer<K> keySupplier = Producer.ofClass(keyType);
-        for (int i = 0; i < this.optionalSize(size); i++) {
+        for (int i = 0; i < mapSize; i++) {
             result.put(keySupplier.produce(), this.produce());
         }
         return result;
@@ -149,9 +150,9 @@ public class Producer<T> {
      * @return the list
      */
     public List<T> produceList(final int... size) {
-        final int actualSize = this.optionalSize(size);
-        final List<T> result = new ArrayList<>(actualSize);
-        for (int i = 0; i < actualSize; i++)
+        final int listSize = this.optionalSize(size);
+        final List<T> result = new ArrayList<>(listSize);
+        for (int i = 0; i < listSize; i++)
             result.add(this.produce());
         return result;
     }
@@ -274,8 +275,9 @@ public class Producer<T> {
      *
      * @param size the size
      */
-    public void setSize(final int size) {
+    public Producer<T> ofSize(final int size) {
         this.size = size;
+        return this;
     }
 
 }

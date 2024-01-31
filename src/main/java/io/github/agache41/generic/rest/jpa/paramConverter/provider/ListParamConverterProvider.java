@@ -37,47 +37,47 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The type List param converter provider.
+ * The converter handling lists as parameters in urls.
  */
 @Provider
 public class ListParamConverterProvider implements ParamConverterProvider {
+    private final Map<Type, ParamConverter<?>> paramConverterMap = new HashMap<>();
     /**
-     * The Log.
+     * Logger
      */
     @Inject
     Logger log;
-
-    private final Map<Type, ParamConverter<?>> paramConverterMap = new HashMap<>();
 
     /**
      * Post construct.
      */
     @PostConstruct
     public void postConstruct() {
-        this.paramConverterMap.put(String.class, new StringListParamConverter(log));
-        this.paramConverterMap.put(Integer.class, new IntegerListParamConverter(log));
-        this.paramConverterMap.put(Long.class, new LongListParamConverter(log));
-        this.paramConverterMap.put(LocalDate.class, new LocalDateParamConverter(log));
+        this.paramConverterMap.put(String.class, new StringListParamConverter(this.log));
+        this.paramConverterMap.put(Integer.class, new IntegerListParamConverter(this.log));
+        this.paramConverterMap.put(Long.class, new LongListParamConverter(this.log));
+        this.paramConverterMap.put(LocalDate.class, new LocalDateParamConverter(this.log));
     }
 
     @Override
-    public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType,
-                                              Annotation[] annotations) {
+    public <T> ParamConverter<T> getConverter(final Class<T> rawType,
+                                              final Type genericType,
+                                              final Annotation[] annotations) {
         if (rawType.equals(List.class)) {
             ParamConverter<?> paramConverter = null;
             if (genericType instanceof ParameterizedType) {
-                ParameterizedType ptype = (ParameterizedType) genericType;
-                Type[] actualTypeArguments = ptype.getActualTypeArguments();
+                final ParameterizedType ptype = (ParameterizedType) genericType;
+                final Type[] actualTypeArguments = ptype.getActualTypeArguments();
                 if (actualTypeArguments.length > 0) {
-                    Type parameterType = actualTypeArguments[0];
-                    paramConverter = paramConverterMap.get(parameterType);
+                    final Type parameterType = actualTypeArguments[0];
+                    paramConverter = this.paramConverterMap.get(parameterType);
                 }
             }
             if (paramConverter == null) {
-                log.errorf("No Parameter Converter found for Class %s with generic Type %s", rawType.getSimpleName(), genericType);
+                this.log.errorf("No Parameter Converter found for Class %s with generic Type %s", rawType.getSimpleName(), genericType);
             } else {
-                log.infof(" Binding %s to param of type %s ", paramConverter.getClass()
-                                                                            .getSimpleName(), genericType);
+                this.log.infof(" Binding %s to param of type %s ", paramConverter.getClass()
+                                                                                 .getSimpleName(), genericType);
             }
             return (ParamConverter<T>) paramConverter;
         }

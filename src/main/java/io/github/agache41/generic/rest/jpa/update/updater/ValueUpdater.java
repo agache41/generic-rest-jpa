@@ -28,14 +28,42 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+/**
+ * The updater for simple value types (String, Integer).
+ * It updates the field value in the target based on the value of the field value in the source
+ *
+ * @param <TARGET> the type parameter of the target object
+ * @param <SOURCE> the type parameter of the source object
+ * @param <VALUE>  the type parameter of the updating value
+ */
 public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOURCE> {
 
+    /**
+     * The Setter.
+     */
     protected final BiConsumer<TARGET, VALUE> setter;
+    /**
+     * The Getter.
+     */
     protected final Function<TARGET, VALUE> getter;
+    /**
+     * The Not null.
+     */
     protected final boolean notNull;
+    /**
+     * The Source getter.
+     */
     protected final Function<SOURCE, VALUE> sourceGetter;
 
 
+    /**
+     * Instantiates a new Value updater.
+     *
+     * @param setter       the target setter
+     * @param getter       the target getter
+     * @param notNull      if values is not null
+     * @param sourceGetter the source getter
+     */
     public ValueUpdater(final BiConsumer<TARGET, VALUE> setter,
                         final Function<TARGET, VALUE> getter,
                         final boolean notNull,
@@ -46,6 +74,21 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
         this.sourceGetter = sourceGetter;
     }
 
+    /**
+     * Convenient static method.
+     * It updates the field value in the target based on the value of the field value in the source.
+     *
+     * @param <T>          the type parameter of the target object
+     * @param <S>          the type parameter of the source object
+     * @param <V>          the type parameter of the value
+     * @param setter       the target setter
+     * @param getter       the target getter
+     * @param notNull      if values is not null
+     * @param sourceGetter the source getter
+     * @param target       the target
+     * @param source       the source
+     * @return true if the target changed
+     */
     public static <T, S, V> boolean updateValue(
             final BiConsumer<T, V> setter,
             final Function<T, V> getter,
@@ -56,6 +99,16 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
         return new ValueUpdater<>(setter, getter, notNull, sourceGetter).update(target, source);
     }
 
+    /**
+     * Internal update method for maps.
+     *
+     * @param <KEY>       the type parameter
+     * @param <VALUE>     the type parameter
+     * @param targetValue the target value
+     * @param sourceValue the source value
+     * @param constructor the constructor
+     * @return true if the target map has changed
+     */
     protected static <KEY, VALUE extends Updateable<VALUE>> boolean updateMap(
             final Map<KEY, VALUE> targetValue,
             final Map<KEY, VALUE> sourceValue,
@@ -89,6 +142,13 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
         return updated;
     }
 
+    /**
+     * The method updates the field in target based on the field the source
+     *
+     * @param target the target
+     * @param source the source
+     * @return true if the target changed
+     */
     @Override
     public boolean update(final TARGET target,
                           final SOURCE source) {

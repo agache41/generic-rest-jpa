@@ -25,10 +25,32 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * The updater for collection of entity types (implementing PrimaryKey and Updatable).
+ * It updates the field value in the target based on the value of the field value in the source.
+ *
+ * @param <TARGET>     the type parameter
+ * @param <SOURCE>     the type parameter
+ * @param <COLLECTION> the type parameter
+ * @param <VALUE>      the type parameter
+ * @param <PK>         the type parameter
+ */
 public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collection<VALUE>, VALUE extends Updateable<VALUE> & PrimaryKey<PK>, PK> extends ValueUpdater<TARGET, SOURCE, COLLECTION> {
 
+    /**
+     * The Constructor.
+     */
     protected final Supplier<VALUE> constructor;
 
+    /**
+     * Instantiates a new Entity collection updater.
+     *
+     * @param setter       the target setter
+     * @param getter       the target getter
+     * @param notNull      if entity collection can be null
+     * @param sourceGetter the source getter
+     * @param constructor  the entity constructor
+     */
     public EntityCollectionUpdater(final BiConsumer<TARGET, COLLECTION> setter,
                                    final Function<TARGET, COLLECTION> getter,
                                    final boolean notNull,
@@ -38,6 +60,22 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
         this.constructor = constructor;
     }
 
+    /**
+     * Convenient static method.
+     * It updates the field value in the target based on the value of the field value in the source.
+     *
+     * @param <T>          the type parameter of the target object
+     * @param <S>          the type parameter of the source object
+     * @param <E>          the type parameter of the collection values (the entity)
+     * @param <K>          the type parameter of the primary key of the entity
+     * @param setter       the target setter
+     * @param getter       the target getter
+     * @param notNull      if values is not null
+     * @param sourceGetter the source getter
+     * @param target       the target
+     * @param source       the source
+     * @return true if the target changed
+     */
     public static <T, S, C extends Collection<E>, E extends Updateable<E> & PrimaryKey<K>, K> boolean updateEntityCollection(
             final BiConsumer<T, C> setter,
             final Function<T, C> getter,
@@ -49,6 +87,13 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
         return new EntityCollectionUpdater<>(setter, getter, notNull, sourceGetter, constructor).update(target, source);
     }
 
+    /**
+     * The method updates the field in target based on the field the source
+     *
+     * @param target the target
+     * @param source the source
+     * @return true if the target changed
+     */
     @Override
     public boolean update(final TARGET target,
                           final SOURCE source) {
