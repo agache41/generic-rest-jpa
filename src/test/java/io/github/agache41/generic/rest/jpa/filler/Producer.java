@@ -24,6 +24,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 
@@ -37,15 +38,14 @@ import java.util.stream.Collectors;
  */
 public class Producer<T> {
 
+    private static final Map<Class<?>, Producer<?>> producerCache = new ConcurrentHashMap<>();
     /**
      * The default size for collections and map generation.
      */
-    public static final int defaultSize = 64;
-
-    private static final Map<Class<?>, Producer<?>> producerCache = new ConcurrentHashMap<>();
+    public static int defaultSize = 16;
 
     static {
-        //UpdateSupplier.add(new StringRandomSupplier());
+        //Producer.add(new StringRandomProducer());
         Producer.add(new EnglishWordsProducer());
         Producer.add(new IntegerRandomProducer());
         Producer.add(new LongRandomProducer());
@@ -72,6 +72,18 @@ public class Producer<T> {
     protected int size;
 
     /**
+     * The supplier for new list.
+     * Defaults to LinkedList.
+     */
+    protected Supplier<List<T>> listSupplier;
+
+    /**
+     * The supplier for new maps.
+     * Defaults to LinkedHashMap.
+     */
+    protected Supplier<Map<?, T>> mapSupplier;
+
+    /**
      * Instantiates a new Producer.
      *
      * @param clazz the clazz
@@ -79,6 +91,17 @@ public class Producer<T> {
     protected Producer(final Class<T> clazz) {
         this.clazz = clazz;
         this.size = defaultSize;
+        this.listSupplier = LinkedList::new;
+        this.mapSupplier = LinkedHashMap::new;
+    }
+
+    /**
+     * Sets default size.
+     *
+     * @param size the size
+     */
+    public static void setDefaultSize(final int size) {
+        Producer.defaultSize = size;
     }
 
     /**
@@ -89,7 +112,6 @@ public class Producer<T> {
     public static void add(final Producer<?> supplier) {
         producerCache.put(supplier.getClazz(), supplier);
     }
-
 
     /**
      * Of class producer.
@@ -103,6 +125,28 @@ public class Producer<T> {
     }
 
     /**
+     * With list producer.
+     *
+     * @param listSupplier the list supplier
+     * @return the producer
+     */
+    public Producer<T> withList(final Supplier<List<T>> listSupplier) {
+        this.listSupplier = listSupplier;
+        return this;
+    }
+
+    /**
+     * With map producer.
+     *
+     * @param mapSupplier the map supplier
+     * @return the producer
+     */
+    public Producer<T> withMap(final Supplier<Map<?, T>> mapSupplier) {
+        this.mapSupplier = mapSupplier;
+        return this;
+    }
+
+    /**
      * Produce map map.
      *
      * @param <K>     the type parameter
@@ -113,7 +157,7 @@ public class Producer<T> {
     public <K> Map<K, T> produceMap(final Class<K> keyType,
                                     final int... size) {
         final int mapSize = this.optionalSize(size);
-        final Map<K, T> result = new HashMap<>(mapSize);
+        final Map<K, T> result = (Map<K, T>) this.mapSupplier.get();
         final Producer<K> keySupplier = Producer.ofClass(keyType);
         for (int i = 0; i < mapSize; i++) {
             result.put(keySupplier.produce(), this.produce());
@@ -151,7 +195,7 @@ public class Producer<T> {
      */
     public List<T> produceList(final int... size) {
         final int listSize = this.optionalSize(size);
-        final List<T> result = new ArrayList<>(listSize);
+        final List<T> result = this.listSupplier.get();
         for (int i = 0; i < listSize; i++)
             result.add(this.produce());
         return result;
@@ -212,20 +256,20 @@ public class Producer<T> {
             } else if (fieldReflector.isCollection()) {
                 final Class<Object> collectionType = fieldReflector.getFirstParameter();
                 Collection<Object> collection = (Collection<Object>) target;
-                final Producer<Object> collectionSupplier = Producer.ofClass(collectionType);
+                final Producer<Object> objectProducer = Producer.ofClass(collectionType);
                 if (collection == null) {
                     if (List.class.isAssignableFrom(fieldType)) {
-                        collection = new ArrayList<>();
+                        collection = (Collection<Object>) this.listSupplier.get();
                         fieldReflector.set(result, collection);
                     }
                 }
                 if (collection != null && collectionType != null) {
                     final List<Object> applied = collection.stream()
-                                                           .map(collectionSupplier::change)
+                                                           .map(objectProducer::change)
                                                            .collect(Collectors.toList());
                     collection.clear();
                     collection.addAll(applied);
-                    collection.addAll(collectionSupplier
+                    collection.addAll(objectProducer
                                               .produceList());
                 }
             } else if (fieldReflector.isMap()) {
@@ -235,7 +279,7 @@ public class Producer<T> {
                 Map map = (Map<Object, Object>) target;
                 if (map == null) {
                     if (Map.class.isAssignableFrom(fieldType)) {
-                        map = new LinkedHashMap();
+                        map = this.mapSupplier.get();
                         fieldReflector.set(result, map);
                     }
                 }
@@ -274,8 +318,9 @@ public class Producer<T> {
      * Sets size.
      *
      * @param size the size
+     * @return the producer
      */
-    public Producer<T> ofSize(final int size) {
+    public Producer<T> withSize(final int size) {
         this.size = size;
         return this;
     }

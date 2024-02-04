@@ -23,6 +23,8 @@ import io.github.agache41.generic.rest.jpa.modell.entities.Modell;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImplTest;
 import org.junit.jupiter.api.*;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
@@ -32,10 +34,20 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<Modell, Long> {
     private static final String stringField = "name";
-    private static final Producer<Modell> producer = Producer.ofClass(Modell.class)
-                                                             .ofSize(2);
-    private static final List<Modell> insertData = producer.produceList();
-    private static final List<Modell> updateData = producer.changeList(insertData);
+    private static final int collectionSize = 16;
+    private static final Producer<Modell> producer;
+    private static final List<Modell> insertData;
+    private static final List<Modell> updateData;
+
+    static {
+        Producer.setDefaultSize(collectionSize);
+        producer = Producer.ofClass(Modell.class)
+                           .withList(LinkedList::new)
+                           .withMap(LinkedHashMap::new)
+                           .withSize(5);
+        insertData = producer.produceList();
+        updateData = producer.changeList(insertData);
+    }
 
 
     public ModellResourceServiceTest() {

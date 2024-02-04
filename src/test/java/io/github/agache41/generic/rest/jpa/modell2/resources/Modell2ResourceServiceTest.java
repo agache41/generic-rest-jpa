@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class Modell2ResourceServiceTest extends AbstractResourceServiceImplTest<Modell2, Long> {
     private static final Producer<Modell2> producer = Producer.ofClass(Modell2.class)
-                                                              .ofSize(2);
+                                                              .withSize(2);
     private static final List<Modell2> insertData = producer.produceList();
     private static final List<Modell2> updateData = producer.changeList(insertData);
     private static final String stringField = "name";

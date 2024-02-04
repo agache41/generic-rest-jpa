@@ -116,8 +116,10 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
             assertNotNull(id);
 
             //when
+            LOG.debugf("GET: Request: %s", id);
             final T res = this.getClient()
                               .get(id);
+            LOG.debugf("GET: Response: %s", res);
             //then
             assertNotNull(res);
             assertNotNull(res.getId());
