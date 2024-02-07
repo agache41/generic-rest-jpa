@@ -2,10 +2,9 @@ Planning :
 
 - add boolean as return from update method - check
 - implement method for collections, maps etc - check
-- add test units for new Updater
+- add test units for new Producer
 - extend the Modell Bean
 - extend integration tests
 - javadoc
 
-- public repo - settings !?
-- read me update 
+- read me update
