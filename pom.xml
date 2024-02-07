@@ -225,10 +225,11 @@
                         <configuration>
                             <publishingServerId>central</publishingServerId>
                             <tokenAuth>true</tokenAuth>
-                            <autoPublish>false</autoPublish>
-                            <waitUntil>validated</waitUntil>
-                            <!--  <autoPublish>true</autoPublish>-->
-                            <!--  <waitUntil>published</waitUntil>-->
+                            <autoPublish>true</autoPublish>
+                            <waitUntil>published</waitUntil>
+                            <!--  Use this to test the deployment -->
+                            <!-- <autoPublish>false</autoPublish> -->
+                            <!-- <waitUntil>validated</waitUntil> -->
                         </configuration>
                     </plugin>
                 </plugins>
