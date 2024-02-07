@@ -23,7 +23,7 @@ jobs:
           maven-version: 3.9.5
       - uses: s4u/maven-settings-action@v3.0.0
         with:
-          servers: '[{"id": "central","username": "${{ secrets.CENTRAL_USERNAME }}", "password": "${{ secrets.CENTRAL_TOKEN }}"}]'
+          servers: '[{"id": "central","username": "${{ secrets.CENTRAL_USERNAME }}", "password": "${{ secrets.CENTRAL_PASSWORD }}"}]'
       - name: Build with Maven
         run: mvn -B clean deploy -P release --file pom.xml
         env:
