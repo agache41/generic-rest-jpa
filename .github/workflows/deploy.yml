@@ -19,8 +19,10 @@ jobs:
       - name: Setup Maven Action
         uses: s4u/setup-maven-action@v1.11.0
         with:
-          java-version: 11
+          java-distribution: 'temurin'
+          java-version: 11.0.22
           maven-version: 3.9.5
+          cache-enabled: 'true'
       - uses: s4u/maven-settings-action@v3.0.0
         with:
           servers: '[{"id": "central","username": "${{ secrets.CENTRAL_USERNAME }}", "password": "${{ secrets.CENTRAL_PASSWORD }}"}]'
