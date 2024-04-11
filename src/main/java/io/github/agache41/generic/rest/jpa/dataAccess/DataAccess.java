@@ -31,7 +31,10 @@ import jakarta.inject.Named;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.NonUniqueResultException;
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Root;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -511,13 +514,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
     public void removeByColumnEqualsValue(final String column,
                                           final Object value,
                                           final boolean notNull) {
-        final CriteriaBuilder criteriaBuilder = this.em()
-                                                    .getCriteriaBuilder();
-        final CriteriaDelete<ENTITY> delete = criteriaBuilder.createCriteriaDelete(this.type);
-        final Root<ENTITY> entity = delete.from(this.type);
-        this.em()
-            .createQuery(delete.where(this.equals(column, value, notNull, entity, criteriaBuilder)))
-            .executeUpdate();
+        this.streamByColumnEqualsValue(column, value, true)
+            .forEach(this::remove);
     }
 
     /**
@@ -532,13 +530,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
     public void removeByColumnInValues(final String column,
                                        final Collection<? extends Object> values,
                                        final boolean notNull) {
-        final CriteriaBuilder criteriaBuilder = this.em()
-                                                    .getCriteriaBuilder();
-        final CriteriaDelete<ENTITY> delete = criteriaBuilder.createCriteriaDelete(this.type);
-        final Root<ENTITY> entity = delete.from(this.type);
-        this.em()
-            .createQuery(delete.where(this.in(column, values, notNull, entity)))
-            .executeUpdate();
+        this.streamByColumnInValues(column, values, notNull)
+            .forEach(this::remove);
     }
 
     /**
@@ -547,12 +540,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * </pre>
      */
     public void removeAll() {
-        final CriteriaDelete<ENTITY> delete = this.em()
-                                                  .getCriteriaBuilder()
-                                                  .createCriteriaDelete(this.type);
-        this.em()
-            .createQuery(delete)
-            .executeUpdate();
+        this.streamAll()
+            .forEach(this::remove);
     }
 
     /**

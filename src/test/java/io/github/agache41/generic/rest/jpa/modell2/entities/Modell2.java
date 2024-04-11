@@ -34,8 +34,10 @@ import lombok.*;
 @Entity
 public class Modell2 implements PrimaryKey<Long>, Updateable<Modell2> {
 
+    private static final long serialVersionUID = 265448020827321843L;
     @Id
     @NotNull
+    @EqualsAndHashCode.Exclude
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -51,9 +53,4 @@ public class Modell2 implements PrimaryKey<Long>, Updateable<Modell2> {
     @EqualsAndHashCode.Exclude
     private long age;
 
-//    @Override
-//    public boolean update(Modell2 source) {
-//        //boolean result = update(Modell2::setName, Modell2::getName, true, this, source);
-//        return false;
-//    }
 }

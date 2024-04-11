@@ -271,7 +271,7 @@ public class Producer<T> {
                                                        .produce();
                     final int maxLength = fieldReflector.getColumnAnnotation()
                                                         .length();
-                    if (stringValue.length() < maxLength) {
+                    if (stringValue.length() < maxLength || maxLength < 0) {
                         fieldReflector.set(result, stringValue);
                     } else {
                         fieldReflector.set(result, stringValue.substring(0, maxLength));

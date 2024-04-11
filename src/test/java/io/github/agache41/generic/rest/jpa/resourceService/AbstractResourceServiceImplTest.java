@@ -302,7 +302,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
                        .isEmpty());
     }
 
-    private void deleteAll() {
+    protected void deleteAll() {
         final List<K> ids = this.getClient()
                                 .getAllAsList()
                                 .stream()
@@ -473,11 +473,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
             // value.setId(id);
             assertEquals(value, res.get(0));
         }
-
-        this.getClient()
-            .deleteByIds(insertedData.stream()
-                                     .map(PrimaryKey::getId)
-                                     .collect(Collectors.toList()));
+        this.deleteAll();
     }
 
 
@@ -505,10 +501,6 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
             // value.setId(id);
             assertEquals(value, res.get(0));
         }
-
-        this.getClient()
-            .deleteByIds(insertedData.stream()
-                                     .map(PrimaryKey::getId)
-                                     .collect(Collectors.toList()));
+        this.deleteAll();
     }
 }

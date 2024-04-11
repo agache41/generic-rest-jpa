@@ -18,7 +18,6 @@
 package io.github.agache41.generic.rest.jpa.modell.resources;
 
 import io.github.agache41.generic.rest.jpa.filler.Producer;
-import io.github.agache41.generic.rest.jpa.modell.entities.ModellFks;
 import io.github.agache41.generic.rest.jpa.modell.entities.SubModellFks;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImplTest;
 import org.junit.jupiter.api.*;
@@ -27,22 +26,21 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 @TestInstance(PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class ModellFksResourceServiceTest extends AbstractResourceServiceImplTest<ModellFks, Long> {
+public class SubModellFksResourceServiceTest extends AbstractResourceServiceImplTest<SubModellFks, Long> {
 
-    private static final String stringField = "name";
+    private static final String stringField = "subName";
     private static final int collectionSize = 16;
-    private static final Producer<ModellFks> producer;
-    private static final List<ModellFks> insertData;
-    private static final List<ModellFks> updateData;
+    private static final Producer<SubModellFks> producer;
+    private static final List<SubModellFks> insertData;
+    private static final List<SubModellFks> updateData;
 
     static {
         Producer.setDefaultSize(collectionSize);
-        producer = Producer.ofClass(ModellFks.class)
+        producer = Producer.ofClass(SubModellFks.class)
                            .withList(LinkedList::new)
                            .withMap(LinkedHashMap::new)
                            .withSize(16);
@@ -50,9 +48,9 @@ public class ModellFksResourceServiceTest extends AbstractResourceServiceImplTes
         updateData = producer.changeList(insertData);
     }
 
-    public ModellFksResourceServiceTest() {
-        super(new ModellFksResourceService(),
-              ModellFks.class, //
+    public SubModellFksResourceServiceTest() {
+        super(new SubModellFksResourceService(),
+              SubModellFks.class, //
               insertData, //
               updateData,
               stringField); //
@@ -60,27 +58,14 @@ public class ModellFksResourceServiceTest extends AbstractResourceServiceImplTes
 
     @BeforeEach
     void beforeEach() {
-        ((ModellFksResourceService) this.getClient()).getDataAccess()
-                                                     .beginTransaction();
+        ((SubModellFksResourceService) this.getClient()).getDataAccess()
+                                                        .beginTransaction();
     }
 
     @AfterEach
     void afterEach() {
-        ((ModellFksResourceService) this.getClient()).getDataAccess()
-                                                     .commitTransaction();
-
-    }
-
-    @Test
-    @Order(200)
-    public void testCascade() {
-        final List<ModellFks> res = this.getClient()
-                                        .postListAsList(insertData);
-        assertEquals(res.size(), insertData.size());
-        super.deleteAll();
-        final SubModellFksResourceService subModellFksResourceService = new SubModellFksResourceService();
-        final List<SubModellFks> subModellFksList = subModellFksResourceService.getAllAsList();
-        assertEquals(0, subModellFksList.size());
+        ((SubModellFksResourceService) this.getClient()).getDataAccess()
+                                                        .commitTransaction();
 
     }
 }
