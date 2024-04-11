@@ -654,9 +654,10 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)
      */
     public ENTITY persist(final ENTITY source) {
+        final ENTITY newEntity = this.newInstance(this.assertNotNull(source));
         this.em()
-            .persist(this.newInstance(this.assertNotNull(source)));
-        return source;
+            .persist(newEntity);
+        return newEntity;
     }
 
     /**

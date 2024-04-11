@@ -45,8 +45,8 @@ public class Producer<T> {
     public static int defaultSize = 16;
 
     static {
-        //Producer.add(new StringRandomProducer());
-        Producer.add(new EnglishWordsProducer());
+        Producer.add(new StringRandomProducer());
+        //Producer.add(new EnglishWordsProducer());
         Producer.add(new IntegerRandomProducer());
         Producer.add(new LongRandomProducer());
         Producer.add(new DoubleRandomProducer());
@@ -238,7 +238,7 @@ public class Producer<T> {
             final T result = ClassReflector.ofClass(this.clazz)
                                            .newInstance();
             final Updateable updateableResult = (Updateable) result;
-            updateableResult.update((Updateable) this.produce());
+            updateableResult.update((Updateable) this.processFields(source));
             return result;
         }
         return this.processFields(source);
@@ -248,11 +248,35 @@ public class Producer<T> {
 
         for (final FieldReflector fieldReflector : ClassReflector.ofClass(this.clazz)
                                                                  .getUpdateReflectorsArray()) {
-            final Class<?> fieldType = fieldReflector.getType();
             final Object target = fieldReflector.get(result);
+            if (fieldReflector.getColumnAnnotation() != null) {
+                if (!fieldReflector.getColumnAnnotation()
+                                   .insertable()) {
+                    continue;
+                }
+                if (!fieldReflector.getColumnAnnotation()
+                                   .updatable() && target != null) {
+                    continue;
+                }
+            }
+
+            final Class<?> fieldType = fieldReflector.getType();
+
             if (fieldReflector.isValue()) {
-                fieldReflector.set(result, Producer.ofClass(fieldType)
-                                                   .produce());
+                if (!String.class.equals(fieldType) || fieldReflector.getColumnAnnotation() == null) {
+                    fieldReflector.set(result, Producer.ofClass(fieldType)
+                                                       .produce());
+                } else {
+                    final String stringValue = Producer.ofClass(String.class)
+                                                       .produce();
+                    final int maxLength = fieldReflector.getColumnAnnotation()
+                                                        .length();
+                    if (stringValue.length() < maxLength) {
+                        fieldReflector.set(result, stringValue);
+                    } else {
+                        fieldReflector.set(result, stringValue.substring(0, maxLength));
+                    }
+                }
             } else if (fieldReflector.isCollection()) {
                 final Class<Object> collectionType = fieldReflector.getFirstParameter();
                 Collection<Object> collection = (Collection<Object>) target;

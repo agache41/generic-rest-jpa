@@ -22,6 +22,7 @@ import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
 import io.github.agache41.generic.rest.jpa.update.updater.*;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
+import jakarta.persistence.Column;
 import org.jboss.logging.Logger;
 
 import java.lang.reflect.Field;
@@ -55,13 +56,14 @@ public final class FieldReflector<T, V> {
     private final String description;
     private final boolean notNull;
     private final boolean updatable;
-
     private final boolean isFinal;
-
+    private final boolean isTransient;
+    private final boolean isHibernateIntern;
     private final boolean map;
     private final boolean collection;
     private final boolean value;
     private final boolean valid;
+    private final Column columnAnnotation;
 
     /**
      * <pre>
@@ -77,19 +79,27 @@ public final class FieldReflector<T, V> {
         this.name = field.getName();
         this.type = (Class<V>) field.getType();
         this.isFinal = Modifier.isFinal(field.getModifiers());
+        this.isTransient = Modifier.isTransient(field.getModifiers());
+        this.isHibernateIntern = field.getName()
+                                      .startsWith("$$");
         this.firstParameter = ReflectionUtils.getParameterType(field, 0);
         this.secondParameter = ReflectionUtils.getParameterType(field, 1);
         this.getter = ReflectionUtils.getGetter(this.enclosingClass, this.name, this.type);
         this.setter = ReflectionUtils.getSetter(this.enclosingClass, this.name, this.type);
         this.valid = this.getter != null && this.setter != null;
+        if (field.isAnnotationPresent(Column.class)) {
+            this.columnAnnotation = field.getAnnotation(Column.class);
+        } else {
+            this.columnAnnotation = null;
+        }
 
         // if the field is annotated
-        if (!this.isFinal && field.isAnnotationPresent(Update.class)) {
+        if (!this.isFinal && !this.isHibernateIntern && field.isAnnotationPresent(Update.class)) {
             this.updatable = true;
             this.notNull = field.getAnnotation(Update.class)
                                 .notNull();
             // or the class is annotated and the field is not excluded
-        } else if (!this.isFinal && enclosingClass.isAnnotationPresent(Update.class) && !field.isAnnotationPresent(Update.excluded.class)) {
+        } else if (!this.isFinal && !this.isHibernateIntern && enclosingClass.isAnnotationPresent(Update.class) && !field.isAnnotationPresent(Update.excluded.class)) {
             this.updatable = true;
             this.notNull = enclosingClass.getAnnotation(Update.class)
                                          .notNull();
@@ -323,9 +333,16 @@ public final class FieldReflector<T, V> {
         return this.updater;
     }
 
-
     public boolean isFinal() {
         return this.isFinal;
+    }
+
+    public boolean isTransient() {
+        return this.isTransient;
+    }
+
+    public Column getColumnAnnotation() {
+        return this.columnAnnotation;
     }
 
     @Override
