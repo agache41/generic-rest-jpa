@@ -22,7 +22,7 @@
 
     <groupId>io.github.agache41</groupId>
     <artifactId>generic-rest-jpa</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
     <packaging>jar</packaging>
 
     <name>Generic REST Resources Service API and Data Access over JPA for JEE / Quarkus</name>
@@ -113,7 +113,7 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.4.4.Final</version>
+            <version>6.2.19.Final</version>
             <scope>test</scope>
         </dependency>
         <dependency>

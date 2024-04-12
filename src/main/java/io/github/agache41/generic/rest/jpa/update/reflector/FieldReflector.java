@@ -23,6 +23,8 @@ import io.github.agache41.generic.rest.jpa.update.Updateable;
 import io.github.agache41.generic.rest.jpa.update.updater.*;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 import jakarta.persistence.Column;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import org.jboss.logging.Logger;
 
 import java.lang.reflect.Field;
@@ -59,6 +61,7 @@ public final class FieldReflector<T, V> {
     private final boolean isFinal;
     private final boolean isTransient;
     private final boolean isHibernateIntern;
+    private final boolean isEager;
     private final boolean map;
     private final boolean collection;
     private final boolean value;
@@ -91,6 +94,14 @@ public final class FieldReflector<T, V> {
             this.columnAnnotation = field.getAnnotation(Column.class);
         } else {
             this.columnAnnotation = null;
+        }
+
+        if (field.isAnnotationPresent(OneToMany.class)) {
+            this.isEager = field.getAnnotation(OneToMany.class)
+                                .fetch()
+                                .equals(FetchType.EAGER);
+        } else {
+            this.isEager = false;
         }
 
         // if the field is annotated
@@ -339,6 +350,10 @@ public final class FieldReflector<T, V> {
 
     public boolean isTransient() {
         return this.isTransient;
+    }
+
+    public boolean isEager() {
+        return this.isEager;
     }
 
     public Column getColumnAnnotation() {

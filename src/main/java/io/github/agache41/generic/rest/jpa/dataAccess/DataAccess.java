@@ -23,6 +23,7 @@ import io.github.agache41.generic.rest.jpa.exceptions.UnexpectedException;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
+import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.spi.InjectionPoint;
@@ -97,6 +98,14 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      */
     protected final String name;
 
+
+    /**
+     * <pre>
+     * List with fields that are to be eager fetched.
+     * </pre>
+     */
+    protected final List<String> eagerFields;
+
     /**
      * <pre>
      * The default EntityManager in use.
@@ -135,6 +144,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
         this.keyType = keyType;
         this.name = DataAccess.class.getSimpleName() + "<" + this.type.getSimpleName() + "," + this.keyType.getSimpleName() + ">";
         this.classReflector = ClassReflector.ofClass(this.type);
+        this.eagerFields = this.classReflector.getReflectors()
+                                              .values()
+                                              .stream()
+                                              .filter(FieldReflector::isEager)
+                                              .map(FieldReflector::getName)
+                                              .collect(Collectors.toList());
     }
 
     /**
@@ -210,13 +225,11 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
                                           final boolean notNull,
                                           final boolean expected) {
         try {
-            final CriteriaBuilder criteriaBuilder = this.em()
-                                                        .getCriteriaBuilder();
-            final CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(this.type);
-            final Root<ENTITY> entity = query.from(this.type);
+            final CriteriaQuery<ENTITY> query = this.query();
+            final Root<ENTITY> entity = this.entity(query);
             return this.em()
                        .createQuery(query.select(entity)
-                                         .where(this.equals(column, value, notNull, entity, criteriaBuilder)))
+                                         .where(this.equals(column, value, notNull, entity)))
                        .getSingleResult();
         } catch (final NoResultException exception) {
             return this.resultAs(exception, expected);
@@ -241,13 +254,11 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
                                         final boolean notNull,
                                         final boolean expected) {
         try {
-            final CriteriaBuilder criteriaBuilder = this.em()
-                                                        .getCriteriaBuilder();
-            final CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(this.type);
-            final Root<ENTITY> entity = query.from(this.type);
+            final CriteriaQuery<ENTITY> query = this.query();
+            final Root<ENTITY> entity = this.entity(query);
             return this.em()
                        .createQuery(query.select(entity)
-                                         .where(this.like(column, value, notNull, entity, criteriaBuilder)))
+                                         .where(this.like(column, value, notNull, entity)))
                        .getSingleResult();
         } catch (final NoResultException exception) {
             return this.resultAs(exception, expected);
@@ -264,10 +275,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return all the entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> streamAll() {
-        final CriteriaQuery<ENTITY> query = this.em()
-                                                .getCriteriaBuilder()
-                                                .createQuery(this.type);
-        final Root<ENTITY> entity = query.from(this.type);
+        final CriteriaQuery<ENTITY> query = this.query();
+        final Root<ENTITY> entity = this.entity(query);
         return this.em()
                    .createQuery(query.select(entity))
                    .getResultStream();
@@ -327,13 +336,11 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
     public Stream<ENTITY> streamByColumnEqualsValue(final String column,
                                                     final Object value,
                                                     final boolean notNull) {
-        final CriteriaBuilder criteriaBuilder = this.em()
-                                                    .getCriteriaBuilder();
-        final CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(this.type);
-        final Root<ENTITY> entity = query.from(this.type);
+        final CriteriaQuery<ENTITY> query = this.query();
+        final Root<ENTITY> entity = this.entity(query);
         return this.em()
                    .createQuery(query.select(entity)
-                                     .where(this.equals(column, value, notNull, entity, criteriaBuilder)))
+                                     .where(this.equals(column, value, notNull, entity)))
                    .getResultStream();
 
     }
@@ -353,14 +360,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return the persisted entity
      */
     public Stream<ENTITY> streamByContentEquals(final ENTITY value) {
-        final CriteriaBuilder criteriaBuilder = this.em()
-                                                    .getCriteriaBuilder();
-        final CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(this.type);
-        final Root<ENTITY> entity = query.from(this.type);
+        final CriteriaQuery<ENTITY> query = this.query();
+        final Root<ENTITY> entity = this.entity(query);
         final HashMap<String, Object> mapValues = this.classReflector.mapValues(value);
         return this.em()
                    .createQuery(query.select(entity)
-                                     .where(this.equals(mapValues, entity, criteriaBuilder)))
+                                     .where(this.equals(mapValues, entity)))
                    .getResultStream();
     }
 
@@ -385,6 +390,31 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * The SQL Like operator is used.
      * </pre>
      *
+     * @param column the column to value for
+     * @param value  the value to compare
+     * @return entities in a Stream&#x3C;ENTITY&#x3E;
+     */
+    public Stream<String> autocompleteByColumnLikeValue(final String column,
+                                                        final String value) {
+
+        final CriteriaQuery<String> query = this.cb()
+                                                .createQuery(String.class);
+        final Root<ENTITY> entity = query.from(this.type);
+        return this.em()
+                   .createQuery(query.select(entity.get(column))
+                                     .distinct(true)
+                                     .where(this.like(column, value, true, entity))
+                                     .orderBy(this.cb()
+                                                  .asc(entity.get(column))))
+                   .getResultStream();
+    }
+
+    /**
+     * <pre>
+     * Finds all entities whose value in a specified column are like the given value.
+     * The SQL Like operator is used.
+     * </pre>
+     *
      * @param column  the column to value for
      * @param value   the value to compare
      * @param notNull specifies if the value can be null, and in this case the null can be used as a value.
@@ -393,13 +423,11 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
     public Stream<ENTITY> streamByColumnLikeValue(final String column,
                                                   final String value,
                                                   final boolean notNull) {
-        final CriteriaBuilder criteriaBuilder = this.em()
-                                                    .getCriteriaBuilder();
-        final CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(this.type);
-        final Root<ENTITY> entity = query.from(this.type);
+        final CriteriaQuery<ENTITY> query = this.query();
+        final Root<ENTITY> entity = this.entity(query);
         return this.em()
                    .createQuery(query.select(entity)
-                                     .where(this.like(column, value, notNull, entity, criteriaBuilder)))
+                                     .where(this.like(column, value, notNull, entity)))
                    .getResultStream();
     }
 
@@ -430,10 +458,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
     public Stream<ENTITY> streamByColumnInValues(final String column,
                                                  final Collection<? extends Object> values,
                                                  final boolean notNull) {
-        final CriteriaQuery<ENTITY> query = this.em()
-                                                .getCriteriaBuilder()
-                                                .createQuery(this.type);
-        final Root<ENTITY> entity = query.from(this.type);
+        final CriteriaQuery<ENTITY> query = this.query();
+        final Root<ENTITY> entity = this.entity(query);
         return this.em()
                    .createQuery(query.select(entity)
                                      .where(this.in(column, values, notNull, entity)))
@@ -455,14 +481,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return the persisted entity
      */
     public Stream<ENTITY> streamByContentInValues(final List<ENTITY> values) {
-        final CriteriaBuilder criteriaBuilder = this.em()
-                                                    .getCriteriaBuilder();
-        final CriteriaQuery<ENTITY> query = criteriaBuilder.createQuery(this.type);
-        final Root<ENTITY> entity = query.from(this.type);
+        final CriteriaQuery<ENTITY> query = this.query();
+        final Root<ENTITY> entity = this.entity(query);
         final HashMap<String, List<Object>> mapValues = this.classReflector.mapValues(values);
         return this.em()
                    .createQuery(query.select(entity)
-                                     .where(this.in(mapValues, entity, criteriaBuilder)))
+                                     .where(this.in(mapValues, entity)))
                    .getResultStream();
     }
 
@@ -698,25 +722,54 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
     }
 
     /**
+     * Returns the Root for the Entity Query
+     *
+     * @param query
+     * @return
+     */
+    protected Root<ENTITY> entity(final CriteriaQuery<ENTITY> query) {
+        return query.from(this.type);
+    }
+
+    /**
+     * Returns the Criteria Builder
+     *
+     * @return
+     */
+    protected CriteriaBuilder cb() {
+        return this.em()
+                   .getCriteriaBuilder();
+    }
+
+    /**
+     * Return the base of the query
+     *
+     * @return
+     */
+    protected CriteriaQuery<ENTITY> query() {
+        return this.cb()
+                   .createQuery(this.type);
+    }
+
+    /**
      * <pre>
      * Builder for the equals expression.
      * </pre>
      *
-     * @param column          the column to filter for
-     * @param value           the value to filter for
-     * @param notNull         if the value van be null
-     * @param entity          the entity root
-     * @param criteriaBuilder the criteria builder
+     * @param column  the column to filter for
+     * @param value   the value to filter for
+     * @param notNull if the value van be null
+     * @param entity  the entity root
      * @return the criteria builder expression
      */
     protected Expression<Boolean> equals(String column,
                                          final Object value,
                                          final boolean notNull,
-                                         final Root<ENTITY> entity,
-                                         final CriteriaBuilder criteriaBuilder) {
+                                         final Root<ENTITY> entity) {
         column = this.columnFrom(column);
         if (this.applyFilter(value, notNull)) {
-            return criteriaBuilder.equal(entity.get(column), value);
+            return this.cb()
+                       .equal(entity.get(column), value);
         } else {
             return entity.get(column)
                          .isNull();
@@ -731,18 +784,17 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * result is where name = "abc" and no=2
      * </pre>
      *
-     * @param values          the values in a hash map
-     * @param entity          the entity root
-     * @param criteriaBuilder the criteria builder
+     * @param values the values in a hash map
+     * @param entity the entity root
      * @return the criteria builder expression
      */
     protected Expression<Boolean> equals(final HashMap<String, Object> values,
-                                         final Root<ENTITY> entity,
-                                         final CriteriaBuilder criteriaBuilder) {
+                                         final Root<ENTITY> entity) {
         return values.entrySet()
                      .stream()
-                     .map(entry -> criteriaBuilder.equal(entity.get(entry.getKey()), entry.getValue()))
-                     .collect(Collectors.reducing(criteriaBuilder::and))
+                     .map(entry -> this.cb()
+                                       .equal(entity.get(entry.getKey()), entry.getValue()))
+                     .collect(Collectors.reducing(this.cb()::and))
                      .orElseThrow(() -> new IllegalArgumentException(" Bad Content " + values));
     }
 
@@ -751,21 +803,20 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * Builder for the like expression.
      * </pre>
      *
-     * @param column          the column to filter for
-     * @param value           the value to filter for
-     * @param notNull         if the value van be null
-     * @param entity          the entity root
-     * @param criteriaBuilder the criteria builder
+     * @param column  the column to filter for
+     * @param value   the value to filter for
+     * @param notNull if the value van be null
+     * @param entity  the entity root
      * @return the criteria builder expression
      */
     protected Expression<Boolean> like(String column,
                                        final String value,
                                        final boolean notNull,
-                                       final Root<ENTITY> entity,
-                                       final CriteriaBuilder criteriaBuilder) {
+                                       final Root<ENTITY> entity) {
         column = this.columnFrom(column);
         if (this.applyFilter(value, notNull)) {
-            return criteriaBuilder.like(entity.get(column), value);
+            return this.cb()
+                       .like(entity.get(column), value);
         } else {
             return entity.get(column)
                          .isNull();
@@ -807,19 +858,17 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      *      where name in ("abc","bcd","123") and no in (2)
      * </pre>
      *
-     * @param values          the map of values to filter for
-     * @param entity          the entity root
-     * @param criteriaBuilder the criteria builder
+     * @param values the map of values to filter for
+     * @param entity the entity root
      * @return the criteria builder expression
      */
     protected Expression<Boolean> in(final Map<String, List<Object>> values,
-                                     final Root<ENTITY> entity,
-                                     final CriteriaBuilder criteriaBuilder) {
+                                     final Root<ENTITY> entity) {
         return values.entrySet()
                      .stream()
                      .map(entry -> entity.get(entry.getKey())
                                          .in(entry.getValue()))
-                     .collect(Collectors.reducing(criteriaBuilder::and))
+                     .collect(Collectors.reducing(this.cb()::and))
                      .orElseThrow(() -> new IllegalArgumentException(" Bad Content " + values));
     }
 

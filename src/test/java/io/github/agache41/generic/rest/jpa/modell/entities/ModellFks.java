@@ -22,6 +22,8 @@ import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.util.List;
 
@@ -75,6 +77,7 @@ public class ModellFks implements PrimaryKey<Long>, Updateable<ModellFks> {
     private Long age;
 
     @Update
+    @Fetch(FetchMode.JOIN)
     // add this to prevent Hibernate from using PersistentBag and defaulting equals to Object
     @OrderColumn(name = "index")
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)

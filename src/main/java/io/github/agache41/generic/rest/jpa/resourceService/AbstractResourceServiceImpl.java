@@ -20,8 +20,6 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 import io.github.agache41.generic.rest.jpa.dataAccess.DataAccess;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
-import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
-import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.*;
@@ -225,14 +223,8 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
         if (value == null || value.length() < this.getAutocompleteCut()) {
             return Collections.emptyList();
         }
-        final FieldReflector<T, String> fieldReflector = ClassReflector.ofClass(this.getDataAccess()
-                                                                                    .getType())
-                                                                       .getReflector(stringField, String.class);
         return this.getDataAccess()
-                   .streamByColumnLikeValue(stringField, value)
-                   .map(fieldReflector::get)
-                   .distinct()
-                   .sorted()
+                   .autocompleteByColumnLikeValue(stringField, value)
                    .collect(Collectors.toList());
     }
 
