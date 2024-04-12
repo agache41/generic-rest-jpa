@@ -32,10 +32,7 @@ import jakarta.inject.Named;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.NonUniqueResultException;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -723,18 +720,22 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
 
     /**
      * Returns the Root for the Entity Query
+     * Implements the Join Left eager Fetch for all subsequent queries using this root.
      *
-     * @param query
-     * @return
+     * @param query the Criteria Query
+     * @return the root entity
      */
     protected Root<ENTITY> entity(final CriteriaQuery<ENTITY> query) {
-        return query.from(this.type);
+        final Root<ENTITY> entityRoot = query.from(this.type);
+        for (final String eagerField : this.eagerFields)
+            entityRoot.fetch(eagerField, JoinType.LEFT);
+        return entityRoot;
     }
 
     /**
      * Returns the Criteria Builder
      *
-     * @return
+     * @return the Criteria Builder
      */
     protected CriteriaBuilder cb() {
         return this.em()
@@ -744,7 +745,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
     /**
      * Return the base of the query
      *
-     * @return
+     * @return the Criteria Query
      */
     protected CriteriaQuery<ENTITY> query() {
         return this.cb()

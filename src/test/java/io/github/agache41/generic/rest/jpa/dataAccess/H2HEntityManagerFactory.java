@@ -62,7 +62,8 @@ public class H2HEntityManagerFactory {
         map.put(JAKARTA_JDBC_USER, "sa");
         map.put(JAKARTA_JDBC_PASSWORD, "");
         map.put(HBM2DDL_AUTO, "create-drop");
-        //map.put(SHOW_SQL, "true");
+        // comment this to reduce unnecessary logging
+        // map.put(SHOW_SQL, "true");
         map.put(FORMAT_SQL, "true");
         map.put(QUERY_STARTUP_CHECKING, "false");
         map.put(GENERATE_STATISTICS, "false");
