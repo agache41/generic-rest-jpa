@@ -28,7 +28,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class SubModellFks implements PrimaryKey<Long>, Updateable<SubModellFks> {
+public class SubModellAFks implements PrimaryKey<Long>, Updateable<SubModellAFks> {
 
     private static final long serialVersionUID = 4145235006835414021L;
     @Id

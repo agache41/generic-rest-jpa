@@ -32,7 +32,10 @@ import jakarta.inject.Named;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.NonUniqueResultException;
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Root;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -726,10 +729,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return the root entity
      */
     protected Root<ENTITY> entity(final CriteriaQuery<ENTITY> query) {
-        final Root<ENTITY> entityRoot = query.from(this.type);
-        for (final String eagerField : this.eagerFields)
-            entityRoot.fetch(eagerField, JoinType.LEFT);
-        return entityRoot;
+        return query.from(this.type);
     }
 
     /**

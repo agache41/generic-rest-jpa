@@ -18,12 +18,12 @@
 package io.github.agache41.generic.rest.jpa.modell.dataaccess;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.AbstractLocalH2DataAccess;
-import io.github.agache41.generic.rest.jpa.modell.entities.SubModellFks;
+import io.github.agache41.generic.rest.jpa.modell.entities.SubModellBFks;
 
 
-public class SubModellFksDataAccess extends AbstractLocalH2DataAccess<SubModellFks, Long> {
+public class SubModellBFksDataAccess extends AbstractLocalH2DataAccess<SubModellBFks, Long> {
 
-    public SubModellFksDataAccess() {
-        super(SubModellFks.class, Long.class);
+    public SubModellBFksDataAccess() {
+        super(SubModellBFks.class, Long.class);
     }
 }

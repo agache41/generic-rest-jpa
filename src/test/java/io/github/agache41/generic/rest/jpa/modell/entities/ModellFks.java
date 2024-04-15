@@ -86,5 +86,18 @@ public class ModellFks implements PrimaryKey<Long>, Updateable<ModellFks> {
             @JoinColumn(name = "keyB", referencedColumnName = "keyB"),
             @JoinColumn(name = "keyC", referencedColumnName = "keyC")
     })
-    private List<SubModellFks> subModellFks;
+    private List<SubModellAFks> subModellAFks;
+
+
+    @Update
+    @Fetch(FetchMode.JOIN)
+    // add this to prevent Hibernate from using PersistentBag and defaulting equals to Object
+    @OrderColumn(name = "index")
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumns({
+            @JoinColumn(name = "keyA", referencedColumnName = "keyA"),
+            @JoinColumn(name = "keyB", referencedColumnName = "keyB"),
+            @JoinColumn(name = "keyC", referencedColumnName = "keyC")
+    })
+    private List<SubModellBFks> subModellBFks;
 }

@@ -17,13 +17,13 @@
 
 package io.github.agache41.generic.rest.jpa.modell.resources;
 
-import io.github.agache41.generic.rest.jpa.modell.dataaccess.SubModellFksDataAccess;
-import io.github.agache41.generic.rest.jpa.modell.entities.SubModellFks;
+import io.github.agache41.generic.rest.jpa.modell.dataaccess.SubModellBFksDataAccess;
+import io.github.agache41.generic.rest.jpa.modell.entities.SubModellBFks;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImpl;
 import lombok.Getter;
 
 @Getter
-public class SubModellFksResourceService extends AbstractResourceServiceImpl<SubModellFks, Long> {
-    protected SubModellFksDataAccess dataAccess = new SubModellFksDataAccess();
+public class SubModellBFksResourceService extends AbstractResourceServiceImpl<SubModellBFks, Long> {
+    protected SubModellBFksDataAccess dataAccess = new SubModellBFksDataAccess();
 
 }
