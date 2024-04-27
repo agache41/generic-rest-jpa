@@ -1,10 +1,5 @@
 Planning :
-
-- add boolean as return from update method - check
-- implement method for collections, maps etc - check
-- add test units for new Producer
-- extend the Modell Bean
-- extend integration tests
-- javadoc
+- refactor and reorganize Modell
+- test id in embedded class
 
 - read me update

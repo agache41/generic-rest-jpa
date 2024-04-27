@@ -48,11 +48,15 @@ public class Producer<T> {
         Producer.add(new StringRandomProducer());
         //Producer.add(new EnglishWordsProducer());
         Producer.add(new IntegerRandomProducer());
+        Producer.add(int.class, new IntegerRandomProducer());
         Producer.add(new LongRandomProducer());
+        Producer.add(long.class, new LongRandomProducer());
         Producer.add(new DoubleRandomProducer());
-        Producer.add(new DoubleRandomProducer());
+        Producer.add(double.class, new DoubleRandomProducer());
         Producer.add(new BooleanRandomProducer());
+        Producer.add(boolean.class, new BooleanRandomProducer());
         Producer.add(new ShortRandomProducer());
+        Producer.add(short.class, new ShortRandomProducer());
         Producer.add(new BigDecimalRandomProducer());
         Producer.add(new BigIntegerRandomProducer());
     }
@@ -111,6 +115,16 @@ public class Producer<T> {
      */
     public static void add(final Producer<?> supplier) {
         producerCache.put(supplier.getClazz(), supplier);
+    }
+
+    /**
+     * Adds a new Producer to the producer cache
+     *
+     * @param supplier the supplier
+     */
+    public static <T> void add(final Class<T> clazz,
+                               final Producer<? extends T> supplier) {
+        producerCache.put(clazz, supplier);
     }
 
     /**

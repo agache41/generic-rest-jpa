@@ -33,18 +33,18 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestInstance(PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<Modell, Long> {
-    private static final String stringField = "name";
-    private static final int collectionSize = 16;
+    private static final String stringField = "stringVal";
+
     private static final Producer<Modell> producer;
     private static final List<Modell> insertData;
     private static final List<Modell> updateData;
 
     static {
-        Producer.setDefaultSize(collectionSize);
+
         producer = Producer.ofClass(Modell.class)
                            .withList(LinkedList::new)
                            .withMap(LinkedHashMap::new)
-                           .withSize(5);
+                           .withSize(Config.collectionSize);
         insertData = producer.produceList();
         updateData = producer.changeList(insertData);
     }

@@ -35,17 +35,16 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 public class ModellFksResourceServiceTest extends AbstractResourceServiceImplTest<ModellFks, Long> {
 
     private static final String stringField = "name";
-    private static final int collectionSize = 16;
     private static final Producer<ModellFks> producer;
     private static final List<ModellFks> insertData;
     private static final List<ModellFks> updateData;
 
     static {
-        Producer.setDefaultSize(collectionSize);
+
         producer = Producer.ofClass(ModellFks.class)
                            .withList(LinkedList::new)
                            .withMap(LinkedHashMap::new)
-                           .withSize(16);
+                           .withSize(Config.collectionSize);
         insertData = producer.produceList();
         updateData = producer.changeList(insertData);
     }

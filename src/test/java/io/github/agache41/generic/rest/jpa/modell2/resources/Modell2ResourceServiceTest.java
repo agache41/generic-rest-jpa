@@ -19,10 +19,13 @@ package io.github.agache41.generic.rest.jpa.modell2.resources;
 
 
 import io.github.agache41.generic.rest.jpa.filler.Producer;
+import io.github.agache41.generic.rest.jpa.modell.resources.Config;
 import io.github.agache41.generic.rest.jpa.modell2.entities.Modell2;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImplTest;
 import org.junit.jupiter.api.*;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
@@ -32,7 +35,9 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class Modell2ResourceServiceTest extends AbstractResourceServiceImplTest<Modell2, Long> {
     private static final Producer<Modell2> producer = Producer.ofClass(Modell2.class)
-                                                              .withSize(2);
+                                                              .withList(LinkedList::new)
+                                                              .withMap(LinkedHashMap::new)
+                                                              .withSize(Config.collectionSize);
     private static final List<Modell2> insertData = producer.produceList();
     private static final List<Modell2> updateData = producer.changeList(insertData);
     private static final String stringField = "name";

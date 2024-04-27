@@ -33,17 +33,17 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 public class SubModellAFksResourceServiceTest extends AbstractResourceServiceImplTest<SubModellAFks, Long> {
 
     private static final String stringField = "subName";
-    private static final int collectionSize = 16;
+
     private static final Producer<SubModellAFks> producer;
     private static final List<SubModellAFks> insertData;
     private static final List<SubModellAFks> updateData;
 
     static {
-        Producer.setDefaultSize(collectionSize);
+
         producer = Producer.ofClass(SubModellAFks.class)
                            .withList(LinkedList::new)
                            .withMap(LinkedHashMap::new)
-                           .withSize(16);
+                           .withSize(Config.collectionSize);
         insertData = producer.produceList();
         updateData = producer.changeList(insertData);
     }

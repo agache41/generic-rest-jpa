@@ -22,7 +22,7 @@
 
     <groupId>io.github.agache41</groupId>
     <artifactId>generic-rest-jpa</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.2</version>
     <packaging>jar</packaging>
 
     <name>Generic REST Resources Service API and Data Access over JPA for JEE / Quarkus</name>
@@ -134,7 +134,12 @@
             <version>2.22.1</version>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.15.3</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
