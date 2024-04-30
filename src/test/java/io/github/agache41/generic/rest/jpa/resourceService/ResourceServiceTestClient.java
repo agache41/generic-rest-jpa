@@ -17,6 +17,7 @@
 
 package io.github.agache41.generic.rest.jpa.resourceService;
 
+import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
@@ -48,11 +49,6 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public int getAutocompleteCut() {
-        return ResourceService.autocompleteCut;
-    }
-
-    @Override
     public T get(final K id) {
         return given().contentType(ContentType.JSON)
                       .when()
@@ -66,7 +62,8 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<T> getAllAsList() {
+    public List<T> getAllAsList(final Integer firstResult,
+                                final Integer maxResults) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -110,7 +107,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
 
     @Override
     public List<T> getFilterStringFieldEqualsValueAsList(final String stringField,
-                                                         final String value) {
+                                                         final String value,
+                                                         final Integer firstResult,
+                                                         final Integer maxResults) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -125,7 +124,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
 
     @Override
     public List<T> getFilterStringFieldLikeValueAsList(final String stringField,
-                                                       final String value) {
+                                                       final String value,
+                                                       final Integer firstResult,
+                                                       final Integer maxResults) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -140,7 +141,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
 
     @Override
     public List<T> getFilterStringFieldInValuesAsList(final String stringField,
-                                                      final List<String> values) {
+                                                      final List<String> values,
+                                                      final Integer firstResult,
+                                                      final Integer maxResults) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -155,7 +158,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
 
     @Override
     public List<String> getAutocompleteStringFieldLikeValueAsSortedSet(final String stringField,
-                                                                       final String value) {
+                                                                       final String value,
+                                                                       final Integer cut,
+                                                                       final Integer maxResults) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -169,7 +174,26 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<T> postFilterContentEqualsAsList(final T value) {
+    public List<IdGroup<K>> getAutocompleteIdsStringFieldLikeValueAsList(final String stringField,
+                                                                         final String value,
+                                                                         final Integer cut,
+                                                                         final Integer maxResults) {
+        return given().contentType(ContentType.JSON)
+                      .when()
+                      .accept(ContentType.JSON)
+                      .get(this.path + "/autocompleteIds/{stringField}/like/{value}/asList", stringField, value)
+                      .then()
+                      .statusCode(200)
+                      .extract()
+                      .body()
+                      .jsonPath()
+                      .getList(".");
+    }
+
+    @Override
+    public List<T> postFilterContentEqualsAsList(final T value,
+                                                 final Integer firstResult,
+                                                 final Integer maxResults) {
         return given().contentType(ContentType.JSON)
                       .body(value)
                       .when()
@@ -184,7 +208,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     @Override
-    public List<T> postFilterContentInAsList(final List<T> values) {
+    public List<T> postFilterContentInAsList(final List<T> values,
+                                             final Integer firstResult,
+                                             final Integer maxResults) {
         return given().contentType(ContentType.JSON)
                       .body(values)
                       .when()

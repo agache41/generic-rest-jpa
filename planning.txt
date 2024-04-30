@@ -1,4 +1,10 @@
 Planning :
+- add params :
+-- start and limit by filter select
+-- hardcut and limit by autocomplete
+-- autocompleteId with id and count
+- add separate classes for read services and write services
+- separate delete
 - refactor and reorganize Modell
 - test id in embedded class
 

@@ -17,8 +17,10 @@
 
 package io.github.agache41.generic.rest.jpa.resourceService;
 
+import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
 
 import java.util.List;
 
@@ -30,10 +32,6 @@ import java.util.List;
  */
 public interface ResourceService<T extends PrimaryKey<K>, K> {
 
-    int autocompleteCut = 4;
-
-    int getAutocompleteCut();
-
     /**
      * <pre>
      * Finds and returns the corresponding entity for the given id.
@@ -44,7 +42,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param id the id
      * @return the corresponding entity at the provided id. If no entity is found, an Expected will be thrown.
      */
-    /*@GET
+/*@GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")*/
     T get(@PathParam("id") K id);
@@ -54,12 +52,15 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * Returns all the entities for the given table.
      * </pre>
      *
+     * @param firstResult the first result
+     * @param maxResults  the max results
      * @return the list of entities
      */
-    /*@GET
+/*@GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/all/asList")*/
-    List<T> getAllAsList();
+    List<T> getAllAsList(final Integer firstResult,
+                         final Integer maxResults);
 
     /**
      * <pre>
@@ -70,7 +71,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param ids the list of ids
      * @return the list of entities
      */
-    /*@GET
+/*@GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/byIds/{ids}/asList")*/
     List<T> getByIdsAsList(@PathParam("ids") List<K> ids);
@@ -83,7 +84,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param ids the list of ids
      * @return the list of entities
      */
-    /*@POST
+/*@POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/byIds/asList")*/
@@ -97,13 +98,17 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      *
      * @param stringField the field to use in filter, can only be a string value
      * @param value       the string value to equal
+     * @param firstResult the first result
+     * @param maxResults  the max results
      * @return the list of entities matching
      */
-    /*@GET
+/*@GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/equals/{value}/asList")*/
     List<T> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") String stringField,
-                                                  @PathParam("value") String value);
+                                                  @PathParam("value") String value,
+                                                  @QueryParam("firstResult") final Integer firstResult,
+                                                  @QueryParam("maxResults") final Integer maxResults);
 
     /**
      * <pre>
@@ -114,13 +119,17 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      *
      * @param stringField the field to use in filter, can only be a string value
      * @param value       the string value to equal
+     * @param firstResult the first result
+     * @param maxResults  the max results
      * @return the list of entities matching
      */
-    /*@GET
+/*@GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/like/{value}/asList")*/
     List<T> getFilterStringFieldLikeValueAsList(@PathParam("stringField") String stringField,
-                                                @PathParam("value") String value);
+                                                @PathParam("value") String value,
+                                                @QueryParam("firstResult") final Integer firstResult,
+                                                @QueryParam("maxResults") final Integer maxResults);
 
     /**
      * <pre>
@@ -131,13 +140,17 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      *
      * @param stringField the field to use in filter, can only be a string value
      * @param values      the values list
+     * @param firstResult the first result
+     * @param maxResults  the max results
      * @return the list of entities matching
      */
-    /*@GET
+/*@GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/in/{values}/asList")*/
     List<T> getFilterStringFieldInValuesAsList(@PathParam("stringField") String stringField,
-                                               @PathParam("values") List<String> values);
+                                               @PathParam("values") List<String> values,
+                                               @QueryParam("firstResult") final Integer firstResult,
+                                               @QueryParam("maxResults") final Integer maxResults);
 
     /**
      * <pre>
@@ -148,13 +161,25 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      *
      * @param stringField the field to use in filter, can only be a string value
      * @param value       the string value to equal
+     * @param cut         the cut
+     * @param maxResults  the max results
      * @return the list of entities matching
      */
-    /*@GET
+/*@GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/autocomplete/{stringField}/like/{value}/asSortedSet")*/
-    List<String> getAutocompleteStringFieldLikeValueAsSortedSet(@PathParam("stringField") String stringField,
-                                                                @PathParam("value") String value);
+    List<String> getAutocompleteStringFieldLikeValueAsSortedSet(String stringField,
+                                                                String value,
+                                                                Integer cut,
+                                                                Integer maxResults);
+
+    /*@GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("autocompleteId/{stringField}/like/{value}/asSortedSet")*/
+    List<IdGroup<K>> getAutocompleteIdsStringFieldLikeValueAsList(String stringField,
+                                                                  String value,
+                                                                  Integer cut,
+                                                                  Integer maxResults);
 
     /**
      * <pre>
@@ -167,13 +192,17 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * result is where name = "abcd" and no = 2
      * </pre>
      *
-     * @param value the source
+     * @param value       the source
+     * @param firstResult the first result
+     * @param maxResults  the max results
      * @return the list of entities matching
      */
-    /*@POST
+/*@POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/content/equals/value/asList")*/
-    List<T> postFilterContentEqualsAsList(T value);
+    List<T> postFilterContentEqualsAsList(T value,
+                                          Integer firstResult,
+                                          Integer maxResults);
 
 
     /**
@@ -187,13 +216,17 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * result is where name in ("abcd","bcde","1234") and no in (2,3)
      * </pre>
      *
-     * @param values the source
+     * @param values      the source
+     * @param firstResult the first result
+     * @param maxResults  the max results
      * @return the list of entities matching
      */
-    /*@POST
+/*@POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/content/in/values/asList")*/
-    List<T> postFilterContentInAsList(List<T> values);
+    List<T> postFilterContentInAsList(List<T> values,
+                                      Integer firstResult,
+                                      Integer maxResults);
 
     /**
      * <pre>
@@ -203,7 +236,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param source the source
      * @return the inserted entity
      */
-    /*@POST
+/*@POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)*/
     T post(T source);
@@ -216,7 +249,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param sources the list of new data
      * @return the inserted entities
      */
-    /*@POST
+/*@POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list/asList")*/
@@ -231,7 +264,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param source the source
      * @return the updated entity
      */
-    /*@PUT
+/*@PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)*/
     T put(T source);
@@ -245,7 +278,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param sources the source
      * @return the updated entities
      */
-    /*@PUT
+/*@PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list/asList")*/
@@ -258,7 +291,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      *
      * @param id the id
      */
-    /*@DELETE
+/*@DELETE
     @Path("/{id}")*/
     void delete(@PathParam("id") K id);
 
@@ -269,7 +302,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      *
      * @param ids the ids
      */
-    /*@DELETE
+/*@DELETE
     @Path("/byIds")*/
     void deleteByIds(List<K> ids);
 
@@ -280,7 +313,17 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      *
      * @param ids the ids
      */
-    /*@DELETE
+/*@DELETE
     @Path("/byIds/{ids}")*/
     void deleteByIdsInPath(@PathParam("ids") List<K> ids);
+
+    /**
+     * Gets config.
+     *
+     * @return the config
+     */
+    default ResourceServiceConfig getConfig() {
+        return new ResourceServiceConfig() {
+        };
+    }
 }

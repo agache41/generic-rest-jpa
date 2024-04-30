@@ -64,21 +64,19 @@ import java.util.stream.Stream;
 @Dependent
 @Named("base")
 public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> {
+
     /**
      * <pre>
      * The type of the persisted Object
      * </pre>
      */
     protected final Class<ENTITY> type;
-
-
     /**
      * <pre>
      * The no arguments constructor associated for the type.
      * </pre>
      */
     protected final Constructor<ENTITY> noArgsConstructor;
-
     /**
      * <pre>
      * The ClassReflector of the persisted Object
@@ -97,15 +95,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * </pre>
      */
     protected final String name;
-
-
     /**
      * <pre>
      * List with fields that are to be eager fetched.
      * </pre>
      */
     protected final List<String> eagerFields;
-
     /**
      * <pre>
      * The default EntityManager in use.
@@ -172,7 +167,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param id       the primary key to use, must be not null
      * @param expected if a persisted entity must exist
      * @return the entity for the primary key or null if not found. If no entity is found and expected is set to true ExpectedException is thrown.
-     * @see jakarta.persistence.EntityManager#find(Class, Object) jakarta.persistence.EntityManager#find(Class, Object)
+     * @see jakarta.persistence.EntityManager#find(Class, Object) jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)
      */
     public ENTITY findById(final PK id,
                            final boolean expected) {
@@ -272,13 +267,18 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * Finds all entities.
      * </pre>
      *
+     * @param firstResult the first result
+     * @param maxResults  the max results
      * @return all the entities in a Stream&#x3C;ENTITY&#x3E;
      */
-    public Stream<ENTITY> streamAll() {
+    public Stream<ENTITY> streamAll(final int firstResult,
+                                    final int maxResults) {
         final CriteriaQuery<ENTITY> query = this.query();
         final Root<ENTITY> entity = this.entity(query);
         return this.em()
                    .createQuery(query.select(entity))
+                   .setFirstResult(firstResult)
+                   .setMaxResults(maxResults)
                    .getResultStream();
     }
 
@@ -291,7 +291,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> streamByIds(final Collection<? extends PK> ids) {
-        return this.streamByColumnInValues(PrimaryKey.ID, ids);
+        return this.streamByColumnInValues(PrimaryKey.ID, ids, 0, ids.size());
     }
 
     /**
@@ -316,11 +316,15 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      *
      * @param filterColumn the column to value for
      * @param value        the value to value for, must be not null or else exception will be thrown.
+     * @param firstResult  the first result
+     * @param maxResults   the max results
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> streamByColumnEqualsValue(final String filterColumn,
-                                                    final Object value) {
-        return this.streamByColumnEqualsValue(filterColumn, value, true);
+                                                    final Object value,
+                                                    final int firstResult,
+                                                    final int maxResults) {
+        return this.streamByColumnEqualsValue(filterColumn, value, firstResult, maxResults, true);
     }
 
     /**
@@ -328,19 +332,25 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * Finds all entities whose value in a specified column is equal the given value.
      * </pre>
      *
-     * @param column  the column to value for
-     * @param value   the value to value for
-     * @param notNull specifies if the value can be null, and in this case the null can be used as a value.
+     * @param column      the column to value for
+     * @param value       the value to value for
+     * @param firstResult the first result
+     * @param maxResults  the max results
+     * @param notNull     specifies if the value can be null, and in this case the null can be used as a value.
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> streamByColumnEqualsValue(final String column,
                                                     final Object value,
+                                                    final int firstResult,
+                                                    final int maxResults,
                                                     final boolean notNull) {
         final CriteriaQuery<ENTITY> query = this.query();
         final Root<ENTITY> entity = this.entity(query);
         return this.em()
                    .createQuery(query.select(entity)
                                      .where(this.equals(column, value, notNull, entity)))
+                   .setFirstResult(firstResult)
+                   .setMaxResults(maxResults)
                    .getResultStream();
 
     }
@@ -356,16 +366,22 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * result is where name = "abcd" and no = 2
      * </pre>
      *
-     * @param value the Object holding the content (the values columns)
+     * @param value       the Object holding the content (the values columns)
+     * @param firstResult the first result
+     * @param maxResults  the max results
      * @return the persisted entity
      */
-    public Stream<ENTITY> streamByContentEquals(final ENTITY value) {
+    public Stream<ENTITY> streamByContentEquals(final ENTITY value,
+                                                final int firstResult,
+                                                final int maxResults) {
         final CriteriaQuery<ENTITY> query = this.query();
         final Root<ENTITY> entity = this.entity(query);
         final HashMap<String, Object> mapValues = this.classReflector.mapValues(value);
         return this.em()
                    .createQuery(query.select(entity)
                                      .where(this.equals(mapValues, entity)))
+                   .setFirstResult(firstResult)
+                   .setMaxResults(maxResults)
                    .getResultStream();
     }
 
@@ -375,13 +391,17 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * The SQL Like operator is used.
      * </pre>
      *
-     * @param column the column to value for
-     * @param value  the value to compare
+     * @param column      the column to value for
+     * @param value       the value to compare
+     * @param firstResult the first result
+     * @param maxResults  the max results
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> streamByColumnLikeValue(final String column,
-                                                  final String value) {
-        return this.streamByColumnLikeValue(column, value, true);
+                                                  final String value,
+                                                  final int firstResult,
+                                                  final int maxResults) {
+        return this.streamByColumnLikeValue(column, value, firstResult, maxResults, true);
     }
 
     /**
@@ -390,12 +410,14 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * The SQL Like operator is used.
      * </pre>
      *
-     * @param column the column to value for
-     * @param value  the value to compare
+     * @param column     the column to value for
+     * @param value      the value to compare
+     * @param maxResults the max results
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<String> autocompleteByColumnLikeValue(final String column,
-                                                        final String value) {
+                                                        final String value,
+                                                        final int maxResults) {
 
         final CriteriaQuery<String> query = this.cb()
                                                 .createQuery(String.class);
@@ -406,7 +428,29 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
                                      .where(this.like(column, value, true, entity))
                                      .orderBy(this.cb()
                                                   .asc(entity.get(column))))
+                   .setMaxResults(maxResults)
                    .getResultStream();
+    }
+
+    public Stream<IdGroup<PK>> autocompleteIdsByColumnLikeValue(final String column,
+                                                                final String value,
+                                                                final int maxResults) {
+
+        final CriteriaQuery query = this.cb()
+                                        .createQuery();
+        final Root<ENTITY> entity = query.from(this.type);
+        final CriteriaQuery multiselect = query.multiselect(this.cb()
+                                                                .max(entity.get(PrimaryKey.ID)), entity.get(column), this.cb()
+                                                                                                                         .count(entity));
+        return this.em()
+                   .createQuery(multiselect
+                                        .where(this.like(column, value, true, entity))
+                                        .groupBy(entity.get(column))
+                                        .orderBy(this.cb()
+                                                     .asc(entity.get(column))))
+                   .setMaxResults(maxResults)
+                   .getResultStream()
+                   .map(IdGroup<PK>::new);
     }
 
     /**
@@ -415,19 +459,25 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * The SQL Like operator is used.
      * </pre>
      *
-     * @param column  the column to value for
-     * @param value   the value to compare
-     * @param notNull specifies if the value can be null, and in this case the null can be used as a value.
+     * @param column      the column to value for
+     * @param value       the value to compare
+     * @param firstResult the first result
+     * @param maxResults  the max results
+     * @param notNull     specifies if the value can be null, and in this case the null can be used as a value.
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> streamByColumnLikeValue(final String column,
                                                   final String value,
+                                                  final int firstResult,
+                                                  final int maxResults,
                                                   final boolean notNull) {
         final CriteriaQuery<ENTITY> query = this.query();
         final Root<ENTITY> entity = this.entity(query);
         return this.em()
                    .createQuery(query.select(entity)
                                      .where(this.like(column, value, notNull, entity)))
+                   .setFirstResult(firstResult)
+                   .setMaxResults(maxResults)
                    .getResultStream();
     }
 
@@ -436,13 +486,17 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * Finds all entities whose value in a specified column is in the given list of filtered values.
      * </pre>
      *
-     * @param column the column to equal values for
-     * @param values the list of filtered values
+     * @param column      the column to equal values for
+     * @param values      the list of filtered values
+     * @param firstResult the first result
+     * @param maxResults  the max results
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> streamByColumnInValues(final String column,
-                                                 final Collection<? extends Object> values) {
-        return this.streamByColumnInValues(column, values, true);
+                                                 final Collection<? extends Object> values,
+                                                 final int firstResult,
+                                                 final int maxResults) {
+        return this.streamByColumnInValues(column, values, firstResult, maxResults, true);
     }
 
     /**
@@ -450,19 +504,25 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * Finds all entities whose value in a specified column is in the given list of filtered values.
      * </pre>
      *
-     * @param column  the column to values for
-     * @param values  the List of filtered values
-     * @param notNull if list of filtered values can be null : specifies if the values value can be null, and in this case the null is used as values.
+     * @param column      the column to values for
+     * @param values      the List of filtered values
+     * @param firstResult the first result
+     * @param maxResults  the max results
+     * @param notNull     if list of filtered values can be null : specifies if the values value can be null, and in this case the null is used as values.
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public Stream<ENTITY> streamByColumnInValues(final String column,
                                                  final Collection<? extends Object> values,
+                                                 final int firstResult,
+                                                 final int maxResults,
                                                  final boolean notNull) {
         final CriteriaQuery<ENTITY> query = this.query();
         final Root<ENTITY> entity = this.entity(query);
         return this.em()
                    .createQuery(query.select(entity)
                                      .where(this.in(column, values, notNull, entity)))
+                   .setFirstResult(firstResult)
+                   .setMaxResults(maxResults)
                    .getResultStream();
     }
 
@@ -477,16 +537,22 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * result is where name in ("abcd","bcde","1234") and no in (2,3)
      * </pre>
      *
-     * @param values the values
+     * @param values      the values
+     * @param firstResult the first result
+     * @param maxResults  the max results
      * @return the persisted entity
      */
-    public Stream<ENTITY> streamByContentInValues(final List<ENTITY> values) {
+    public Stream<ENTITY> streamByContentInValues(final List<ENTITY> values,
+                                                  final int firstResult,
+                                                  final int maxResults) {
         final CriteriaQuery<ENTITY> query = this.query();
         final Root<ENTITY> entity = this.entity(query);
         final HashMap<String, List<Object>> mapValues = this.classReflector.mapValues(values);
         return this.em()
                    .createQuery(query.select(entity)
                                      .where(this.in(mapValues, entity)))
+                   .setFirstResult(firstResult)
+                   .setMaxResults(maxResults)
                    .getResultStream();
     }
 
@@ -496,7 +562,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * </pre>
      *
      * @param entity the given entity
-     * @see jakarta.persistence.EntityManager#remove(Object) jakarta.persistence.EntityManager#remove(Object)
+     * @see jakarta.persistence.EntityManager#remove(Object) jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)
      */
     public void remove(final ENTITY entity) {
         this.em()
@@ -513,7 +579,6 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
     public void removeById(final PK id) {
         this.removeByColumnEqualsValue(PrimaryKey.ID, id, false);
     }
-
 
     /**
      * <pre>
@@ -538,7 +603,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
     public void removeByColumnEqualsValue(final String column,
                                           final Object value,
                                           final boolean notNull) {
-        this.streamByColumnEqualsValue(column, value, true)
+        this.streamByColumnEqualsValue(column, value, 0, Integer.MAX_VALUE, true)
             .forEach(this::remove);
     }
 
@@ -554,17 +619,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
     public void removeByColumnInValues(final String column,
                                        final Collection<? extends Object> values,
                                        final boolean notNull) {
-        this.streamByColumnInValues(column, values, notNull)
-            .forEach(this::remove);
-    }
-
-    /**
-     * <pre>
-     * Delete all entities persisted in the associated Table.
-     * </pre>
-     */
-    public void removeAll() {
-        this.streamAll()
+        this.streamByColumnInValues(column, values, 0, Integer.MAX_VALUE, notNull)
             .forEach(this::remove);
     }
 
@@ -636,7 +691,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      *
      * @param entity the entity
      * @return the merged entity
-     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)
+     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)
      */
     public ENTITY merge(final ENTITY entity) {
         return this.em()
@@ -650,7 +705,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      *
      * @param sources the sources
      * @return the merged entities in a Stream&#x3C;ENTITY&#x3E;
-     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)
+     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)
      */
     public Stream<ENTITY> mergeAll(final Collection<ENTITY> sources) {
         return sources.stream()
@@ -664,7 +719,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      *
      * @param source the source
      * @return the persisted entity
-     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)
+     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)
      */
     public ENTITY persist(final ENTITY source) {
         final ENTITY newEntity = this.newInstance(this.assertNotNull(source));
@@ -680,13 +735,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      *
      * @param sources the sources
      * @return the merged entities in a Stream&#x3C;ENTITY&#x3E;
-     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)
+     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)
      */
     public Stream<ENTITY> persistAll(final Collection<ENTITY> sources) {
         return sources.stream()
                       .map(this::persist);
     }
-
 
     /**
      * <pre>
@@ -848,7 +902,6 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
                          .isNull();
         }
     }
-
 
     /**
      * <pre>
@@ -1029,7 +1082,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
         return sources.collect(Collectors.toList());
     }
 
-
+    /**
+     * New instance entity.
+     *
+     * @param source the source
+     * @return the entity
+     */
     public ENTITY newInstance(final ENTITY source) {
         try {
             final ENTITY entity = this.noArgsConstructor.newInstance();
@@ -1039,4 +1097,5 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
             throw new RuntimeException(e);
         }
     }
+
 }

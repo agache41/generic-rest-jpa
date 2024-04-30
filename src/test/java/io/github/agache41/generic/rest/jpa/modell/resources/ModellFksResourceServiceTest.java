@@ -78,7 +78,9 @@ public class ModellFksResourceServiceTest extends AbstractResourceServiceImplTes
         assertEquals(res.size(), insertData.size());
         super.deleteAll();
         final SubModellAFksResourceService subModellAFksResourceService = new SubModellAFksResourceService();
-        final List<SubModellAFks> subModellAFksList = subModellAFksResourceService.getAllAsList();
+        final List<SubModellAFks> subModellAFksList = subModellAFksResourceService.getAllAsList(subModellAFksResourceService.getConfig()
+                                                                                                                            .getFirstResult(), subModellAFksResourceService.getConfig()
+                                                                                                                                                                           .getMaxResults());
         assertEquals(0, subModellAFksList.size());
 
     }

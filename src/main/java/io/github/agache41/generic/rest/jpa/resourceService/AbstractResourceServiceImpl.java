@@ -18,6 +18,7 @@
 package io.github.agache41.generic.rest.jpa.resourceService;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.DataAccess;
+import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.inject.Inject;
@@ -94,9 +95,12 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/all/asList")
-    public List<T> getAllAsList() {
+    public List<T> getAllAsList(@QueryParam("firstResult") final Integer firstResult,
+                                @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamAll()
+                   .streamAll(this.getConfig()
+                                  .getFirstResult(firstResult), this.getConfig()
+                                                                    .getMaxResults(maxResults))
                    .collect(Collectors.toList());
     }
 
@@ -153,9 +157,13 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/equals/{value}/asList")
     public List<T> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") final String stringField,
-                                                         @PathParam("value") final String value) {
+                                                         @PathParam("value") final String value,
+                                                         @QueryParam("firstResult") final Integer firstResult,
+                                                         @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamByColumnEqualsValue(stringField, value)
+                   .streamByColumnEqualsValue(stringField, value, this.getConfig()
+                                                                      .getFirstResult(firstResult), this.getConfig()
+                                                                                                        .getMaxResults(maxResults))
                    .collect(Collectors.toList());
     }
 
@@ -175,9 +183,13 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/like/{value}/asList")
     public List<T> getFilterStringFieldLikeValueAsList(@PathParam("stringField") final String stringField,
-                                                       @PathParam("value") final String value) {
+                                                       @PathParam("value") final String value,
+                                                       @QueryParam("firstResult") final Integer firstResult,
+                                                       @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamByColumnLikeValue(stringField, value)
+                   .streamByColumnLikeValue(stringField, value, this.getConfig()
+                                                                    .getFirstResult(firstResult), this.getConfig()
+                                                                                                      .getMaxResults(maxResults))
                    .collect(Collectors.toList());
     }
 
@@ -197,9 +209,13 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/in/{values}/asList")
     public List<T> getFilterStringFieldInValuesAsList(@PathParam("stringField") final String stringField,
-                                                      @PathParam("values") final List<String> values) {
+                                                      @PathParam("values") final List<String> values,
+                                                      @QueryParam("firstResult") final Integer firstResult,
+                                                      @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamByColumnInValues(stringField, values)
+                   .streamByColumnInValues(stringField, values, this.getConfig()
+                                                                    .getFirstResult(firstResult), this.getConfig()
+                                                                                                      .getMaxResults(maxResults))
                    .collect(Collectors.toList());
     }
 
@@ -219,12 +235,45 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Produces(MediaType.APPLICATION_JSON)
     @Path("autocomplete/{stringField}/like/{value}/asSortedSet")
     public List<String> getAutocompleteStringFieldLikeValueAsSortedSet(@PathParam("stringField") final String stringField,
-                                                                       @PathParam("value") final String value) {
-        if (value == null || value.length() < this.getAutocompleteCut()) {
+                                                                       @PathParam("value") final String value,
+                                                                       @QueryParam("cut") final Integer cut,
+                                                                       @QueryParam("maxResults") final Integer maxResults) {
+        if (value == null || value.length() < this.getConfig()
+                                                  .getAutocompleteCut(cut)) {
             return Collections.emptyList();
         }
         return this.getDataAccess()
-                   .autocompleteByColumnLikeValue(stringField, value)
+                   .autocompleteByColumnLikeValue(stringField, value, this.getConfig()
+                                                                          .getAutocompleteMaxResults(maxResults))
+                   .collect(Collectors.toList());
+    }
+
+    /**
+     * <pre>
+     * Finds all entities whose value in a specified field is like the given value.
+     * The SQL Like operator will be used.
+     * The field can only be of String type.
+     * </pre>
+     *
+     * @param stringField the field to use in filter, can only be a string value
+     * @param value       the string value to equal
+     * @return the list of entities matching
+     */
+    @Override
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("autocompleteIds/{stringField}/like/{value}/asList")
+    public List<IdGroup<K>> getAutocompleteIdsStringFieldLikeValueAsList(@PathParam("stringField") final String stringField,
+                                                                         @PathParam("value") final String value,
+                                                                         @QueryParam("cut") final Integer cut,
+                                                                         @QueryParam("maxResults") final Integer maxResults) {
+        if (value == null || value.length() < this.getConfig()
+                                                  .getAutocompleteCut(cut)) {
+            return Collections.emptyList();
+        }
+        return this.getDataAccess()
+                   .autocompleteIdsByColumnLikeValue(stringField, value, this.getConfig()
+                                                                             .getAutocompleteMaxResults(maxResults))
                    .collect(Collectors.toList());
     }
 
@@ -246,9 +295,13 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/content/equals/value/asList")
-    public List<T> postFilterContentEqualsAsList(final T value) {
+    public List<T> postFilterContentEqualsAsList(final T value,
+                                                 @QueryParam("firstResult") final Integer firstResult,
+                                                 @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamByContentEquals(value)
+                   .streamByContentEquals(value, this.getConfig()
+                                                     .getFirstResult(firstResult), this.getConfig()
+                                                                                       .getMaxResults(maxResults))
                    .collect(Collectors.toList());
     }
 
@@ -270,9 +323,13 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/content/in/values/asList")
-    public List<T> postFilterContentInAsList(final List<T> values) {
+    public List<T> postFilterContentInAsList(final List<T> values,
+                                             @QueryParam("firstResult") final Integer firstResult,
+                                             @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamByContentInValues(values)
+                   .streamByContentInValues(values, this.getConfig()
+                                                        .getFirstResult(firstResult), this.getConfig()
+                                                                                          .getMaxResults(maxResults))
                    .collect(Collectors.toList());
     }
 
@@ -395,10 +452,4 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
         this.getDataAccess()
             .removeByIds(ids);
     }
-
-    @Override
-    public int getAutocompleteCut() {
-        return ResourceService.autocompleteCut;
-    }
-
 }
