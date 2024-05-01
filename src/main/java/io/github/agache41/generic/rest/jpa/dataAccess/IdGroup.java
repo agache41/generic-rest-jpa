@@ -18,53 +18,41 @@
 package io.github.agache41.generic.rest.jpa.dataAccess;
 
 /**
- * The type Id group.
+ * The IdGroup object is used in providing an aggregated list of ids
+ * and the corresponding column values for them (tokens)
+ * together with a count for those record groups.
+ * Its mainly role is in navigating while autocompleting search words.
  *
  * @param <PK> the type parameter
  */
 public class IdGroup<PK> implements PrimaryKey<PK> {
     private static final long serialVersionUID = -6076116813129169704L;
     private PK id;
-    private String token;
+    private String value;
     private Long count;
 
     /**
-     * Instantiates a new Id group.
-     *
-     * @param id    the id
-     * @param token the token
-     * @param count the count
-     */
-    public IdGroup(final PK id,
-                   final String token,
-                   final Long count) {
-        this.id = id;
-        this.token = token;
-        this.count = count;
-    }
-
-    /**
-     * Instantiates a new Id group.
-     */
-    public IdGroup() {
-    }
-
-    /**
-     * Instantiates a new Id group.
+     * Instantiates a new id group based on a resulting array of a query.
      *
      * @param v the v
      */
     public IdGroup(final Object v) {
         this.id = (PK) ((Object[]) v)[0];
-        this.token = (String) ((Object[]) v)[1];
+        this.value = (String) ((Object[]) v)[1];
         this.count = (Long) ((Object[]) v)[2];
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public PK getId() {
         return this.id;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setId(final PK id) {
         this.id = id;
@@ -75,17 +63,17 @@ public class IdGroup<PK> implements PrimaryKey<PK> {
      *
      * @return the token
      */
-    public String getToken() {
-        return this.token;
+    public String getValue() {
+        return this.value;
     }
 
     /**
      * Sets token.
      *
-     * @param token the token
+     * @param value the token
      */
-    public void setToken(final String token) {
-        this.token = token;
+    public void setValue(final String value) {
+        this.value = value;
     }
 
     /**

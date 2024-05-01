@@ -30,16 +30,34 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+/**
+ * ResourceServiceTestClient is a test client for the AbstractResourceServiceImpl
+ *
+ * @param <T> the type parameter
+ * @param <K> the type parameter
+ */
 public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements ResourceService<T, K> {
 
     static {
         RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
     }
 
+    /**
+     * The Clazz.
+     */
     protected final Class<T> clazz;
+    /**
+     * The Path of the service
+     */
     protected final String path;
 
 
+    /**
+     * Instantiates a new Resource service test client.
+     *
+     * @param clazz the clazz
+     * @param path  the path
+     */
     public ResourceServiceTestClient(final Class<T> clazz,
                                      final String path) {
         assertNotNull(clazz, " Please provide a class !");
@@ -48,6 +66,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
         this.path = path;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public T get(final K id) {
         return given().contentType(ContentType.JSON)
@@ -61,6 +82,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .as(this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<T> getAllAsList(final Integer firstResult,
                                 final Integer maxResults) {
@@ -76,6 +100,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .getList(".", this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<T> getByIdsAsList(final List<K> ids) {
         return given().contentType(ContentType.JSON)
@@ -90,6 +117,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .getList(".", this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<T> postByIdsAsList(final List<K> ids) {
         return given().contentType(ContentType.JSON)
@@ -105,6 +135,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .getList(".", this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<T> getFilterStringFieldEqualsValueAsList(final String stringField,
                                                          final String value,
@@ -122,6 +155,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .getList(".", this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<T> getFilterStringFieldLikeValueAsList(final String stringField,
                                                        final String value,
@@ -139,6 +175,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .getList(".", this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<T> getFilterStringFieldInValuesAsList(final String stringField,
                                                       final List<String> values,
@@ -156,6 +195,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .getList(".", this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<String> getAutocompleteStringFieldLikeValueAsSortedSet(final String stringField,
                                                                        final String value,
@@ -173,6 +215,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .getList(".", String.class);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<IdGroup<K>> getAutocompleteIdsStringFieldLikeValueAsList(final String stringField,
                                                                          final String value,
@@ -190,6 +235,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .getList(".");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<T> postFilterContentEqualsAsList(final T value,
                                                  final Integer firstResult,
@@ -207,6 +255,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .getList(".", this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<T> postFilterContentInAsList(final List<T> values,
                                              final Integer firstResult,
@@ -224,6 +275,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .getList(".", this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public T post(final T source) {
         return given().contentType(ContentType.JSON)
@@ -238,6 +292,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .as(this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<T> postListAsList(final List<T> sources) {
         return given().contentType(ContentType.JSON)
@@ -252,6 +309,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .getList(".", this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public T put(final T source) {
         return given().contentType(ContentType.JSON)
@@ -266,6 +326,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .as(this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<T> putListAsList(final List<T> sources) {
         return given().contentType(ContentType.JSON)
@@ -280,6 +343,10 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                       .getList(".", this.clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+
     @Override
     public void delete(final K id) {
         given().contentType(ContentType.JSON)
@@ -290,6 +357,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                .statusCode(204);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteByIds(final List<K> ids) {
         given().contentType(ContentType.JSON)
@@ -301,6 +371,9 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                .statusCode(204);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteByIdsInPath(final List<K> ids) {
         given().contentType(ContentType.JSON)

@@ -18,71 +18,104 @@
 package io.github.agache41.generic.rest.jpa.resourceService;
 
 /**
- * The interface Resource service config.
+ * The interface describing the configuration for a resource service.
+ * Contains default values.
  */
 public interface ResourceServiceConfig {
 
     /**
-     * First result int.
+     * The default offset used in filter queries.
+     * It should be always 0 in the config.
+     * Can be overwritten in the request using the query parameter firstResult.
      *
-     * @return the int
+     * @return the firstResult
      */
     default int getFirstResult() {
         return 0;
     }
 
-    default int getFirstResult(final Integer input) {
-        if (input == null) {
+    /**
+     * Gets first result or configured value
+     *
+     * @param firstResult the input
+     * @return the firstResult
+     */
+    default int getFirstResult(final Integer firstResult) {
+        if (firstResult == null) {
             return this.getFirstResult();
         }
-        return input;
+        return firstResult;
     }
 
     /**
-     * Max results int.
+     * The default maxResults (or limit or fetch first maxResults only) used in filter queries.
+     * Default value ist 256.
+     * Can be overwritten in the request using the query parameter maxResults.
      *
-     * @return the int
+     * @return the maxResults
      */
     default int getMaxResults() {
         return 256;
     }
 
-    default int getMaxResults(final Integer input) {
-        if (input == null) {
+    /**
+     * Gets maxResults or configured value
+     *
+     * @param maxResults the input
+     * @return the maxResults
+     */
+    default int getMaxResults(final Integer maxResults) {
+        if (maxResults == null) {
             return this.getMaxResults();
         }
-        return input;
+        return maxResults;
     }
 
     /**
-     * Gets autocomplete cut.
+     * Gets autocomplete minimum string length or autocompleteCut.
+     * Default value is 3
+     * Can be overwritten in the request using the query parameter cut.
      *
-     * @return the autocomplete cut
+     * @return the autocompleteCut
      */
     default int getAutocompleteCut() {
         return 3;
     }
 
-    default int getAutocompleteCut(final Integer input) {
-        if (input == null) {
+    /**
+     * Gets autocompleteCut or configured value.
+     *
+     * @param autocompleteCut the input
+     * @return the autocomplete cut
+     */
+    default int getAutocompleteCut(final Integer autocompleteCut) {
+        if (autocompleteCut == null) {
             return this.getAutocompleteCut();
         }
-        return input;
+        return autocompleteCut;
     }
 
     /**
-     * Gets autocomplete max results.
+     * The default maxResults (or limit or fetch first maxResults only) used in autocomplete queries.
+     * Default value ist 16.
+     * Can be overwritten in the request using the query parameter maxResults.
      *
-     * @return the autocomplete max results
+     * @return the autocompleteMaxResults
      */
     default int getAutocompleteMaxResults() {
         return 16;
     }
 
-    default int getAutocompleteMaxResults(final Integer input) {
-        if (input == null) {
+    /**
+     * Gets autocompleteMaxResults or configured value
+     *
+     * @param autocompleteMaxResults the input
+     * @return the autocompleteMaxResults
+     */
+    default int getAutocompleteMaxResults(final Integer autocompleteMaxResults) {
+        if (autocompleteMaxResults == null) {
             return this.getAutocompleteMaxResults();
         }
-        return input;
+        return autocompleteMaxResults;
     }
 }

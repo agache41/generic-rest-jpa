@@ -66,14 +66,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Finds and returns the corresponding entity for the given id.
-     * The id type must be basic (e.g. String, Long) or have a simple rest representation that can be used in a url path segment.
-     *
-     * </pre>
-     *
-     * @param id the id
-     * @return the corresponding entity at the provided id. If no entity is found, an Expected will be thrown.
+     * {@inheritDoc}
      */
     @Override
     @GET
@@ -85,11 +78,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Returns all the entities for the given table.
-     * </pre>
-     *
-     * @return the list of entities
+     * {@inheritDoc}
      */
     @Override
     @GET
@@ -105,13 +94,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Finds and returns the corresponding entity for the given list of ids.
-     * The id type must be basic (e.g. String, Long) or have a simple rest representation that can be used in a url path segment.
-     * </pre>
-     *
-     * @param ids the list of ids
-     * @return the list of entities
+     * {@inheritDoc}
      */
     @Override
     @GET
@@ -124,12 +107,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Finds and returns the corresponding entity for the given list of ids.
-     * </pre>
-     *
-     * @param ids the list of ids
-     * @return the list of entities
+     * {@inheritDoc}
      */
     @Override
     @POST
@@ -143,14 +121,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Finds all entities whose value in a specified field is equal the given value.
-     * The field can only be of String type.
-     * </pre>
-     *
-     * @param stringField the field to use in filter, can only be a string value
-     * @param value       the string value to equal
-     * @return the list of entities matching
+     * {@inheritDoc}
      */
     @Override
     @GET
@@ -168,15 +139,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Finds all entities whose value in a specified field is like the given value.
-     * The SQL Like operator will be used.
-     * The field can only be of String type.
-     * </pre>
-     *
-     * @param stringField the field to use in filter, can only be a string value
-     * @param value       the string value to equal
-     * @return the list of entities matching
+     * {@inheritDoc}
      */
     @Override
     @GET
@@ -194,15 +157,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Finds all entities whose value in a specified field is in the given values list.
-     *
-     * The field can only be of String type.
-     * </pre>
-     *
-     * @param stringField the field to use in filter, can only be a string value
-     * @param values      the values list
-     * @return the list of entities matching
+     * {@inheritDoc}
      */
     @Override
     @GET
@@ -220,15 +175,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Finds all entities whose value in a specified field is like the given value.
-     * The SQL Like operator will be used.
-     * The field can only be of String type.
-     * </pre>
-     *
-     * @param stringField the field to use in filter, can only be a string value
-     * @param value       the string value to equal
-     * @return the list of entities matching
+     * {@inheritDoc}
      */
     @Override
     @GET
@@ -249,15 +196,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Finds all entities whose value in a specified field is like the given value.
-     * The SQL Like operator will be used.
-     * The field can only be of String type.
-     * </pre>
-     *
-     * @param stringField the field to use in filter, can only be a string value
-     * @param value       the string value to equal
-     * @return the list of entities matching
+     * {@inheritDoc}
      */
     @Override
     @GET
@@ -278,18 +217,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Finds in Database the entities that equals a given content object.
-     * The content object must contain non null values just in the fields that are taking part in the filtering.
-     * The other null fields are to be ignored.
-     * No nulls can be used in the filtering.
-     * Example :
-     * content = [name ="abcd", no=2, street=null]
-     * result is where name = "abcd" and no = 2
-     * </pre>
-     *
-     * @param value the source
-     * @return the list of entities matching
+     * {@inheritDoc}
      */
     @Override
     @POST
@@ -306,18 +234,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Finds in Database the entities that are in a given content list of given values.
-     * The content object must contain non null values just in the fields that are taking part in the filtering.
-     * The other null fields are to be ignored.
-     * No nulls can be used in the filtering.
-     * Example :
-     * content = [name =["abcd","bcde","1234"], no=[2,3], street=null]
-     * result is where name in ("abcd","bcde","1234") and no in (2,3)
-     * </pre>
-     *
-     * @param values the source
-     * @return the list of entities matching
+     * {@inheritDoc}
      */
     @Override
     @POST
@@ -334,12 +251,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Inserts a new entity in the database or updates an existing one.
-     * </pre>
-     *
-     * @param source the source
-     * @return the inserted entity
+     * {@inheritDoc}
      */
     @Override
     @POST
@@ -351,12 +263,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Inserts a list of new entities in the database or updates the existing ones.
-     * </pre>
-     *
-     * @param sources the list of new data
-     * @return the inserted entities
+     * {@inheritDoc}
      */
     @Override
     @POST
@@ -370,13 +277,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Updates an existing entity by id.
-     * The Entity with the given id must exist in the Database or a UnexpectedException is thrown.
-     * </pre>
-     *
-     * @param source the source
-     * @return the updated entity
+     * {@inheritDoc}
      */
     @Override
     @PUT
@@ -388,13 +289,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Updates existing entities by id.
-     * The Entities with the given ids must exist in the Database or a UnexpectedException is thrown.
-     * </pre>
-     *
-     * @param sources the source
-     * @return the updated entities
+     * {@inheritDoc}
      */
     @Override
     @PUT
@@ -408,11 +303,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Deletes the entity for the given id.
-     * </pre>
-     *
-     * @param id the id
+     * {@inheritDoc}
      */
     @Override
     @DELETE
@@ -423,11 +314,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     }
 
     /**
-     * <pre>
-     * Deletes all the entities for the given ids.
-     * </pre>
-     *
-     * @param ids the ids
+     * {@inheritDoc}
      */
     @Override
     @DELETE
@@ -439,11 +326,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
 
 
     /**
-     * <pre>
-     * Deletes all the entities for the given ids.
-     * </pre>
-     *
-     * @param ids the ids
+     * {@inheritDoc}
      */
     @Override
     @DELETE
