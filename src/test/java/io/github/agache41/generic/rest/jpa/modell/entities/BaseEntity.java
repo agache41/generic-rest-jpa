@@ -17,25 +17,18 @@
 
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
-import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import jakarta.persistence.*;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.math.BigInteger;
 
 @Data
 @MappedSuperclass
-public class BaseEntity implements PrimaryKey<Long> {
+public class BaseEntity {
     private static final long serialVersionUID = 7578664415534706949L;
-    @Id
-    @EqualsAndHashCode.Exclude
-    @SequenceGenerator(name = "idSequence", sequenceName = "idSequence")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idSequence")
-    @Update.excluded
-    @Column(name = "id", updatable = false, insertable = false)
-    private Long id;
 
     @Basic
     @Update

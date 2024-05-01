@@ -45,6 +45,18 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
 
     /**
      * <pre>
+     * Finds and returns the corresponding entity for the given id.
+     * The id type must be basic (e.g. String, Long) or have a simple rest representation that can be used in a url path segment.
+     *
+     * </pre>
+     *
+     * @param id the id
+     * @return the corresponding entity at the provided id. If no entity is found, an Expected will be thrown.
+     */
+    T postById(K id);
+
+    /**
+     * <pre>
      * Returns all the entities for the given table.
      * </pre>
      *

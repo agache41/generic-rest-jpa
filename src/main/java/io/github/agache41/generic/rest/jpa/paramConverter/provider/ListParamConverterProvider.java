@@ -17,10 +17,7 @@
 
 package io.github.agache41.generic.rest.jpa.paramConverter.provider;
 
-import io.github.agache41.generic.rest.jpa.paramConverter.IntegerListParamConverter;
-import io.github.agache41.generic.rest.jpa.paramConverter.LocalDateParamConverter;
-import io.github.agache41.generic.rest.jpa.paramConverter.LongListParamConverter;
-import io.github.agache41.generic.rest.jpa.paramConverter.StringListParamConverter;
+import io.github.agache41.generic.rest.jpa.paramConverter.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.ext.ParamConverter;
@@ -29,6 +26,7 @@ import jakarta.ws.rs.ext.Provider;
 import org.jboss.logging.Logger;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
@@ -70,11 +68,28 @@ public class ListParamConverterProvider implements ParamConverterProvider {
                 final Type[] actualTypeArguments = ptype.getActualTypeArguments();
                 if (actualTypeArguments.length > 0) {
                     final Type parameterType = actualTypeArguments[0];
-                    paramConverter = this.paramConverterMap.get(parameterType);
+                    if (this.paramConverterMap.containsKey(parameterType)) {
+                        paramConverter = this.paramConverterMap.get(parameterType);
+                    } else {
+                        final Class<?> parameterClass = (Class<?>) parameterType;
+                        try {
+                            final Constructor<?> constructor = parameterClass.getConstructor(String.class);
+                            paramConverter = new ObjectListParamConverter(string -> {
+                                try {
+                                    return constructor.newInstance(string);
+                                } catch (final Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }, this.log);
+                        } catch (final NoSuchMethodException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                 }
             }
             if (paramConverter == null) {
                 this.log.errorf("No Parameter Converter found for Class %s with generic Type %s", rawType.getSimpleName(), genericType);
+                throw new RuntimeException(String.format("No Parameter Converter found for Class %s with generic Type %s", rawType.getSimpleName(), genericType));
             } else {
                 this.log.infof(" Binding %s to param of type %s ", paramConverter.getClass()
                                                                                  .getSimpleName(), genericType);

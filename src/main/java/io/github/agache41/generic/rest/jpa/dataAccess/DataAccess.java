@@ -453,9 +453,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
         final CriteriaQuery query = this.cb()
                                         .createQuery();
         final Root<ENTITY> entity = query.from(this.type);
-        final CriteriaQuery multiselect = query.multiselect(this.cb()
-                                                                .max(entity.get(PrimaryKey.ID)), entity.get(column), this.cb()
-                                                                                                                         .count(entity));
+        final CriteriaQuery multiselect = query.multiselect(entity.get(PrimaryKey.ID), entity.get(column), this.cb()
+                                                                                                               .count(entity));
         return this.em()
                    .createQuery(multiselect
                                         .where(this.like(column, value, true, entity))

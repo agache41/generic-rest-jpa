@@ -21,7 +21,7 @@ public class StringRandomProducer extends Producer<String> {
 
     final int leftLimit = 101; // letter 'a '
     final int rightLimit = 122; // letter 'z'
-    final int targetStringLength = 16;
+    final int targetStringLength = 8;
 
     public StringRandomProducer() {
         super(String.class);

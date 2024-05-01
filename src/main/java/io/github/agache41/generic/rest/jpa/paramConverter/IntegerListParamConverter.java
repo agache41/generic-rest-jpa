@@ -22,13 +22,13 @@ import org.jboss.logging.Logger;
 /**
  * The type Integer list param converter.
  */
-public class IntegerListParamConverter extends AbstractListParamConvertor<Integer> {
+public class IntegerListParamConverter extends ListParamConvertor<Integer> {
     /**
      * Instantiates a new Integer list param converter.
      *
      * @param log the log
      */
-    public IntegerListParamConverter(Logger log) {
+    public IntegerListParamConverter(final Logger log) {
         super(Integer::parseInt, log);
     }
 }

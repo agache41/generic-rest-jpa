@@ -81,6 +81,19 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
      * {@inheritDoc}
      */
     @Override
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/byId")
+    public T postById(final K id) {
+        return this.getDataAccess()
+                   .findById(id);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/all/asList")

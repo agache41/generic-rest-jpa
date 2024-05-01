@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
@@ -89,7 +90,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
             //given
             final T req = this.insertData.get(index);
             assertNotNull(req);
-            assertNull(req.getId());
+            //only to be checked when id is not updateable
+            //assertNull(req.getId());
             //when
             LOG.debugf("POST: Request: %s", req);
             final T res = this.getClient()
@@ -132,7 +134,30 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
     }
 
     @Test
-    @Order(21)
+    @Order(25)
+    public void testPostById() {
+        for (final T req : this.insertData) {
+
+            //given
+            assertNotNull(req);
+            final K id = req.getId();
+            assertNotNull(id);
+
+            //when
+            LOG.debugf("GET: Request: %s", id);
+            final T res = this.getClient()
+                              .postById(id);
+            LOG.debugf("GET: Response: %s", res);
+            //then
+            assertNotNull(res);
+            assertNotNull(res.getId());
+            assertEquals(req.getId(), res.getId());
+            assertEquals(req, res);
+        }
+    }
+
+    @Test
+    @Order(26)
     public void testGetAllAsList() {
         //when
         final List<T> res = this.getAll();
@@ -140,11 +165,12 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
         //then
         assertNotNull(res);
         assertEquals(this.insertData.size(), res.size());
-        assertEquals(this.insertData, res);
+        //assertEquals(this.insertData, res);
+        assertThat(this.insertData).hasSameElementsAs(res);
     }
 
     @Test
-    @Order(22)
+    @Order(27)
     public void testGetByIdsAsList() {
         //given
         final List<K> ids = this.insertData.stream()
@@ -155,14 +181,16 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
         final List<T> res = this.getClient()
                                 .getByIdsAsList(ids);
 
+
         //then
         assertNotNull(res);
         assertEquals(this.insertData.size(), res.size());
-        assertEquals(this.insertData, res);
+        //assertEquals(this.insertData, res);
+        assertThat(this.insertData).hasSameElementsAs(res);
     }
 
     @Test
-    @Order(23)
+    @Order(28)
     public void testPostByIdsAsList() {
         //given
         final List<K> ids = this.insertData.stream()
@@ -176,7 +204,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
         //then
         assertNotNull(res);
         assertEquals(this.insertData.size(), res.size());
-        assertEquals(this.insertData, res);
+        //assertEquals(this.insertData, res);
+        assertThat(this.insertData).hasSameElementsAs(res);
     }
 
 

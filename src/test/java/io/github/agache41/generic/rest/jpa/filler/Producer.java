@@ -42,7 +42,7 @@ public class Producer<T> {
     /**
      * The default size for collections and map generation.
      */
-    public static int defaultSize = 16;
+    public static int defaultSize = 2;
 
     static {
         Producer.add(new StringRandomProducer());

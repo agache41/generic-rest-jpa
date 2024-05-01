@@ -25,27 +25,31 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Data
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@Update
 @Entity
-public class SubModell extends BaseEntity implements PrimaryKey<Long>, Updateable<SubModell> {
+public class EmbeddedIdSubModell3 extends BaseEntity implements PrimaryKey<EmbeddedKeys>, Updateable<EmbeddedIdSubModell3> {
 
     private static final long serialVersionUID = 4145235006835414021L;
 
-    @Id
-    @EqualsAndHashCode.Exclude
-    @SequenceGenerator(name = "idSequence", sequenceName = "idSequence")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idSequence")
-    @Update.excluded
-    @Column(name = "id", updatable = false, insertable = false)
-    private Long id;
+    @EmbeddedId
+    private EmbeddedKeys id;
 
     @JsonIgnore
-    @ToString.Exclude
+    @Update.excluded
     @EqualsAndHashCode.Exclude
-    @OneToOne(fetch = FetchType.EAGER, mappedBy = "subModell")
-    private Modell modell;
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumns({
+            @JoinColumn(name = "key1", referencedColumnName = "key1", insertable = false, updatable = false),
+            @JoinColumn(name = "key2", referencedColumnName = "key2", insertable = false, updatable = false),
+            @JoinColumn(name = "key3", referencedColumnName = "key3", insertable = false, updatable = false),
+    })
+    private EmbeddedIdModell parent;
+
+
 }

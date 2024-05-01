@@ -33,7 +33,7 @@ import static java.util.function.Predicate.not;
  *
  * @param <T> the type parameter
  */
-public abstract class AbstractListParamConvertor<T> implements ParamConverter<List<T>> {
+public class ListParamConvertor<T> implements ParamConverter<List<T>> {
     private final Function<String, T> parse;
     private final Function<T, String> format;
     private final Logger log;
@@ -45,9 +45,9 @@ public abstract class AbstractListParamConvertor<T> implements ParamConverter<Li
      * @param format the format
      * @param log    the log
      */
-    public AbstractListParamConvertor(final Function<String, T> parse,
-                                      final Function<T, String> format,
-                                      final Logger log) {
+    public ListParamConvertor(final Function<String, T> parse,
+                              final Function<T, String> format,
+                              final Logger log) {
         this.parse = parse;
         this.format = format;
         this.log = log;
@@ -59,8 +59,8 @@ public abstract class AbstractListParamConvertor<T> implements ParamConverter<Li
      * @param parse the parse
      * @param log   the log
      */
-    public AbstractListParamConvertor(final Function<String, T> parse,
-                                      final Logger log) {
+    public ListParamConvertor(final Function<String, T> parse,
+                              final Logger log) {
         this(parse, Object::toString, log);
     }
 
@@ -91,7 +91,7 @@ public abstract class AbstractListParamConvertor<T> implements ParamConverter<Li
         try {
             return value.stream()
                         .map(this.format)
-                        .collect(Collectors.joining(","));
+                        .collect(Collectors.joining(",", "[", "]"));
         } catch (final Exception e) {
             this.log.error(" When formatting list \"" + value + "\" as a json list.", e);
         }

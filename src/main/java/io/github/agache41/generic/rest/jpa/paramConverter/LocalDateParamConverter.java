@@ -24,13 +24,13 @@ import java.time.LocalDate;
 /**
  * The type Local date param converter.
  */
-public class LocalDateParamConverter extends AbstractListParamConvertor<LocalDate> {
+public class LocalDateParamConverter extends ListParamConvertor<LocalDate> {
     /**
      * Instantiates a new Local date param converter.
      *
      * @param log the log
      */
-    public LocalDateParamConverter(Logger log) {
+    public LocalDateParamConverter(final Logger log) {
         super(LocalDate::parse, log);
     }
 }

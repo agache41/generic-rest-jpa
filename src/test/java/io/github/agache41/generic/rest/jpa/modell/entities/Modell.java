@@ -40,6 +40,14 @@ public class Modell extends BaseEntity implements PrimaryKey<Long>, Updateable<M
 
     private static final long serialVersionUID = 4981653210124872352L;
 
+    @Id
+    @EqualsAndHashCode.Exclude
+    @SequenceGenerator(name = "idSequence", sequenceName = "idSequence")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idSequence")
+    @Update.excluded
+    @Column(name = "id", updatable = false, insertable = false)
+    private Long id;
+
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "subModell_id")
     private SubModell subModell;

@@ -25,6 +25,7 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -51,7 +52,6 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
      */
     protected final String path;
 
-
     /**
      * Instantiates a new Resource service test client.
      *
@@ -74,7 +74,21 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
-                      .get(this.path + "/{id}", id)
+                      .get(this.path + "/{id}", id.toString())
+                      .then()
+                      .statusCode(200)
+                      .extract()
+                      .body()
+                      .as(this.clazz);
+    }
+
+    @Override
+    public T postById(final K id) {
+        return given().contentType(ContentType.JSON)
+                      .when()
+                      .accept(ContentType.JSON)
+                      .body(id)
+                      .post(this.path + "/byId")
                       .then()
                       .statusCode(200)
                       .extract()
@@ -108,7 +122,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
-                      .get(this.path + "/byIds/{ids}/asList", ids)
+                      .get(this.path + "/byIds/{ids}/asList", this.toString(ids))
                       .then()
                       .statusCode(200)
                       .extract()
@@ -352,7 +366,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
         given().contentType(ContentType.JSON)
                .when()
                .accept(ContentType.JSON)
-               .delete(this.path + "/{id}", id)
+               .delete(this.path + "/{id}", id.toString())
                .then()
                .statusCode(204);
     }
@@ -380,8 +394,14 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                .body(ids)
                .when()
                .accept(ContentType.JSON)
-               .delete(this.path + "/byIds/{ids}", ids)
+               .delete(this.path + "/byIds/{ids}", this.toString(ids))
                .then()
                .statusCode(204);
+    }
+
+    protected String toString(final List<K> values) {
+        return values.stream()
+                     .map(Object::toString)
+                     .collect(Collectors.joining(",", "[", "]"));
     }
 }

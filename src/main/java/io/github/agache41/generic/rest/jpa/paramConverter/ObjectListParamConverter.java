@@ -17,22 +17,21 @@
 
 package io.github.agache41.generic.rest.jpa.paramConverter;
 
-import io.github.agache41.generic.rest.jpa.utils.StringUtils;
 import org.jboss.logging.Logger;
 
-/**
- * The type String list param converter.
- */
-public class StringListParamConverter extends ListParamConvertor<String> {
+import java.util.function.Function;
 
+/**
+ * The type Long list param converter.
+ */
+public class ObjectListParamConverter extends ListParamConvertor<Object> {
     /**
-     * Instantiates a new String list param converter.
+     * Instantiates a new Long list param converter.
      *
      * @param log the log
      */
-    public StringListParamConverter(final Logger log) {
-        super(StringUtils::unQuote,
-              StringUtils::quote,
-              log);
+    public ObjectListParamConverter(final Function<String, Object> parse,
+                                    final Logger log) {
+        super(parse, log);
     }
 }

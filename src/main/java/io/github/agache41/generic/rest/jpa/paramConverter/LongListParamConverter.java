@@ -22,13 +22,13 @@ import org.jboss.logging.Logger;
 /**
  * The type Long list param converter.
  */
-public class LongListParamConverter extends AbstractListParamConvertor<Long> {
+public class LongListParamConverter extends ListParamConvertor<Long> {
     /**
      * Instantiates a new Long list param converter.
      *
      * @param log the log
      */
-    public LongListParamConverter(Logger log) {
+    public LongListParamConverter(final Logger log) {
         super(Long::parseLong, log);
     }
 }

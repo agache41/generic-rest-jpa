@@ -15,24 +15,16 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.paramConverter;
+package io.github.agache41.generic.rest.jpa.modell.dataaccess;
 
-import io.github.agache41.generic.rest.jpa.utils.StringUtils;
-import org.jboss.logging.Logger;
+import io.github.agache41.generic.rest.jpa.dataAccess.AbstractLocalH2DataAccess;
+import io.github.agache41.generic.rest.jpa.modell.entities.EmbeddedIdModell;
+import io.github.agache41.generic.rest.jpa.modell.entities.EmbeddedKeys;
 
-/**
- * The type String list param converter.
- */
-public class StringListParamConverter extends ListParamConvertor<String> {
 
-    /**
-     * Instantiates a new String list param converter.
-     *
-     * @param log the log
-     */
-    public StringListParamConverter(final Logger log) {
-        super(StringUtils::unQuote,
-              StringUtils::quote,
-              log);
+public class EmbeddedIdModellDataAccess extends AbstractLocalH2DataAccess<EmbeddedIdModell, EmbeddedKeys> {
+
+    public EmbeddedIdModellDataAccess() {
+        super(EmbeddedIdModell.class, EmbeddedKeys.class);
     }
 }
