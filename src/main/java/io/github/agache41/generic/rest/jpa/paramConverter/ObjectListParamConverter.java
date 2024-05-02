@@ -28,7 +28,8 @@ public class ObjectListParamConverter extends ListParamConvertor<Object> {
     /**
      * Instantiates a new Long list param converter.
      *
-     * @param log the log
+     * @param parse the parse
+     * @param log   the log
      */
     public ObjectListParamConverter(final Function<String, Object> parse,
                                     final Logger log) {

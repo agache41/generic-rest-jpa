@@ -200,7 +200,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
-                      .get(this.path + "/filter/{stringField}/in/{values}/asList", stringField, values)
+                      .get(this.path + "/filter/{stringField}/in/{values}/asList", stringField, this.join(values))
                       .then()
                       .statusCode(200)
                       .extract()
@@ -400,6 +400,12 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     }
 
     protected String toString(final List<K> values) {
+        return values.stream()
+                     .map(Object::toString)
+                     .collect(Collectors.joining(",", "[", "]"));
+    }
+
+    protected String join(final List<String> values) {
         return values.stream()
                      .map(Object::toString)
                      .collect(Collectors.joining(",", "[", "]"));

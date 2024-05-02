@@ -15,15 +15,15 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.modell2.dataaccess;
+package io.github.agache41.generic.rest.jpa.modell.dataaccess;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.AbstractLocalH2DataAccess;
-import io.github.agache41.generic.rest.jpa.modell2.entities.Modell2;
+import io.github.agache41.generic.rest.jpa.modell.entities.Modell2;
 
 
-public class Modell2DataAccess extends AbstractLocalH2DataAccess<Modell2, Long> {
+public class Modell2DataAccess extends AbstractLocalH2DataAccess<Modell2, String> {
 
     public Modell2DataAccess() {
-        super(Modell2.class, Long.class);
+        super(Modell2.class, String.class);
     }
 }

@@ -15,15 +15,15 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.modell2.resources;
+package io.github.agache41.generic.rest.jpa.modell.resources;
 
 
-import io.github.agache41.generic.rest.jpa.modell2.dataaccess.Modell2DataAccess;
-import io.github.agache41.generic.rest.jpa.modell2.entities.Modell2;
+import io.github.agache41.generic.rest.jpa.modell.dataaccess.Modell2DataAccess;
+import io.github.agache41.generic.rest.jpa.modell.entities.Modell2;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImpl;
 import lombok.Getter;
 
 @Getter
-public class Modell2ResourceService extends AbstractResourceServiceImpl<Modell2, Long> {
+public class Modell2ResourceService extends AbstractResourceServiceImpl<Modell2, String> {
     protected Modell2DataAccess dataAccess = new Modell2DataAccess();
 }

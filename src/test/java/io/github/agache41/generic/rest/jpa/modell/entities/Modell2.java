@@ -15,42 +15,37 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.modell2.entities;
+package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Modell2 implements PrimaryKey<Long>, Updateable<Modell2> {
+@Update
+public class Modell2 implements PrimaryKey<String>, Updateable<Modell2> {
 
     private static final long serialVersionUID = 265448020827321843L;
-    @Id
-    @NotNull
-    @EqualsAndHashCode.Exclude
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @Update
+    @Id
+    private String id;
+
     private String name;
 
-    @Update(notNull = false)
     private String street;
 
-    @Update(notNull = false)
     private Integer number;
 
-    @EqualsAndHashCode.Exclude
     private long age;
 
 }

@@ -22,11 +22,10 @@ import org.jboss.logging.Logger;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.function.Predicate.not;
 
 /**
  * Base class for parameter conversion
@@ -72,7 +71,7 @@ public class ListParamConvertor<T> implements ParamConverter<List<T>> {
         try {
             final List<T> result = Stream.of(value.substring(1, value.length() - 1)
                                                   .split(","))
-                                         .filter(not(String::isEmpty))
+                                         .filter(Objects::nonNull)
                                          .map(this.parse)
                                          .collect(Collectors.toList());
             this.log.debugf("Parsed parameter %s into List%s", value, result);
