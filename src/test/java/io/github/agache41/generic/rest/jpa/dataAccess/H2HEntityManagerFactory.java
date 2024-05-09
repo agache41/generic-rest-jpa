@@ -58,13 +58,20 @@ public class H2HEntityManagerFactory {
         final Map<String, Object> map = new HashMap<>();
 
         map.put(JAKARTA_JDBC_DRIVER, "org.h2.Driver");
-        map.put(JAKARTA_JDBC_URL, "jdbc:h2:mem:test");
+        map.put(JAKARTA_JDBC_URL, "jdbc:h2:mem:test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1");
         map.put(JAKARTA_JDBC_USER, "sa");
         map.put(JAKARTA_JDBC_PASSWORD, "");
+
+//      map.put(JAKARTA_JDBC_DRIVER, "org.postgresql.Driver");
+//      map.put(JAKARTA_JDBC_URL, "jdbc:postgresql://localhost:5432/modell_quarkus");
+//      map.put(JAKARTA_JDBC_USER, "postgres");
+//      map.put(JAKARTA_JDBC_PASSWORD, "postgres");
+
         map.put(HBM2DDL_AUTO, "create-drop");
         // comment this to reduce unnecessary logging
         // map.put(SHOW_SQL, "true");
         map.put(FORMAT_SQL, "true");
+        map.put(HIGHLIGHT_SQL, "true");
         map.put(QUERY_STARTUP_CHECKING, "false");
         map.put(GENERATE_STATISTICS, "false");
         map.put(USE_SECOND_LEVEL_CACHE, "false");

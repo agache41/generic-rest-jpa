@@ -20,6 +20,7 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.UriInfo;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -229,7 +230,8 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     public List<IdGroup<K>> getAutocompleteIdsStringFieldLikeValueAsList(final String stringField,
                                                                          final String value,
                                                                          final Integer cut,
-                                                                         final Integer maxResults) {
+                                                                         final Integer maxResults,
+                                                                         final UriInfo uriInfo) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)

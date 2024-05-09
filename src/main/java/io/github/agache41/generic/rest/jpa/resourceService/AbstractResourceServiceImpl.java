@@ -24,7 +24,9 @@ import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriInfo;
 
 import java.util.Collections;
 import java.util.List;
@@ -218,14 +220,15 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     public List<IdGroup<K>> getAutocompleteIdsStringFieldLikeValueAsList(@PathParam("stringField") final String stringField,
                                                                          @PathParam("value") final String value,
                                                                          @QueryParam("cut") final Integer cut,
-                                                                         @QueryParam("maxResults") final Integer maxResults) {
+                                                                         @QueryParam("maxResults") final Integer maxResults,
+                                                                         @Context final UriInfo uriInfo) {
         if (value == null || value.length() < this.getConfig()
                                                   .getAutocompleteCut(cut)) {
             return Collections.emptyList();
         }
         return this.getDataAccess()
                    .autocompleteIdsByColumnLikeValue(stringField, value, this.getConfig()
-                                                                             .getAutocompleteMaxResults(maxResults))
+                                                                             .getAutocompleteMaxResults(maxResults), uriInfo)
                    .collect(Collectors.toList());
 
     }

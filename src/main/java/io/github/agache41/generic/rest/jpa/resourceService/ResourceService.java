@@ -20,6 +20,7 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.core.UriInfo;
 
 import java.util.List;
 
@@ -182,12 +183,14 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param value       the string value to equal
      * @param cut         the cut
      * @param maxResults  the max results
+     * @param uriInfo     the uri info
      * @return the list of IdGroup object matching the input value
      */
     List<IdGroup<K>> getAutocompleteIdsStringFieldLikeValueAsList(String stringField,
                                                                   String value,
                                                                   Integer cut,
-                                                                  Integer maxResults);
+                                                                  Integer maxResults,
+                                                                  UriInfo uriInfo);
 
     /**
      * <pre>

@@ -485,7 +485,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
                                                .collect(Collectors.toSet());
             //when
             final List<IdGroup<K>> res = this.getClient()
-                                             .getAutocompleteIdsStringFieldLikeValueAsList(this.stringField, likeValue, null, null);
+                                             .getAutocompleteIdsStringFieldLikeValueAsList(this.stringField, likeValue, null, null, null);
             //then
             assertNotNull(res);
             if (likeValue.length() < this.client.getConfig()

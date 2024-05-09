@@ -1,8 +1,9 @@
 Planning :
 - add params :
--- add support for setter/getter fields with update
--- fix collection persistence for facade collections (setter call at the end)
--- check select for postgres embedded id autocompleteId with id and count
+-- done: add support for setter/getter fields with update
+-- done: fix collection persistence for facade collections (setter call at the end)
+-- done: check select for postgres embedded id autocompleteId with id and count
+-- optimize and extend query parameter filter
 -- add separate profile for github build and local with postgres
 - add separate classes for read services and write services
 - separate delete
