@@ -32,6 +32,7 @@ import jakarta.inject.Named;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.NonUniqueResultException;
+import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
@@ -40,13 +41,13 @@ import jakarta.persistence.criteria.Root;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 
 /**
  * <pre>
@@ -450,20 +451,22 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
                                                                 final String value,
                                                                 final int maxResults) {
 
-        final CriteriaQuery query = this.cb()
-                                        .createQuery();
+        final CriteriaQuery<Tuple> query = this.cb()
+                                               .createTupleQuery();
         final Root<ENTITY> entity = query.from(this.type);
-        final CriteriaQuery multiselect = query.multiselect(entity.get(PrimaryKey.ID), entity.get(column), this.cb()
-                                                                                                               .count(entity));
+        final CriteriaQuery<Tuple> multiselect = query.multiselect(entity.get(PrimaryKey.ID), entity.get(column));
         return this.em()
-                   .createQuery(multiselect
-                                        .where(this.like(column, value, true, entity))
-                                        .groupBy(entity.get(column))
-                                        .orderBy(this.cb()
-                                                     .asc(entity.get(column))))
+                   .createQuery(multiselect.where(this.like(column, value, true, entity))
+                                           //.groupBy(entity.get(column))
+                                           .orderBy(this.cb()
+                                                        .asc(entity.get(column))))
                    .setMaxResults(maxResults)
                    .getResultStream()
-                   .map(IdGroup<PK>::new);
+                   .map(IdEntry<PK>::new)
+                   .collect(Collectors.groupingBy(IdEntry::getValue, collectingAndThen(toList(), IdGroup<PK>::new)))
+                   .values()
+                   .stream()
+                   .sorted(Comparator.comparing(IdGroup::getValue));
     }
 
     /**

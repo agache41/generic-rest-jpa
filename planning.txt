@@ -3,6 +3,7 @@ Planning :
 -- add support for setter/getter fields with update
 -- fix collection persistence for facade collections (setter call at the end)
 -- check select for postgres embedded id autocompleteId with id and count
+-- add separate profile for github build and local with postgres
 - add separate classes for read services and write services
 - separate delete
 - optimize has Field method and move in ClassReflector

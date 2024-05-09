@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestInstance(PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class EmbeddedIdModellResourceServiceTest extends AbstractResourceServiceImplTest<EmbeddedIdModell, EmbeddedKeys> {
-    private static final String stringField = null;
+    private static final String stringField = "stringVal";
 
     private static final Producer<EmbeddedIdModell> producer;
     private static final List<EmbeddedIdModell> insertData;

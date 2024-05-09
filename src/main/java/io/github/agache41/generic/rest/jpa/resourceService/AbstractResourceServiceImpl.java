@@ -227,6 +227,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
                    .autocompleteIdsByColumnLikeValue(stringField, value, this.getConfig()
                                                                              .getAutocompleteMaxResults(maxResults))
                    .collect(Collectors.toList());
+
     }
 
     /**

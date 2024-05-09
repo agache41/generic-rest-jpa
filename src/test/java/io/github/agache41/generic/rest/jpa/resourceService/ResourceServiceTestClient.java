@@ -19,9 +19,6 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 
 import java.util.List;
@@ -38,10 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @param <K> the type parameter
  */
 public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements ResourceService<T, K> {
-
-    static {
-        RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
-    }
 
     /**
      * The Clazz.
