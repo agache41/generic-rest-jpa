@@ -28,6 +28,7 @@ import jakarta.persistence.OneToMany;
 import org.jboss.logging.Logger;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Map;
@@ -54,19 +55,19 @@ public final class FieldReflector<T, V> {
     private final Class<?> secondParameter;
     private final Function<T, V> getter;
     private final BiConsumer<T, V> setter;
-    private final Updater<T, T> updater;
-    private final String description;
     private final boolean notNull;
     private final boolean updatable;
     private final boolean isFinal;
     private final boolean isTransient;
     private final boolean isHibernateIntern;
     private final boolean isEager;
-    private final boolean map;
-    private final boolean collection;
-    private final boolean value;
     private final boolean valid;
     private final Column columnAnnotation;
+    private String description;
+    private Updater<T, T> updater;
+    private boolean map;
+    private boolean collection;
+    private boolean value;
 
     /**
      * <pre>
@@ -125,11 +126,59 @@ public final class FieldReflector<T, V> {
             this.description = this.description();
             return;
         }
+        this.initialize();
+    }
+
+    /**
+     * <pre>
+     * Instantiates a new Field reflector.
+     * </pre>
+     *
+     * @param enclosingClass the enclosing class
+     * @param method         the method
+     */
+    FieldReflector(final Class<T> enclosingClass,
+                   final Method method) {
+        this.enclosingClass = enclosingClass;
+        this.name = ReflectionUtils.getSetterFieldName(method);
+        this.type = method.getParameterTypes().length == 1 ? (Class<V>) method.getParameterTypes()[0] : null;
+        this.isFinal = (this.name == null || this.type == null);
+        this.isTransient = false;
+        this.isHibernateIntern = false;
+        this.firstParameter = ReflectionUtils.getParameterType(method, 0, 0);
+        this.secondParameter = ReflectionUtils.getParameterType(method, 0, 1);
+        this.getter = ReflectionUtils.getGetter(this.enclosingClass, this.name, this.type);
+        this.setter = ReflectionUtils.getSetter(this.enclosingClass, this.name, this.type);
+        this.valid = this.getter != null && this.setter != null;
+        this.columnAnnotation = null;
+        this.isEager = false;
+        // if the method is annotated
+        if (!this.isFinal
+            && method.isAnnotationPresent(Update.class)) {
+            this.updatable = true;
+            this.notNull = method.getAnnotation(Update.class)
+                                 .notNull();
+            // or the class is annotated and the field is not excluded
+        } else {
+            // no update needed.
+            this.updatable = false;
+            this.notNull = false;
+            this.updater = null;
+            this.value = false;
+            this.collection = false;
+            this.map = false;
+            this.description = this.description();
+            return;
+        }
+        this.initialize();
+    }
+
+
+    private void initialize() {
         this.description = this.description();
         if (!this.valid) {
             throw new IllegalArgumentException(" Invalid field marked for update " + this);
         }
-
         if (ReflectionUtils.isClassCollection(this.type) && this.firstParameter != null) {
             this.value = false;
             this.map = false;
@@ -165,7 +214,6 @@ public final class FieldReflector<T, V> {
             this.collection = false;
             this.updater = new ValueUpdater<>(this.setter, this.getter, this.notNull, this.getter);
         }
-
     }
 
     /**
@@ -370,6 +418,7 @@ public final class FieldReflector<T, V> {
         stringBuilder.append("\r\n");
         if (!this.valid) {
             stringBuilder.append("[Warning] Invalid Field (no valid setter and getter) [Warning]");
+            return stringBuilder.toString();
         }
         if (this.updatable) {
             stringBuilder.append("\t@Update");

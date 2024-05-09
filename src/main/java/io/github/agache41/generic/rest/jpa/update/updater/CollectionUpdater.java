@@ -113,6 +113,8 @@ public class CollectionUpdater<TARGET, SOURCE, VALUE> extends ValueUpdater<TARGE
         targetValue.clear();
         targetValue.addAll(sourceValue);
         // collection work
+        // re-set it
+        this.setter.accept(target, targetValue);
         return true;
     }
 }

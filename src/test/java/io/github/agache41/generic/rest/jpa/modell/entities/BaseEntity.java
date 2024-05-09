@@ -21,7 +21,10 @@ import io.github.agache41.generic.rest.jpa.update.Update;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigInteger;
 
@@ -90,4 +93,25 @@ public class BaseEntity {
     @Basic
     @Column(name = "keyC", length = 4, updatable = false)
     private String keyC;
+
+    @Update.excluded
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
+    private String notUpdatable;
+
+    @Update.excluded
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
+    @Column(name = "vStringVal", nullable = false)
+    private String vStringVal;
+
+    @Update
+    public String getVirtualStringVal() {
+        return this.vStringVal;
+    }
+
+    @Update
+    public void setVirtualStringVal(final String virtualStringVal) {
+        this.vStringVal = virtualStringVal;
+    }
 }

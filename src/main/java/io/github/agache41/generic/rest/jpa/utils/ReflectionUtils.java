@@ -22,6 +22,8 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The type Reflection utils.
@@ -32,6 +34,8 @@ public class ReflectionUtils {
     private static final String GETTER_IS_BOOL_PREFIX = "is";
     private static final String GETTER_HAS_BOOL_PREFIX = "has";
     private static final String SETTER_PREFIX = "set";
+    private static final Pattern GETTER_PATTERN = Pattern.compile("(get)([A-Z]\\w+)");
+    private static final Pattern SETTER_PATTERN = Pattern.compile("(set)([A-Z]\\w+)");
 
     /**
      * <pre>
@@ -50,6 +54,23 @@ public class ReflectionUtils {
         return declaredFields;
     }
 
+    /**
+     * <pre>
+     * Returns a list of declared fields in the class and in the base class(es).
+     * </pre>
+     *
+     * @param cls the cls
+     * @return the declared fields
+     */
+    public static List<Method> getDeclaredMethods(Class<?> cls) {
+        final List<Method> declaredMethods = new LinkedList<>();
+        while (cls != null && !cls.equals(Object.class)) {
+            Collections.addAll(declaredMethods, cls.getDeclaredMethods());
+            cls = cls.getSuperclass();
+        }
+        return declaredMethods;
+    }
+
 
     /**
      * Gets getter.
@@ -64,6 +85,9 @@ public class ReflectionUtils {
     public static <T, V> Function<T, V> getGetter(final Class<T> enclosingClass,
                                                   final String name,
                                                   final Class<V> type) {
+        if (enclosingClass == null || name == null || type == null) {
+            return null;
+        }
         final Method getterMethod = getGetterMethod(enclosingClass, name, type);
         if (getterMethod == null) {
             return null;
@@ -91,6 +115,9 @@ public class ReflectionUtils {
     public static <T, V> BiConsumer<T, V> getSetter(final Class<T> enclosingClass,
                                                     final String name,
                                                     final Class<V> type) {
+        if (enclosingClass == null || name == null || type == null) {
+            return null;
+        }
         final Method setterMethod = getSetterMethod(enclosingClass, name, type);
         if (setterMethod == null) {
             return null;
@@ -184,6 +211,21 @@ public class ReflectionUtils {
         return null;
     }
 
+    /**
+     * Gets the associated field name for the given setter method, if the method has a setter name
+     * Returns null otherwise
+     *
+     * @param method the method
+     * @return the field name
+     */
+    public static String getSetterFieldName(final Method method) {
+        final Matcher matcher = SETTER_PATTERN.matcher(method.getName());
+        if (!matcher.matches()) {
+            return null;
+        }
+        return StringUtils.deCapitalize(matcher.group(2));
+    }
+
 
     /**
      * Gets the no args constructor.
@@ -267,17 +309,74 @@ public class ReflectionUtils {
     }
 
 
+    /**
+     * Gets parameter type for the Type of a field
+     *
+     * @param field                 the field
+     * @param genericParameterIndex the genericParameterIndex
+     * @return the parameter type
+     */
     public static Class<?> getParameterType(final Field field,
-                                            final int index) {
-        final Type genericType = field.getGenericType();
+                                            final int genericParameterIndex) {
+        return getParameterType(field.getGenericType(), genericParameterIndex);
+    }
+
+    /**
+     * Gets parameter type for the call arguments of a method
+     *
+     * @param method                the method
+     * @param argumentIndex         the argument index
+     * @param genericParameterIndex the genericParameterIndex
+     * @return the parameter type
+     */
+    public static Class<?> getParameterType(final Method method,
+                                            final int argumentIndex,
+                                            final int genericParameterIndex) {
+        final Type[] genericParameterTypes = method.getGenericParameterTypes();
+        if (genericParameterTypes.length <= argumentIndex) {
+            return null;
+        }
+        return getParameterType(genericParameterTypes[argumentIndex], genericParameterIndex);
+    }
+
+    /**
+     * Gets parameter type.
+     *
+     * @param genericType           the generic type
+     * @param genericParameterIndex the generic parameter index
+     * @return the parameter type
+     */
+    public static Class<?> getParameterType(final Type genericType,
+                                            final int genericParameterIndex) {
         if (!(genericType instanceof ParameterizedType)) {
             return null;
         }
         final ParameterizedType pType = (ParameterizedType) genericType;
         final Type[] actualTypeArguments = pType.getActualTypeArguments();
-        if (actualTypeArguments.length <= index) {
+        if (actualTypeArguments.length <= genericParameterIndex) {
             return null;
         }
-        return (Class<?>) actualTypeArguments[index];
+        return (Class<?>) actualTypeArguments[genericParameterIndex];
+    }
+
+    /**
+     * Tells if a Type has a field with this name.
+     *
+     * @param cls       the type
+     * @param fieldName the field name
+     * @return the boolean
+     */
+    public static boolean hasField(Class<?> cls,
+                                   final String fieldName) {
+        while (cls != null && !cls.equals(Object.class)) {
+            try {
+                if (cls.getDeclaredField(fieldName) != null) {
+                    return true;
+                }
+            } catch (final NoSuchFieldException e) {
+            }
+            cls = cls.getSuperclass();
+        }
+        return false;
     }
 }

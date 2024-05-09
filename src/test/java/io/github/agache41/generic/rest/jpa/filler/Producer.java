@@ -42,7 +42,7 @@ public class Producer<T> {
     /**
      * The default size for collections and map generation.
      */
-    public static int defaultSize = 2;
+    public static int defaultSize = 16;
 
     static {
         Producer.add(new StringRandomProducer());
@@ -309,6 +309,7 @@ public class Producer<T> {
                     collection.addAll(applied);
                     collection.addAll(objectProducer
                                               .produceList());
+                    fieldReflector.set(result, collection);
                 }
             } else if (fieldReflector.isMap()) {
                 final Class<Object> mapKeyParameter = fieldReflector.getFirstParameter();
@@ -324,6 +325,7 @@ public class Producer<T> {
                 if (map != null && mapKeyParameter != null && mapValueParameter != null) {
                     mapSupplier.changeMap(map);
                     map.putAll(mapSupplier.produceMap(mapKeyParameter));
+                    fieldReflector.set(result, map);
                 }
             } else {
                 // do recurse on the type

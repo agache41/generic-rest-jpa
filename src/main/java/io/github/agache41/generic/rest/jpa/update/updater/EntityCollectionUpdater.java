@@ -157,6 +157,8 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
         // add the new ones
         targetValue.addAll(sourceValueList);
         // collection work
+        // re set it
+        this.setter.accept(target, (COLLECTION) targetValue);
         return true;
     }
 }

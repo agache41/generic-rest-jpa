@@ -129,6 +129,8 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
         }
 
         // empty
-        return ValueUpdater.updateMap(targetValue, sourceValue, this.constructor);
+        final boolean updated = ValueUpdater.updateMap(targetValue, sourceValue, this.constructor);
+        this.setter.accept(target, (MAP) targetValue);
+        return updated;
     }
 }

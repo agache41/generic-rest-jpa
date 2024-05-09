@@ -135,6 +135,8 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
                      .forEach(key -> targetValue.put(key, sourceValue.get(key)));
             updated = true;
         }
+        //set it again
+        this.setter.accept(target, targetValue);
         return updated;
     }
 }

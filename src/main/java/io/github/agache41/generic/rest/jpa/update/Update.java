@@ -34,7 +34,7 @@ import java.lang.annotation.*;
  * </pre>
  */
 @Documented
-@Target({ElementType.TYPE, ElementType.FIELD})
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Update {

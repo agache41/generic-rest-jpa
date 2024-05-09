@@ -31,10 +31,28 @@ public class StringUtils {
      * @param input the input
      * @return string
      */
-    public static String capitalize(String input) {
-        if (input == null || input.isEmpty()) return input;
+    public static String capitalize(final String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
         return input.substring(0, 1)
                     .toUpperCase() + input.substring(1);
+    }
+
+    /**
+     * <pre>
+     * Decapitalizes a string
+     * </pre>
+     *
+     * @param input the input
+     * @return string
+     */
+    public static String deCapitalize(final String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+        return input.substring(0, 1)
+                    .toLowerCase() + input.substring(1);
     }
 
     /**
@@ -45,8 +63,10 @@ public class StringUtils {
      * @param input the input
      * @return the string
      */
-    public static String quote(String input) {
-        if (input == null) return null;
+    public static String quote(final String input) {
+        if (input == null) {
+            return null;
+        }
         return "\"" + input + "\"";
     }
 
@@ -58,9 +78,13 @@ public class StringUtils {
      * @param input the input
      * @return the string
      */
-    public static String unQuote(String input) {
-        if (input == null) return null;
-        if (input.length() < 2) return input;
+    public static String unQuote(final String input) {
+        if (input == null) {
+            return null;
+        }
+        if (input.length() < 2) {
+            return input;
+        }
         return input.substring(1, input.length() - 1);
     }
 }

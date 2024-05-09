@@ -860,6 +860,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
                                          final Root<ENTITY> entity) {
         return values.entrySet()
                      .stream()
+                     .filter(entry -> ReflectionUtils.hasField(this.type, entry.getKey()))
                      .map(entry -> this.cb()
                                        .equal(entity.get(entry.getKey()), entry.getValue()))
                      .collect(Collectors.reducing(this.cb()::and))
@@ -933,6 +934,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
                                      final Root<ENTITY> entity) {
         return values.entrySet()
                      .stream()
+                     .filter(entry -> ReflectionUtils.hasField(this.type, entry.getKey()))
                      .map(entry -> entity.get(entry.getKey())
                                          .in(entry.getValue()))
                      .collect(Collectors.reducing(this.cb()::and))

@@ -130,6 +130,13 @@ public final class ClassReflector<T> {
                                          .filter(FieldReflector::isValid)
                                          .collect(Collectors.toMap(FieldReflector::getName, Function.identity()));
 
+        this.reflectors.putAll(ReflectionUtils.getDeclaredMethods(sourceClass)
+                                              .stream()
+                                              .filter(method -> method.isAnnotationPresent(Update.class))
+                                              .map(method -> new FieldReflector<>(sourceClass, method))
+                                              .filter(FieldReflector::isValid)
+                                              .collect(Collectors.toMap(FieldReflector::getName, Function.identity())));
+
         this.updateReflectors = this.reflectors.values()
                                                .stream()
                                                .filter(FieldReflector::isUpdatable)
