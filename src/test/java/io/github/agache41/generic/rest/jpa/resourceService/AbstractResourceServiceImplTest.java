@@ -44,6 +44,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
     private final List<T> insertData;
 
     private final List<T> updateData;
+
+    private final ClassReflector<T> classReflector;
     private final FieldReflector<T, String> fieldReflector;
     private final String stringField;
     private final ResourceService<T, K> client;
@@ -67,6 +69,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
         assertEquals(insertData.size(), updateData.size(), " Please use two data lists of equal size!");
         this.insertData = insertData;
         this.updateData = updateData;
+        this.classReflector = ClassReflector.ofClass(clazz);
         if (stringField != null) {
             this.fieldReflector = ClassReflector.ofClass(clazz)
                                                 .getReflector(stringField, String.class);
@@ -444,7 +447,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
                                                .collect(Collectors.toSet());
             //when
             final Set<String> res = new TreeSet<>(this.getClient()
-                                                      .getAutocompleteStringFieldLikeValueAsSortedSet(this.stringField, likeValue, null, null));
+                                                      .getAutocompleteStringFieldLikeValueAsSortedSet(this.stringField, likeValue, null, null, null));
 
             //then
             assertNotNull(res);
@@ -512,7 +515,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
 
             //when
             final List<T> res = this.getClient()
-                                    .postFilterContentEqualsAsList(value, this.config.getFirstResult(), this.config.getMaxResults());
+                                    .postFilterContentEqualsAsList(this.classReflector.mapValues(value), this.config.getFirstResult(), this.config.getMaxResults());
 
             //then
             assertNotNull(res);

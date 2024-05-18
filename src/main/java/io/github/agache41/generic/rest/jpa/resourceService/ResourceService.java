@@ -23,6 +23,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.UriInfo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The interface Resource service defines the REST Methods to be used on the Entity Domain Model
@@ -161,12 +162,14 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param value       the string value to equal
      * @param cut         the cut
      * @param maxResults  the max results
+     * @param uriInfo     the uri info
      * @return the list of entities matching
      */
     List<String> getAutocompleteStringFieldLikeValueAsSortedSet(String stringField,
                                                                 String value,
                                                                 Integer cut,
-                                                                Integer maxResults);
+                                                                Integer maxResults,
+                                                                UriInfo uriInfo);
 
     /**
      * <pre>
@@ -205,12 +208,12 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * MaxResults parameter will be applied on the sql Query.If not provided it will default to configured value.
      * </pre>
      *
-     * @param value       the source
+     * @param mapValues   the map values
      * @param firstResult the first result
      * @param maxResults  the max results
      * @return the list of entities matching
      */
-    List<T> postFilterContentEqualsAsList(T value,
+    List<T> postFilterContentEqualsAsList(Map<String, Object> mapValues,
                                           Integer firstResult,
                                           Integer maxResults);
 

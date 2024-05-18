@@ -30,6 +30,7 @@ import jakarta.ws.rs.core.UriInfo;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -199,14 +200,15 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     public List<String> getAutocompleteStringFieldLikeValueAsSortedSet(@PathParam("stringField") final String stringField,
                                                                        @PathParam("value") final String value,
                                                                        @QueryParam("cut") final Integer cut,
-                                                                       @QueryParam("maxResults") final Integer maxResults) {
+                                                                       @QueryParam("maxResults") final Integer maxResults,
+                                                                       @Context final UriInfo uriInfo) {
         if (value == null || value.length() < this.getConfig()
                                                   .getAutocompleteCut(cut)) {
             return Collections.emptyList();
         }
         return this.getDataAccess()
                    .autocompleteByColumnLikeValue(stringField, value, this.getConfig()
-                                                                          .getAutocompleteMaxResults(maxResults))
+                                                                          .getAutocompleteMaxResults(maxResults), uriInfo)
                    .collect(Collectors.toList());
     }
 
@@ -240,13 +242,13 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/content/equals/value/asList")
-    public List<T> postFilterContentEqualsAsList(final T value,
+    public List<T> postFilterContentEqualsAsList(final Map<String, Object> mapValues,
                                                  @QueryParam("firstResult") final Integer firstResult,
                                                  @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamByContentEquals(value, this.getConfig()
-                                                     .getFirstResult(firstResult), this.getConfig()
-                                                                                       .getMaxResults(maxResults))
+                   .streamByContentEquals(mapValues, this.getConfig()
+                                                         .getFirstResult(firstResult), this.getConfig()
+                                                                                           .getMaxResults(maxResults))
                    .collect(Collectors.toList());
     }
 

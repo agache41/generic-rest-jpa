@@ -55,6 +55,7 @@ public final class FieldReflector<T, V> {
     private final Class<?> secondParameter;
     private final Function<T, V> getter;
     private final BiConsumer<T, V> setter;
+    private final Field field;
     private final boolean notNull;
     private final boolean updatable;
     private final boolean isFinal;
@@ -80,6 +81,7 @@ public final class FieldReflector<T, V> {
     FieldReflector(final Class<T> enclosingClass,
                    final Field field) {
         this.enclosingClass = enclosingClass;
+        this.field = field;
         this.name = field.getName();
         this.type = (Class<V>) field.getType();
         this.isFinal = Modifier.isFinal(field.getModifiers());
@@ -140,10 +142,12 @@ public final class FieldReflector<T, V> {
     FieldReflector(final Class<T> enclosingClass,
                    final Method method) {
         this.enclosingClass = enclosingClass;
+        this.field = null;
         this.name = ReflectionUtils.getSetterFieldName(method);
         this.type = method.getParameterTypes().length == 1 ? (Class<V>) method.getParameterTypes()[0] : null;
         this.isFinal = (this.name == null || this.type == null);
-        this.isTransient = false;
+        // using transient to mark setter/getter update without field
+        this.isTransient = true;
         this.isHibernateIntern = false;
         this.firstParameter = ReflectionUtils.getParameterType(method, 0, 0);
         this.secondParameter = ReflectionUtils.getParameterType(method, 0, 1);
@@ -392,18 +396,38 @@ public final class FieldReflector<T, V> {
         return this.updater;
     }
 
+    /**
+     * Is final boolean.
+     *
+     * @return the boolean
+     */
     public boolean isFinal() {
         return this.isFinal;
     }
 
+    /**
+     * Is transient boolean.
+     *
+     * @return the boolean
+     */
     public boolean isTransient() {
         return this.isTransient;
     }
 
+    /**
+     * Is eager boolean.
+     *
+     * @return the boolean
+     */
     public boolean isEager() {
         return this.isEager;
     }
 
+    /**
+     * Gets column annotation.
+     *
+     * @return the column annotation
+     */
     public Column getColumnAnnotation() {
         return this.columnAnnotation;
     }

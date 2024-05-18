@@ -19,8 +19,9 @@ package io.github.agache41.generic.rest.jpa.filler;
 
 public class StringRandomProducer extends Producer<String> {
 
-    final int leftLimit = 101; // letter 'a '
-    final int rightLimit = 122; // letter 'z'
+    final int leftLimit = 'a'; // letter 'a '
+    final int rightLimit = 'z'; // letter 'z'
+    final float max = this.rightLimit - this.leftLimit;
     final int targetStringLength = 8;
 
     public StringRandomProducer() {
@@ -31,7 +32,7 @@ public class StringRandomProducer extends Producer<String> {
     public String produce() {
         final StringBuilder buffer = new StringBuilder(this.targetStringLength);
         for (int i = 0; i < this.targetStringLength; i++) {
-            final int randomLimitedInt = this.leftLimit + (int) (this.random.nextFloat() * (this.rightLimit - this.leftLimit + 1));
+            final int randomLimitedInt = this.leftLimit + (int) (this.random.nextFloat() * this.max);
             buffer.append((char) randomLimitedInt);
         }
         return buffer.toString();

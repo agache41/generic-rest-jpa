@@ -23,6 +23,7 @@ import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.UriInfo;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static io.restassured.RestAssured.given;
@@ -210,7 +211,8 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
     public List<String> getAutocompleteStringFieldLikeValueAsSortedSet(final String stringField,
                                                                        final String value,
                                                                        final Integer cut,
-                                                                       final Integer maxResults) {
+                                                                       final Integer maxResults,
+                                                                       final UriInfo uriInfo) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -248,11 +250,11 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
      * {@inheritDoc}
      */
     @Override
-    public List<T> postFilterContentEqualsAsList(final T value,
+    public List<T> postFilterContentEqualsAsList(final Map<String, Object> mapValues,
                                                  final Integer firstResult,
                                                  final Integer maxResults) {
         return given().contentType(ContentType.JSON)
-                      .body(value)
+                      .body(mapValues)
                       .when()
                       .accept(ContentType.JSON)
                       .post(this.path + "/filter/content/equals/value/asList")

@@ -29,6 +29,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -135,6 +136,8 @@ public final class ClassReflector<T> {
                                               .filter(method -> method.isAnnotationPresent(Update.class))
                                               .map(method -> new FieldReflector<>(sourceClass, method))
                                               .filter(FieldReflector::isValid)
+                                              //filter already mapped fields reflectors
+                                              .filter(fieldReflector -> !this.reflectors.containsKey(fieldReflector.getName()))
                                               .collect(Collectors.toMap(FieldReflector::getName, Function.identity())));
 
         this.updateReflectors = this.reflectors.values()
@@ -380,6 +383,16 @@ public final class ClassReflector<T> {
      */
     public boolean isFinal() {
         return this.isFinal;
+    }
+
+    /**
+     * Tells if the class contains this field and if the field is persisted
+     *
+     * @return the boolean
+     */
+    public Predicate<Map.Entry<String, ?>> persistedFieldNames() {
+        return entry -> this.reflectors.containsKey(entry.getKey()) && !this.reflectors.get(entry.getKey())
+                                                                                       .isTransient();
     }
 
     @Override
