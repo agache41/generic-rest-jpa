@@ -515,7 +515,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
 
             //when
             final List<T> res = this.getClient()
-                                    .postFilterContentEqualsAsList(this.classReflector.mapValues(value), this.config.getFirstResult(), this.config.getMaxResults());
+                                    .postFilterContentEqualsAsList(this.classReflector.mapValues(value, true), this.config.getFirstResult(), this.config.getMaxResults());
 
             //then
             assertNotNull(res);
@@ -542,7 +542,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
 
             //when
             final List<T> res = this.getClient()
-                                    .postFilterContentInAsList(values, this.config.getFirstResult(), this.config.getMaxResults());
+                                    .postFilterContentInAsList(this.classReflector.mapValues(values, true), this.config.getFirstResult(), this.config.getMaxResults());
 
             //then
             assertNotNull(res);
@@ -569,6 +569,6 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
                    .getAllAsList(this.client.getConfig()
                                             .getFirstResult(), this.getClient()
                                                                    .getConfig()
-                                                                   .getMaxResults());
+                                                                   .getMaxResults(), null);
     }
 }

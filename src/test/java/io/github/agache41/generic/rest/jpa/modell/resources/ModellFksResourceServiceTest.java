@@ -67,7 +67,6 @@ public class ModellFksResourceServiceTest extends AbstractResourceServiceImplTes
     void afterEach() {
         ((ModellFksResourceService) this.getClient()).getDataAccess()
                                                      .commitTransaction();
-
     }
 
     @Test
@@ -80,8 +79,7 @@ public class ModellFksResourceServiceTest extends AbstractResourceServiceImplTes
         final SubModellAFksResourceService subModellAFksResourceService = new SubModellAFksResourceService();
         final List<SubModellAFks> subModellAFksList = subModellAFksResourceService.getAllAsList(subModellAFksResourceService.getConfig()
                                                                                                                             .getFirstResult(), subModellAFksResourceService.getConfig()
-                                                                                                                                                                           .getMaxResults());
+                                                                                                                                                                           .getMaxResults(), null);
         assertEquals(0, subModellAFksList.size());
-
     }
 }

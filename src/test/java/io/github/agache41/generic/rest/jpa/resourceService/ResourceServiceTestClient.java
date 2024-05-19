@@ -22,6 +22,7 @@ import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.UriInfo;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -96,7 +97,8 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
      */
     @Override
     public List<T> getAllAsList(final Integer firstResult,
-                                final Integer maxResults) {
+                                final Integer maxResults,
+                                final UriInfo uriInfo) {
         return given().contentType(ContentType.JSON)
                       .when()
                       .accept(ContentType.JSON)
@@ -250,11 +252,11 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
      * {@inheritDoc}
      */
     @Override
-    public List<T> postFilterContentEqualsAsList(final Map<String, Object> mapValues,
+    public List<T> postFilterContentEqualsAsList(final Map<String, Object> value,
                                                  final Integer firstResult,
                                                  final Integer maxResults) {
         return given().contentType(ContentType.JSON)
-                      .body(mapValues)
+                      .body(value)
                       .when()
                       .accept(ContentType.JSON)
                       .post(this.path + "/filter/content/equals/value/asList")
@@ -270,7 +272,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
      * {@inheritDoc}
      */
     @Override
-    public List<T> postFilterContentInAsList(final List<T> values,
+    public List<T> postFilterContentInAsList(final HashMap<String, List<Object>> values,
                                              final Integer firstResult,
                                              final Integer maxResults) {
         return given().contentType(ContentType.JSON)

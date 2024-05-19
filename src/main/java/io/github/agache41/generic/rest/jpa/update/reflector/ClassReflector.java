@@ -29,7 +29,6 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -291,12 +290,17 @@ public final class ClassReflector<T> {
     /**
      * Map the fields with values of the source object as values in a hash map.
      *
-     * @param source the source
+     * @param source       the source
+     * @param nonTransient the non transient
      * @return the hash map
      */
-    public HashMap<String, Object> mapValues(final T source) {
+    public HashMap<String, Object> mapValues(final T source,
+                                             final boolean nonTransient) {
         final HashMap<String, Object> result = new LinkedHashMap<>();
         for (final FieldReflector<T, ?> fieldReflector : this.valueReflectorsArray) {
+            if (nonTransient && fieldReflector.isTransient()) {
+                continue;
+            }
             final Object value = fieldReflector.get(source);
             if (value == null) {
                 continue;
@@ -309,12 +313,17 @@ public final class ClassReflector<T> {
     /**
      * Map the fields with values of the source objects as values in a hash map.
      *
-     * @param sources the sources
+     * @param sources      the sources
+     * @param nonTransient the non transient
      * @return the hash map
      */
-    public HashMap<String, List<Object>> mapValues(final List<T> sources) {
+    public HashMap<String, List<Object>> mapValues(final List<T> sources,
+                                                   final boolean nonTransient) {
         final HashMap<String, List<Object>> result = new LinkedHashMap<>();
         for (final FieldReflector<T, ?> fieldReflector : this.valueReflectorsArray) {
+            if (nonTransient && fieldReflector.isTransient()) {
+                continue;
+            }
             final List<Object> values = sources.stream()
                                                .map(fieldReflector::get)
                                                .filter(Objects::nonNull)
@@ -383,16 +392,6 @@ public final class ClassReflector<T> {
      */
     public boolean isFinal() {
         return this.isFinal;
-    }
-
-    /**
-     * Tells if the class contains this field and if the field is persisted
-     *
-     * @return the boolean
-     */
-    public Predicate<Map.Entry<String, ?>> persistedFieldNames() {
-        return entry -> this.reflectors.containsKey(entry.getKey()) && !this.reflectors.get(entry.getKey())
-                                                                                       .isTransient();
     }
 
     @Override

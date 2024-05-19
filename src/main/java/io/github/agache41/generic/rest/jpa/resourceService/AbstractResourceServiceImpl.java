@@ -29,6 +29,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.UriInfo;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -101,11 +102,12 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/all/asList")
     public List<T> getAllAsList(@QueryParam("firstResult") final Integer firstResult,
-                                @QueryParam("maxResults") final Integer maxResults) {
+                                @QueryParam("maxResults") final Integer maxResults,
+                                @Context final UriInfo uriInfo) {
         return this.getDataAccess()
                    .streamAll(this.getConfig()
                                   .getFirstResult(firstResult), this.getConfig()
-                                                                    .getMaxResults(maxResults))
+                                                                    .getMaxResults(maxResults), uriInfo)
                    .collect(Collectors.toList());
     }
 
@@ -242,13 +244,13 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/content/equals/value/asList")
-    public List<T> postFilterContentEqualsAsList(final Map<String, Object> mapValues,
+    public List<T> postFilterContentEqualsAsList(final Map<String, Object> value,
                                                  @QueryParam("firstResult") final Integer firstResult,
                                                  @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamByContentEquals(mapValues, this.getConfig()
-                                                         .getFirstResult(firstResult), this.getConfig()
-                                                                                           .getMaxResults(maxResults))
+                   .streamByContentEquals(value, this.getConfig()
+                                                     .getFirstResult(firstResult), this.getConfig()
+                                                                                       .getMaxResults(maxResults))
                    .collect(Collectors.toList());
     }
 
@@ -259,7 +261,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/content/in/values/asList")
-    public List<T> postFilterContentInAsList(final List<T> values,
+    public List<T> postFilterContentInAsList(final HashMap<String, List<Object>> values,
                                              @QueryParam("firstResult") final Integer firstResult,
                                              @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()

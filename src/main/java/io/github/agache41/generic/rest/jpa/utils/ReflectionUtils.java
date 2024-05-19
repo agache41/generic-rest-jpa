@@ -358,25 +358,4 @@ public class ReflectionUtils {
         }
         return (Class<?>) actualTypeArguments[genericParameterIndex];
     }
-
-    /**
-     * Tells if a Type has a field with this name.
-     *
-     * @param cls       the type
-     * @param fieldName the field name
-     * @return the boolean
-     */
-    public static boolean hasField(Class<?> cls,
-                                   final String fieldName) {
-        while (cls != null && !cls.equals(Object.class)) {
-            try {
-                if (cls.getDeclaredField(fieldName) != null) {
-                    return true;
-                }
-            } catch (final NoSuchFieldException e) {
-            }
-            cls = cls.getSuperclass();
-        }
-        return false;
-    }
 }
