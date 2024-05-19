@@ -1,5 +1,4 @@
 Planning :
-- add params :
 -- done: add support for setter/getter fields with update
 -- done: fix collection persistence for facade collections (setter call at the end)
 -- done: check select for postgres embedded id autocompleteId with id and count
