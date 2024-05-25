@@ -379,7 +379,8 @@ Here ist an example of the generated files:
 
 ## Demo
 
-А comprehensive example of using the library with JPA database you can find in the **[demo](/demo)** module.
+А comprehensive example of using the library with JPA database you can find in the *
+*[demo](https://github.com/agache41/modell_quarkus)** module.
 
 ## Requirements
 
