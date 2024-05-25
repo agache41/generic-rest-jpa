@@ -52,7 +52,7 @@ interface :
 @Data
 @NoArgsConstructor
 @Entity
-public class Modell implements PrimaryKey<Long>, Updateable<Modell> {
+public class Modell implements PrimaryKey<Long>, Updatable<Modell> {
 
     @Id
     @NotNull
@@ -129,7 +129,8 @@ configure which fields participate in the update process and how null values imp
 
 When a field is annotated, it will be updated from the provided source during a PUT or POST operation.
 
-When used on the class, all fields will be updated, except the ones annotated with @Update.excluded annotation.
+When used on the class, all fields will be updated, except the ones annotated
+with [@Update.excluded](src/main/java/io/github/agache41/generic/rest/jpa/update/Update.java) annotation.
 
 If a field is not annotated, it will not participate in the update process. That is general the case for the id field
 and for our last field in the example (age).
@@ -240,13 +241,34 @@ extending  [AbstractResourceServiceImplTest](src/main/java/io/github/agache41/ge
 ```java
 
 @QuarkusTest
+@Transactional
 public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<Modell, Long> {
+
+    static final String path = "/modell";
+    private static final String stringField = "stringVal";
+    private static final Producer<Modell> producer;
+    private static final List<Modell> insertData;
+    private static final List<Modell> updateData;
+
+    static {
+        RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
+    }
+
+    static {
+        producer = Producer.ofClass(Modell.class)
+                           .withList(LinkedList::new)
+                           .withMap(LinkedHashMap::new)
+                           .withSize(Config.collectionSize);
+        insertData = producer.produceList();
+        updateData = producer.changeList(insertData);
+    }
+
     public ModellResourceServiceTest() {
-        super(Modell.class, // - the entity class
-              "/modell", //  - the controller path
-              Arrays.asList(modell1, modell2, modell3, modell4, modell5), // - one list of entities to insert
-              Arrays.asList(modell1updated, modell2updated, modell3updated, modell4updated, modell5updated), // - one list of entities to update 
-              "name"); // - the name of field of type string to take part in filter methods
+        super(Modell.class, //
+              path, //
+              insertData, //
+              updateData,
+              stringField); //
     }
 }
 
