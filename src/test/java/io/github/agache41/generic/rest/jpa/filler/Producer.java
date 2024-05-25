@@ -180,7 +180,7 @@ public class Producer<T> {
     }
 
     private int optionalSize(final int[] size) {
-        if (size == null || size.length == 0) {
+        if (size == null || size.length == 0 || size[0] < 0) {
             return this.size;
         } else {
             return size[0];
@@ -284,7 +284,7 @@ public class Producer<T> {
                 } else {
                     final String stringValue = Producer.ofClass(String.class)
                                                        .produce();
-                    if (stringValue.length() < maxLength || maxLength < 0) {
+                    if (stringValue.length() <= maxLength) {
                         fieldReflector.set(result, stringValue);
                     } else {
                         fieldReflector.set(result, stringValue.substring(0, maxLength));

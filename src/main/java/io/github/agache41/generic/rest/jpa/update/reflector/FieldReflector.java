@@ -129,11 +129,12 @@ public final class FieldReflector<T, V> {
             this.value = false;
             this.collection = false;
             this.map = false;
-            this.description = this.description();
+            this.initializeDescription();
             return;
         }
-        this.initializeLength();
         this.initialize();
+        this.initializeLength();
+        this.initializeDescription();
     }
 
     /**
@@ -183,27 +184,28 @@ public final class FieldReflector<T, V> {
             this.value = false;
             this.collection = false;
             this.map = false;
-            this.description = this.description();
+            this.initializeDescription();
             return;
         }
-        this.initializeLength();
         this.initialize();
+        this.initializeLength();
+        this.initializeDescription();
     }
 
     private void initializeLength() {
-        if (this.columnAnnotation != null && this.updateAnnotation != null) {
-            this.length = Math.min(this.columnAnnotation.length(), this.updateAnnotation.length());
-        } else if (this.columnAnnotation != null) {
+        //default value;
+        this.length = Update.defaultLength;
+        // a simple field with column
+        if (this.columnAnnotation != null && !this.collection && !this.map) {
             this.length = this.columnAnnotation.length();
-        } else if (this.updateAnnotation != null) {
+        }
+        //if update has length
+        if (this.updateAnnotation != null && this.updateAnnotation.length() != Update.defaultLength) {
             this.length = this.updateAnnotation.length();
-        } else {
-            this.length = -1;
         }
     }
 
     private void initialize() {
-        this.description = this.description();
         if (!this.valid) {
             throw new IllegalArgumentException(" Invalid field marked for update " + this);
         }
@@ -469,19 +471,30 @@ public final class FieldReflector<T, V> {
         return this.description;
     }
 
-    private String description() {
+    private void initializeDescription() {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("\r\n");
         if (!this.valid) {
             stringBuilder.append("[Warning] Invalid Field (no valid setter and getter) [Warning]");
-            return stringBuilder.toString();
+            this.description = stringBuilder.toString();
+            return;
         }
         if (this.updatable) {
-            stringBuilder.append("\t@Update(length = ");
-            stringBuilder.append(this.length);
+            stringBuilder.append("\t@Update");
+            if (this.length != Update.defaultLength || !this.notNull) {
+                stringBuilder.append("(");
+            }
+            if (this.length != Update.defaultLength) {
+                stringBuilder.append("length = ");
+                stringBuilder.append(this.length);
+            }
+            if (this.length != Update.defaultLength && !this.notNull) {
+                stringBuilder.append(", ");
+            }
             if (!this.notNull) {
-                stringBuilder.append(", notNull = false)");
-            } else {
+                stringBuilder.append("notNull = false");
+            }
+            if (this.length != -1 || !this.notNull) {
                 stringBuilder.append(")");
             }
             stringBuilder.append("\r\n");
@@ -500,7 +513,7 @@ public final class FieldReflector<T, V> {
         stringBuilder.append("\t\t");
         stringBuilder.append(this.name);
         stringBuilder.append("; \r\n");
-        return stringBuilder.toString();
+        this.description = stringBuilder.toString();
     }
 
     private interface UpdateablePrimaryKey<T extends Updateable<T>, PK> extends Updateable<T>, PrimaryKey<PK> {

@@ -146,14 +146,14 @@ public class Modell extends BaseEntity implements PrimaryKey<Long>, Updateable<M
         this.vMapValues.putAll(virtualMapValues);
     }
 
-    @Update
+    @Update(length = 2)
     public List<Collection2Entity> getVirtualCollectionEntities() {
         final List<Collection2Entity> virtualCollectionEntities = new LinkedList<>();
         virtualCollectionEntities.addAll(this.vCollectionEntities);
         return virtualCollectionEntities;
     }
 
-    @Update
+    @Update(length = 2, notNull = false)
     public void setVirtualCollectionEntities(final List<Collection2Entity> virtualCollectionEntities) {
         this.vCollectionEntities.clear();
         this.vCollectionEntities.addAll(virtualCollectionEntities);

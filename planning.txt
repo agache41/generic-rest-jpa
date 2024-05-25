@@ -11,10 +11,11 @@ Planning :
 -- done: add length to @Update
 -- add equals for update fields (implement equals method for test)
 - check diff between findbyid and query where id=?
+- make tests methods independedt
+
 
 - add better field producer for string with english words
 - add separate classes for read services and write services/separate delete/function switch
-
 - add support for Ag Grid
 -- ?? do we do it ? add className.fieldName to Query Param name
 -- refactor cb/query/root

@@ -38,6 +38,8 @@ import java.lang.annotation.*;
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Update {
+    int defaultLength = -1;
+
     /**
      * <pre>
      * Indicates that a set to null operation is allowed.
@@ -56,7 +58,7 @@ public @interface Update {
      *
      * @return the length
      */
-    int length() default 255;
+    int length() default defaultLength;
 
     /**
      * <pre>
