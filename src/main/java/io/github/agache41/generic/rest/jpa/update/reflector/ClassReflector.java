@@ -217,6 +217,16 @@ public final class ClassReflector<T> {
         return updated;
     }
 
+    public boolean isUpdated(final T destination,
+                             final T source) {
+        boolean updated = false;
+        for (final FieldReflector reflector : this.updateReflectorsArray) {
+            updated |= reflector.isUpdated(destination, source);
+        }
+        return updated;
+    }
+
+
     /**
      * <pre>
      * Reflector for the fieldName.
@@ -398,4 +408,6 @@ public final class ClassReflector<T> {
     public String toString() {
         return this.description;
     }
+
+
 }

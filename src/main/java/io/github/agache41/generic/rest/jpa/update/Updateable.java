@@ -29,6 +29,11 @@ import jakarta.persistence.Transient;
  * The default implementation uses the ClassReflector mechanism to update the fields.
  */
 public interface Updateable<ENTITY extends Updateable<ENTITY>> {
+    default boolean isUpdated(final ENTITY source) {
+        return ClassReflector.ofObject(this)
+                             .isUpdated(this, source);
+    }
+
     @Transient
     default boolean update(final ENTITY source) {
         return ClassReflector.ofObject(this)

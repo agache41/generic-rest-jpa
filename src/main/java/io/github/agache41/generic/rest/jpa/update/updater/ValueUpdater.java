@@ -172,4 +172,13 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
         } // otherwise no update
         return false;
     }
+
+    @Override
+    public boolean isUpdated(final TARGET target,
+                             final SOURCE source) {
+        // the sourceValue to be updated
+        final VALUE sourceValue = this.sourceGetter.apply(source);
+        final VALUE targetValue = this.getter.apply(target);
+        return Objects.equals(sourceValue, targetValue);
+    }
 }

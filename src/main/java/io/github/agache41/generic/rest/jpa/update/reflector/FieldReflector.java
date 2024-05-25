@@ -260,6 +260,11 @@ public final class FieldReflector<T, V> {
         return this.updater.update(destination, source);
     }
 
+    public boolean isUpdated(final T destination,
+                             final T source) {
+        return this.updater.isUpdated(destination, source);
+    }
+
     /**
      * <pre>
      * Object Getter.
@@ -515,6 +520,7 @@ public final class FieldReflector<T, V> {
         stringBuilder.append("; \r\n");
         this.description = stringBuilder.toString();
     }
+
 
     private interface UpdateablePrimaryKey<T extends Updateable<T>, PK> extends Updateable<T>, PrimaryKey<PK> {
     }

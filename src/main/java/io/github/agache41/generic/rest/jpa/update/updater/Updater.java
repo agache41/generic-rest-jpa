@@ -34,4 +34,8 @@ public interface Updater<TARGET, SOURCE> {
      */
     boolean update(TARGET target,
                    SOURCE source);
+
+    boolean isUpdated(TARGET destination,
+                      SOURCE source);
+
 }
