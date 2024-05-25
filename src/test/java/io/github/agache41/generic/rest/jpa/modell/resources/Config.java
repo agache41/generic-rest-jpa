@@ -17,7 +17,7 @@
 
 package io.github.agache41.generic.rest.jpa.modell.resources;
 
-import io.github.agache41.generic.rest.jpa.filler.Producer;
+import io.github.agache41.generic.rest.jpa.producer.Producer;
 
 public class Config {
     public static final int collectionSize = 2;

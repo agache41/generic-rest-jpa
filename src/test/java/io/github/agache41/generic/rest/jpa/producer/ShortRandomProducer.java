@@ -15,22 +15,23 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.filler;
+package io.github.agache41.generic.rest.jpa.producer;
 
-public class DoubleRandomProducer extends Producer<Double> {
+public class ShortRandomProducer extends Producer<Short> {
+
     final short max = 10000;
 
-    public DoubleRandomProducer() {
-        super(Double.class);
+    public ShortRandomProducer() {
+        super(Short.class);
     }
 
     @Override
-    public Double produce() {
-        return (double) (this.random.nextFloat() * this.max);
+    public Short produce() {
+        return (short) (this.random.nextFloat() * this.max);
     }
 
     @Override
-    public Double change(final Double result) {
+    public Short change(final Short result) {
         return this.produce();
     }
 }

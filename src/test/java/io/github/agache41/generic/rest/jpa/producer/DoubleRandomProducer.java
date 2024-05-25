@@ -15,24 +15,22 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.filler;
+package io.github.agache41.generic.rest.jpa.producer;
 
-import java.math.BigInteger;
-
-public class BigIntegerRandomProducer extends Producer<BigInteger> {
+public class DoubleRandomProducer extends Producer<Double> {
     final short max = 10000;
 
-    public BigIntegerRandomProducer() {
-        super(BigInteger.class);
+    public DoubleRandomProducer() {
+        super(Double.class);
     }
 
     @Override
-    public BigInteger produce() {
-        return BigInteger.valueOf((long) (this.random.nextFloat() * this.max));
+    public Double produce() {
+        return (double) (this.random.nextFloat() * this.max);
     }
 
     @Override
-    public BigInteger change(final BigInteger result) {
+    public Double change(final Double result) {
         return this.produce();
     }
 }

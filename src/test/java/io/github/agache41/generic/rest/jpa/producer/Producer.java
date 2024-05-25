@@ -15,7 +15,7 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.filler;
+package io.github.agache41.generic.rest.jpa.producer;
 
 import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;

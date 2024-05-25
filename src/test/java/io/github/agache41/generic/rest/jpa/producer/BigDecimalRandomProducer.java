@@ -15,23 +15,24 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.filler;
+package io.github.agache41.generic.rest.jpa.producer;
 
-public class ShortRandomProducer extends Producer<Short> {
+import java.math.BigDecimal;
 
+public class BigDecimalRandomProducer extends Producer<BigDecimal> {
     final short max = 10000;
 
-    public ShortRandomProducer() {
-        super(Short.class);
+    public BigDecimalRandomProducer() {
+        super(BigDecimal.class);
     }
 
     @Override
-    public Short produce() {
-        return (short) (this.random.nextFloat() * this.max);
+    public BigDecimal produce() {
+        return BigDecimal.valueOf((long) (this.random.nextFloat() * this.max));
     }
 
     @Override
-    public Short change(final Short result) {
+    public BigDecimal change(final BigDecimal result) {
         return this.produce();
     }
 }

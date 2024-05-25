@@ -15,24 +15,21 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.filler;
+package io.github.agache41.generic.rest.jpa.producer;
 
-public class LongRandomProducer extends Producer<Long> {
+public class BooleanRandomProducer extends Producer<Boolean> {
 
-    final long min = 100000;
-    final long max = 10000000;
-
-    public LongRandomProducer() {
-        super(Long.class);
+    public BooleanRandomProducer() {
+        super(Boolean.class);
     }
 
     @Override
-    public Long change(final Long result) {
+    public Boolean produce() {
+        return this.random.nextFloat() > 0.5;
+    }
+
+    @Override
+    public Boolean change(final Boolean result) {
         return this.produce();
-    }
-
-    @Override
-    public Long produce() {
-        return (long) (this.min + this.random.nextFloat() * this.max);
     }
 }

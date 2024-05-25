@@ -139,6 +139,15 @@ By default, during the update the value can not be set to null, so if a null val
 Exception can be enforced with @Update(notNull = false) but only when @NotNull is not used on the field.
 This is only recommended to be used when the update source transfer object is always complete.
 
+Every entity participating in this update process must implement
+the [Updatable](src/main/java/io/github/agache41/generic/rest/jpa/update/Updatable.java) interface.
+The root entity must also implement
+the [PrimaryKey](src/main/java/io/github/agache41/generic/rest/jpa/dataAccess/PrimaryKey.java) interface and provide a
+unique id field.
+If the primary key of the table is composed of several database
+columns, [@EmbeddedId](https://jakarta.ee/specifications/persistence/3.2/apidocs/jakarta.persistence/jakarta/persistence/embeddedid)
+must be used.
+
 ### Data Access
 
 Extending the [DAO](https://en.wikipedia.org/wiki/Data_access_object) layer
@@ -274,15 +283,18 @@ public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<M
 
 ```
 
+Notice the use of the [Producer](src/test/java/io/github/agache41/generic/rest/jpa/producer/Producer.java) class that
+generates automatically complete lists with instance objects for tests.
+
 The test goes through all the provided methods :
 
 ![ModelResourcesServiceTest](/readme.res/ModelResourcesServiceTest.png)
 
-Notice that the entities used in the test are omitted for simplicity from the example.
+Notice that the actual entities used in the test are omitted for simplicity from the example.
 
 ### Testing my own methods
 
-The ModellResourceServiceTest ist a UnitTest where test methods can be further added :
+The ModellResourceServiceTest is a UnitTest where test methods can be further added :
 
 ```java
 

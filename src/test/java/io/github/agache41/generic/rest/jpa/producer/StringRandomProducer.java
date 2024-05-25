@@ -15,7 +15,7 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.filler;
+package io.github.agache41.generic.rest.jpa.producer;
 
 public class StringRandomProducer extends Producer<String> {
 

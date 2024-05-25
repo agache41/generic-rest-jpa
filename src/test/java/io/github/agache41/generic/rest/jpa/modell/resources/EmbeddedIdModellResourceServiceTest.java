@@ -18,9 +18,9 @@
 package io.github.agache41.generic.rest.jpa.modell.resources;
 
 
-import io.github.agache41.generic.rest.jpa.filler.Producer;
 import io.github.agache41.generic.rest.jpa.modell.entities.EmbeddedIdModell;
 import io.github.agache41.generic.rest.jpa.modell.entities.EmbeddedKeys;
+import io.github.agache41.generic.rest.jpa.producer.Producer;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImplTest;
 import org.junit.jupiter.api.*;
 

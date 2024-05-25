@@ -15,22 +15,25 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.filler;
+package io.github.agache41.generic.rest.jpa.producer;
 
-public class FloatRandomProducer extends Producer<Float> {
-    final short max = 10000;
+public class IntegerRandomProducer extends Producer<Integer> {
+    final long min = 1000;
+    final int max = 100000;
 
-    public FloatRandomProducer() {
-        super(Float.class);
+    public IntegerRandomProducer() {
+        super(Integer.class);
     }
 
     @Override
-    public Float produce() {
-        return this.random.nextFloat() * this.max;
+    public Integer produce() {
+        return (int) (this.min + this.random.nextFloat() * this.max);
     }
 
     @Override
-    public Float change(final Float result) {
+    public Integer change(final Integer result) {
         return this.produce();
     }
+
+
 }
