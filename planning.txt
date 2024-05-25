@@ -8,14 +8,17 @@ Planning :
 -- done: optimize and extend query parameter filter
 -- done: refactor postFilterContentInAsList with Map<String,List<Object>>
 -- done: optimize has Field method and move in ClassReflector (deleted)
--- NOT DONE optimize autocomplete id
--- refactor cb/query/root
-- add equals for update fields (implement equals method for test)
+-- done: add length to @Update
+-- add equals for update fields (implement equals method for test)
+- check diff between findbyid and query where id=?
+
 - add better field producer for string with english words
 - add separate classes for read services and write services/separate delete/function switch
-- add length to @Update
+
 - add support for Ag Grid
 -- ?? do we do it ? add className.fieldName to Query Param name
+-- refactor cb/query/root
 -- admin :
 --- add separate profile for github build and local with postgres
 --- read me update
+-- NOT DONE optimize autocomplete id

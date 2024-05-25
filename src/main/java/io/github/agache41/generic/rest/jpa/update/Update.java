@@ -49,12 +49,23 @@ public @interface Update {
 
     /**
      * <pre>
+     * Informal value, telling the maximum allowed length of the field for String fields or
+     * the maximum number of elements for an array or collection Type.
+     * The value has no impact on the update process.
+     * </pre>
+     *
+     * @return the length
+     */
+    int length() default 255;
+
+    /**
+     * <pre>
      * Indicates that this field is to be skipped in update.
      * Used in conjunction with the @ {@link Update} Annotation placed at class level.
      * </pre>
      */
     @Documented
-    @Target({ElementType.FIELD})
+    @Target({ElementType.FIELD, ElementType.METHOD})
     @Inherited
     @Retention(RetentionPolicy.RUNTIME)
     @interface excluded {

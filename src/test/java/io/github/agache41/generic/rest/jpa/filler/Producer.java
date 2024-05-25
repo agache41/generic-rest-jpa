@@ -263,6 +263,7 @@ public class Producer<T> {
         for (final FieldReflector fieldReflector : ClassReflector.ofClass(this.clazz)
                                                                  .getUpdateReflectorsArray()) {
             final Object target = fieldReflector.get(result);
+            final int maxLength = fieldReflector.getLength();
             if (fieldReflector.getColumnAnnotation() != null) {
                 if (!fieldReflector.getColumnAnnotation()
                                    .insertable()) {
@@ -277,14 +278,12 @@ public class Producer<T> {
             final Class<?> fieldType = fieldReflector.getType();
 
             if (fieldReflector.isValue()) {
-                if (!String.class.equals(fieldType) || fieldReflector.getColumnAnnotation() == null) {
+                if (!String.class.equals(fieldType) || maxLength < 0) {
                     fieldReflector.set(result, Producer.ofClass(fieldType)
                                                        .produce());
                 } else {
                     final String stringValue = Producer.ofClass(String.class)
                                                        .produce();
-                    final int maxLength = fieldReflector.getColumnAnnotation()
-                                                        .length();
                     if (stringValue.length() < maxLength || maxLength < 0) {
                         fieldReflector.set(result, stringValue);
                     } else {
@@ -308,7 +307,7 @@ public class Producer<T> {
                     collection.clear();
                     collection.addAll(applied);
                     collection.addAll(objectProducer
-                                              .produceList());
+                                              .produceList(maxLength));
                     fieldReflector.set(result, collection);
                 }
             } else if (fieldReflector.isMap()) {
@@ -324,7 +323,7 @@ public class Producer<T> {
                 }
                 if (map != null && mapKeyParameter != null && mapValueParameter != null) {
                     mapSupplier.changeMap(map);
-                    map.putAll(mapSupplier.produceMap(mapKeyParameter));
+                    map.putAll(mapSupplier.produceMap(mapKeyParameter, maxLength));
                     fieldReflector.set(result, map);
                 }
             } else {

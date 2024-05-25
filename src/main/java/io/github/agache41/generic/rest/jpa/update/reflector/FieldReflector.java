@@ -64,11 +64,13 @@ public final class FieldReflector<T, V> {
     private final boolean isEager;
     private final boolean valid;
     private final Column columnAnnotation;
+    private final Update updateAnnotation;
     private String description;
     private Updater<T, T> updater;
     private boolean map;
     private boolean collection;
     private boolean value;
+    private int length = -1;
 
     /**
      * <pre>
@@ -98,6 +100,15 @@ public final class FieldReflector<T, V> {
         } else {
             this.columnAnnotation = null;
         }
+        // if the field is annotated
+        if (field.isAnnotationPresent(Update.class) && !field.isAnnotationPresent(Update.excluded.class)) {
+            this.updateAnnotation = field.getAnnotation(Update.class);
+            // or the class is annotated and the field is not excluded
+        } else if (enclosingClass.isAnnotationPresent(Update.class) && !field.isAnnotationPresent(Update.excluded.class)) {
+            this.updateAnnotation = enclosingClass.getAnnotation(Update.class);
+        } else {
+            this.updateAnnotation = null;
+        }
 
         if (field.isAnnotationPresent(OneToMany.class)) {
             this.isEager = field.getAnnotation(OneToMany.class)
@@ -107,16 +118,9 @@ public final class FieldReflector<T, V> {
             this.isEager = false;
         }
 
-        // if the field is annotated
-        if (!this.isFinal && !this.isHibernateIntern && field.isAnnotationPresent(Update.class)) {
+        if (!this.isFinal && !this.isHibernateIntern && this.updateAnnotation != null) {
             this.updatable = true;
-            this.notNull = field.getAnnotation(Update.class)
-                                .notNull();
-            // or the class is annotated and the field is not excluded
-        } else if (!this.isFinal && !this.isHibernateIntern && enclosingClass.isAnnotationPresent(Update.class) && !field.isAnnotationPresent(Update.excluded.class)) {
-            this.updatable = true;
-            this.notNull = enclosingClass.getAnnotation(Update.class)
-                                         .notNull();
+            this.notNull = this.updateAnnotation.notNull();
         } else {
             // no update needed.
             this.updatable = false;
@@ -128,6 +132,7 @@ public final class FieldReflector<T, V> {
             this.description = this.description();
             return;
         }
+        this.initializeLength();
         this.initialize();
     }
 
@@ -155,14 +160,21 @@ public final class FieldReflector<T, V> {
         this.setter = ReflectionUtils.getSetter(this.enclosingClass, this.name, this.type);
         this.valid = this.getter != null && this.setter != null;
         this.columnAnnotation = null;
-        this.isEager = false;
         // if the method is annotated
-        if (!this.isFinal
-            && method.isAnnotationPresent(Update.class)) {
-            this.updatable = true;
-            this.notNull = method.getAnnotation(Update.class)
-                                 .notNull();
+        if (method.isAnnotationPresent(Update.class) && !method.isAnnotationPresent(Update.excluded.class)) {
+            this.updateAnnotation = method.getAnnotation(Update.class);
             // or the class is annotated and the field is not excluded
+        } else if (enclosingClass.isAnnotationPresent(Update.class) && !method.isAnnotationPresent(Update.excluded.class)) {
+            this.updateAnnotation = enclosingClass.getAnnotation(Update.class);
+        } else {
+            this.updateAnnotation = null;
+        }
+
+        this.isEager = false;
+
+        if (!this.isFinal && !this.isHibernateIntern && this.updateAnnotation != null) {
+            this.updatable = true;
+            this.notNull = this.updateAnnotation.notNull();
         } else {
             // no update needed.
             this.updatable = false;
@@ -174,9 +186,21 @@ public final class FieldReflector<T, V> {
             this.description = this.description();
             return;
         }
+        this.initializeLength();
         this.initialize();
     }
 
+    private void initializeLength() {
+        if (this.columnAnnotation != null && this.updateAnnotation != null) {
+            this.length = Math.min(this.columnAnnotation.length(), this.updateAnnotation.length());
+        } else if (this.columnAnnotation != null) {
+            this.length = this.columnAnnotation.length();
+        } else if (this.updateAnnotation != null) {
+            this.length = this.updateAnnotation.length();
+        } else {
+            this.length = -1;
+        }
+    }
 
     private void initialize() {
         this.description = this.description();
@@ -432,6 +456,14 @@ public final class FieldReflector<T, V> {
         return this.columnAnnotation;
     }
 
+    public Update getUpdateAnnotation() {
+        return this.updateAnnotation;
+    }
+
+    public int getLength() {
+        return this.length;
+    }
+
     @Override
     public String toString() {
         return this.description;
@@ -445,9 +477,12 @@ public final class FieldReflector<T, V> {
             return stringBuilder.toString();
         }
         if (this.updatable) {
-            stringBuilder.append("\t@Update");
+            stringBuilder.append("\t@Update(length = ");
+            stringBuilder.append(this.length);
             if (!this.notNull) {
-                stringBuilder.append("(notNull = false)");
+                stringBuilder.append(", notNull = false)");
+            } else {
+                stringBuilder.append(")");
             }
             stringBuilder.append("\r\n");
         }

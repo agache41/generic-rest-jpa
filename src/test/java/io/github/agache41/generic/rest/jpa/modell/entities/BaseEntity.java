@@ -102,7 +102,7 @@ public class BaseEntity {
     @Update.excluded
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    @Column(name = "vStringVal", nullable = false)
+    @Column(name = "vStringVal", length = 2, nullable = false)
     private String vStringVal;
 
     @Update
@@ -110,7 +110,7 @@ public class BaseEntity {
         return this.vStringVal;
     }
 
-    @Update
+    @Update(length = 2)
     public void setVirtualStringVal(final String virtualStringVal) {
         this.vStringVal = virtualStringVal;
     }
