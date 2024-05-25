@@ -387,14 +387,23 @@ The library works with Java 11+, Quarkus 3.4.3+, JPA 2+
 
 ## Installation
 
-Simply add  `io.structured.api:quarkus-structured-api` dependency to your project.
+Simply add  `io.github.agache41:generic-rest-jpa.version` dependency to your project.
+
+The current version today at sunset:
+
+```xml
+
+<generic-rest-jpa.version>0.2.7</generic-rest-jpa.version>
+```
+
+The dependency for the main jar:
 
 ```xml
 
 <dependency>
-    <groupId>io.structured.api</groupId>
-    <artifactId>quarkus-structured-api</artifactId>
-    <version>version</version>
+    <groupId>io.github.agache41</groupId>
+    <artifactId>generic-rest-jpa</artifactId>
+    <version>${generic-rest-jpa.version}</version>
 </dependency>
 ```
 
@@ -403,9 +412,9 @@ For the test context the tests-classified jar is needed:
 ```xml
 
 <dependency>
-    <groupId>io.structured.api</groupId>
-    <artifactId>quarkus-structured-api</artifactId>
-    <version>version</version>
+    <groupId>io.github.agache41</groupId>
+    <artifactId>generic-rest-jpa</artifactId>
+    <version>${generic-rest-jpa.version}</version>
     <classifier>tests</classifier>
     <type>test-jar</type>
     <scope>test</scope>
@@ -418,7 +427,7 @@ For the test context the tests-classified jar is needed:
 - Test coverage provided on the fly.
 - Works with both [Jackson](https://github.com/FasterXML/jackson) and [JSONB](https://javaee.github.io/jsonb-spec/). No
   support yet for reactive mode.
-- Tested with Quarkus 3.4.3.
+- Tested with Quarkus 3.6.7.
 
 ## Structure
 
