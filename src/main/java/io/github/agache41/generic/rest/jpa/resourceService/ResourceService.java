@@ -22,7 +22,6 @@ import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.UriInfo;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -239,7 +238,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param maxResults  the max results
      * @return the list of entities matching
      */
-    List<T> postFilterContentInAsList(final HashMap<String, List<Object>> values,
+    List<T> postFilterContentInAsList(final Map<String, List<Object>> values,
                                       Integer firstResult,
                                       Integer maxResults);
 

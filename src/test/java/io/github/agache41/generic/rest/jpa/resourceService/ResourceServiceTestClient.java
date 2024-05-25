@@ -22,7 +22,6 @@ import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.UriInfo;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -272,7 +271,7 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
      * {@inheritDoc}
      */
     @Override
-    public List<T> postFilterContentInAsList(final HashMap<String, List<Object>> values,
+    public List<T> postFilterContentInAsList(final Map<String, List<Object>> values,
                                              final Integer firstResult,
                                              final Integer maxResults) {
         return given().contentType(ContentType.JSON)

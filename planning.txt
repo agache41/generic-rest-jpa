@@ -1,25 +1,28 @@
-Planning :
--- done: add support for setter/getter fields with update
--- done: fix collection persistence for facade collections (setter call at the end)
--- done: check select for postgres embedded id autocompleteId with id and count
--- done: maxResults und firstResult for all filter requests and list all
--- done: add object query param to autocomplete
--- done: support for filter in embedded id oder sub entitites (ex id.key1=abcd)
--- done: optimize and extend query parameter filter
--- done: refactor postFilterContentInAsList with Map<String,List<Object>>
--- done: optimize has Field method and move in ClassReflector (deleted)
--- done: add length to @Update
--- add equals for update fields (implement equals method for test)
-- check diff between findbyid and query where id=?
-- make tests methods independedt
-
-
+The Planning
+Done:
+-- add support for setter/getter fields with @Update.
+-- fix collection persistence for facade collections (setter call at the end) with @Update.
+-- check select for postgres embedded id autocompleteId with id and count.
+-- maxResults und firstResult for all filter requests and list all.
+-- add object query param to autocomplete.
+-- support for filter in embedded id oder sub entitites (ex id.key1=abcd).
+-- optimize and extend query parameter filter.
+-- refactor postFilterContentInAsList with Map<String,List<Object>>.
+-- optimize has Field method and move in ClassReflector (was optimized so good that wasn't needed anymore) - deleted.
+-- add length to @Update.
+-- add equals for update fields (implement equals method for test).
+Undergoing:
+- add notnull support for @NotNull annotation and @Column nullable.
+Proposed:
+- check diff between findbyid and query where id=? for left join in @OneToOne
+- make tests methods independent
 - add better field producer for string with english words
 - add separate classes for read services and write services/separate delete/function switch
 - add support for Ag Grid
--- ?? do we do it ? add className.fieldName to Query Param name
+-- add className.fieldName to Query Param name ?? do we do it ??
 -- refactor cb/query/root
--- admin :
+Proposed admin :
 --- add separate profile for github build and local with postgres
 --- read me update
--- NOT DONE optimize autocomplete id
+Rejected
+-- optimize autocomplete id

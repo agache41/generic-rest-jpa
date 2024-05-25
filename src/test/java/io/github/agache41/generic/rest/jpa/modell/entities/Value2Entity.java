@@ -18,8 +18,8 @@
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -31,7 +31,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Value2Entity implements PrimaryKey<Long>, Updateable<Value2Entity> {
+public class Value2Entity implements PrimaryKey<Long>, Updatable<Value2Entity> {
+    private static final long serialVersionUID = -3750996983127395677L;
     @Id
     @EqualsAndHashCode.Exclude
     @GeneratedValue(strategy = GenerationType.IDENTITY)

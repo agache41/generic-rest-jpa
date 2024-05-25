@@ -17,13 +17,14 @@
 
 package io.github.agache41.generic.rest.jpa.dataAccess;
 
-import io.github.agache41.generic.rest.jpa.update.Updateable;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import jakarta.persistence.EntityTransaction;
 
 
-public class AbstractLocalH2DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> extends DataAccess<ENTITY, PK> {
+public class AbstractLocalH2DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> extends DataAccess<ENTITY, PK> {
 
-    public AbstractLocalH2DataAccess(Class<ENTITY> type, Class<PK> keyType) {
+    public AbstractLocalH2DataAccess(final Class<ENTITY> type,
+                                     final Class<PK> keyType) {
         super(type, keyType);
         this.em = H2HEntityManagerFactory.getInstance()
                                          .getEntityManagerFactory()
@@ -31,13 +32,13 @@ public class AbstractLocalH2DataAccess<ENTITY extends PrimaryKey<PK> & Updateabl
     }
 
     public void beginTransaction() {
-        EntityTransaction transaction = this.em.getTransaction();
+        final EntityTransaction transaction = this.em.getTransaction();
         transaction.begin();
     }
 
     public void commitTransaction() {
         this.em.flush();
-        EntityTransaction transaction = this.em.getTransaction();
+        final EntityTransaction transaction = this.em.getTransaction();
         transaction.commit();
         this.em.clear();
     }

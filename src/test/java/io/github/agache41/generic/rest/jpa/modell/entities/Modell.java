@@ -18,8 +18,8 @@
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
@@ -38,7 +38,7 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Update
 @Entity
-public class Modell extends BaseEntity implements PrimaryKey<Long>, Updateable<Modell> {
+public class Modell extends BaseEntity implements PrimaryKey<Long>, Updatable<Modell> {
 
     private static final long serialVersionUID = 4981653210124872352L;
 

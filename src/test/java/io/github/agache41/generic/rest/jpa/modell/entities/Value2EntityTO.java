@@ -17,8 +17,8 @@
 
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Update
-public class Value2EntityTO implements Updateable<Value2EntityTO> {
+public class Value2EntityTO implements Updatable<Value2EntityTO> {
 
     private String subName;
 

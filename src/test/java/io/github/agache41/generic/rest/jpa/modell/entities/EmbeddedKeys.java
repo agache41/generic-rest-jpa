@@ -18,8 +18,8 @@
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
 
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
@@ -33,7 +33,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Update
 @Embeddable
-public class EmbeddedKeys implements Updateable<EmbeddedKeys> {
+public class EmbeddedKeys implements Updatable<EmbeddedKeys> {
 
     @Column(name = "key1")
     private String key1;

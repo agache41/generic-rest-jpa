@@ -18,8 +18,8 @@
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -33,7 +33,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Update
-public class Modell2 implements PrimaryKey<String>, Updateable<Modell2> {
+public class Modell2 implements PrimaryKey<String>, Updatable<Modell2> {
 
     private static final long serialVersionUID = 265448020827321843L;
 

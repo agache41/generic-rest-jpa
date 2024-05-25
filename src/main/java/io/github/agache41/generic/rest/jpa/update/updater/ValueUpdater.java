@@ -17,7 +17,7 @@
 
 package io.github.agache41.generic.rest.jpa.update.updater;
 
-import io.github.agache41.generic.rest.jpa.update.Updateable;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -109,7 +109,7 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
      * @param constructor the constructor
      * @return true if the target map has changed
      */
-    protected static <KEY, VALUE extends Updateable<VALUE>> boolean updateMap(
+    protected static <KEY, VALUE extends Updatable<VALUE>> boolean updateMap(
             final Map<KEY, VALUE> targetValue,
             final Map<KEY, VALUE> sourceValue,
             final Supplier<VALUE> constructor) {

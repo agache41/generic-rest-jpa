@@ -28,7 +28,7 @@ import jakarta.persistence.Transient;
  * It consists of one method to be implemented in the entity to coordinate the update process.
  * The default implementation uses the ClassReflector mechanism to update the fields.
  */
-public interface Updateable<ENTITY extends Updateable<ENTITY>> {
+public interface Updatable<ENTITY extends Updatable<ENTITY>> {
     @Transient
     default boolean update(final ENTITY source) {
         return ClassReflector.ofObject(this)

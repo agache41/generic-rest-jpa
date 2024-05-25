@@ -20,7 +20,7 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 import io.github.agache41.generic.rest.jpa.dataAccess.DataAccess;
 import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.*;
@@ -29,7 +29,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.UriInfo;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -45,7 +44,7 @@ import java.util.stream.Collectors;
  * @param <K> the type parameter
  */
 
-public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Updateable<T>, K> implements ResourceService<T, K> {
+public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Updatable<T>, K> implements ResourceService<T, K> {
 
 
     /**
@@ -261,7 +260,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/content/in/values/asList")
-    public List<T> postFilterContentInAsList(final HashMap<String, List<Object>> values,
+    public List<T> postFilterContentInAsList(final Map<String, List<Object>> values,
                                              @QueryParam("firstResult") final Integer firstResult,
                                              @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()

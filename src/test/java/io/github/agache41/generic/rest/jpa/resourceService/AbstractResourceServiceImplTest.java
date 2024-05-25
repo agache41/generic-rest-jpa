@@ -20,7 +20,7 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
 import org.jboss.logging.Logger;
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 @TestInstance(PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & Updateable<T>, K> {
+public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & Updatable<T>, K> {
 
     private static final Logger LOG = Logger.getLogger(AbstractResourceServiceImplTest.class);
     private final List<T> insertData;

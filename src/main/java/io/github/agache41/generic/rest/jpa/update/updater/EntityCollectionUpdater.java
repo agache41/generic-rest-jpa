@@ -18,7 +18,7 @@
 package io.github.agache41.generic.rest.jpa.update.updater;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -35,7 +35,7 @@ import java.util.function.Supplier;
  * @param <VALUE>      the type parameter
  * @param <PK>         the type parameter
  */
-public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collection<VALUE>, VALUE extends Updateable<VALUE> & PrimaryKey<PK>, PK> extends ValueUpdater<TARGET, SOURCE, COLLECTION> {
+public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collection<VALUE>, VALUE extends Updatable<VALUE> & PrimaryKey<PK>, PK> extends ValueUpdater<TARGET, SOURCE, COLLECTION> {
 
     /**
      * The Constructor.
@@ -78,7 +78,7 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
      * @param source       the source
      * @return true if the target changed
      */
-    public static <T, S, C extends Collection<E>, E extends Updateable<E> & PrimaryKey<K>, K> boolean updateEntityCollection(
+    public static <T, S, C extends Collection<E>, E extends Updatable<E> & PrimaryKey<K>, K> boolean updateEntityCollection(
             final BiConsumer<T, C> setter,
             final Function<T, C> getter,
             final boolean notNull,

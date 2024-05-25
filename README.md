@@ -41,7 +41,10 @@ Let's start with a database table named Modell and the associated JPA Entity.
 
 ### Entity
 
-Let the **entity** implement the [PrimaryKey](src/main/java/io/klebrit/generic/api/dataAccess/PrimaryKey.java)
+Let the **entity** implement
+the [PrimaryKey](src/main/java/io/github/agache41/generic/rest/jpa/dataAccess/PrimaryKey.java) and
+the [Updatable](src/main/java/io/github/agache41/generic/rest/jpa/update/Updatable.java)
+
 interface :
 
 ```java
@@ -49,7 +52,7 @@ interface :
 @Data
 @NoArgsConstructor
 @Entity
-public class Modell implements PrimaryKey<Long> {
+public class Modell implements PrimaryKey<Long>, Updateable<Modell> {
 
     @Id
     @NotNull
@@ -90,22 +93,24 @@ and ... you're pretty much done.
 
 For the **Modell** entity the following REST services are available :
 
-- GET /modell/{id} - finds and returns the corresponding entity for the given id.
+- GET /modell/{id} - finds and returns the corresponding entity for the given path id.
+- POST /modell/byId - finds and returns the corresponding entity for the given body id.
 - GET /modell/all/asList - returns all the entities for the given table.
-- GET /modell/byIds/{ids}/asList - finds and returns the corresponding entity for the given list of ids.
-- POST /modell/byIds/asList - finds and returns the corresponding entity for the given list of ids using post.
+- GET /modell/byIds/{ids}/asList - finds and returns the corresponding entity for the given path list of id's.
+- POST /modell/byIds/asList - finds and returns the corresponding entity for the given list of body id's.
 - GET /modell/filter/{stringField}/equals/{value}/asList - finds all entities whose value in a specified string field is
-  equal
-  the given value.
+  equal to the given value.
 - GET /modell/filter/{stringField}/like/{value}/asList - finds all entities whose value in a specified field is like the
-  given value.
+  given path value.
 - GET /modell/filter/{stringField}/in/{values}/asList - finds all entities whose value in a specified field is in the
-  given values list.
-- GET /modell/autocomplete/{stringField}/like/{value}/asSortedSet - finds all values in a database column whose value is
-  like the given value.
-- POST /modell/filter/content/equals/value/asList - finds in Database the entities that equals a given content object.
-- POST /modell/filter/content/in/values/asList - finds in Database the entities that are in a given content list of
-  given values.
+  given path values list.
+- GET /modell/autocomplete/{stringField}/like/{value}/asSortedSet - finds all values in a field whose value is like the
+  given value.
+- GET /modell/autocompleteIds/{stringField}/like/{value}/asList - finds all entities whose value in a field is like the
+  given value, groups them, and returns for each the corresponding id.
+- POST /modell/filter/content/equals/value/asList - finds all entities that equals a given body content object.
+- POST /modell/filter/content/in/values/asList - finds all entities that are in a given body content list of given
+  values.
 - POST /modell/ - inserts a new entity in the database or updates an existing one.
 - POST /modell/list/asList - inserts a list of new entities in the database or updates the existing ones.
 - PUT /modell/ - updates an existing entity by id.
@@ -238,10 +243,10 @@ extending  [AbstractResourceServiceImplTest](src/main/java/io/github/agache41/ge
 public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<Modell, Long> {
     public ModellResourceServiceTest() {
         super(Modell.class, // - the entity class
-                "/modell", //  - the controller path
-                Arrays.asList(modell1, modell2, modell3, modell4, modell5), // - one list of entities to insert
-                Arrays.asList(modell1updated, modell2updated, modell3updated, modell4updated, modell5updated), // - one list of entities to update 
-                "name"); // - the name of field of type string to take part in filter methods
+              "/modell", //  - the controller path
+              Arrays.asList(modell1, modell2, modell3, modell4, modell5), // - one list of entities to insert
+              Arrays.asList(modell1updated, modell2updated, modell3updated, modell4updated, modell5updated), // - one list of entities to update 
+              "name"); // - the name of field of type string to take part in filter methods
     }
 }
 

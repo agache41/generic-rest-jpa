@@ -18,7 +18,7 @@
 package io.github.agache41.generic.rest.jpa.update.updater;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -35,7 +35,7 @@ import java.util.function.Supplier;
  * @param <VALUE>  the type parameter
  * @param <KEY>    the type parameter
  */
-public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE extends Updateable<VALUE>, KEY> extends ValueUpdater<TARGET, SOURCE, MAP> {
+public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE extends Updatable<VALUE>, KEY> extends ValueUpdater<TARGET, SOURCE, MAP> {
 
     /**
      * The Constructor.
@@ -78,7 +78,7 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
      * @param source       the source
      * @return true if the target changed
      */
-    public static <T, S, C extends Map<K, E>, E extends Updateable<E> & PrimaryKey<K>, K> boolean updateEntityMap(
+    public static <T, S, C extends Map<K, E>, E extends Updatable<E> & PrimaryKey<K>, K> boolean updateEntityMap(
             final BiConsumer<T, C> setter,
             final Function<T, C> getter,
             final boolean notNull,

@@ -19,8 +19,8 @@ package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,7 +31,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class SubModell extends BaseEntity implements PrimaryKey<Long>, Updateable<SubModell> {
+public class SubModell extends BaseEntity implements PrimaryKey<Long>, Updatable<SubModell> {
 
     private static final long serialVersionUID = 4145235006835414021L;
 

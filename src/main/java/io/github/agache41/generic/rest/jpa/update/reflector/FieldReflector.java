@@ -18,8 +18,8 @@
 package io.github.agache41.generic.rest.jpa.update.reflector;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
 import io.github.agache41.generic.rest.jpa.update.updater.*;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 import jakarta.persistence.Column;
@@ -65,12 +65,12 @@ public final class FieldReflector<T, V> {
     private final boolean valid;
     private final Column columnAnnotation;
     private final Update updateAnnotation;
-    private String description;
+    private final String description;
+    private final int length;
     private Updater<T, T> updater;
     private boolean map;
     private boolean collection;
     private boolean value;
-    private int length = -1;
 
     /**
      * <pre>
@@ -129,12 +129,13 @@ public final class FieldReflector<T, V> {
             this.value = false;
             this.collection = false;
             this.map = false;
-            this.initializeDescription();
+            this.length = this.length();
+            this.description = this.description();
             return;
         }
         this.initialize();
-        this.initializeLength();
-        this.initializeDescription();
+        this.length = this.length();
+        this.description = this.description();
     }
 
     /**
@@ -184,25 +185,27 @@ public final class FieldReflector<T, V> {
             this.value = false;
             this.collection = false;
             this.map = false;
-            this.initializeDescription();
+            this.length = this.length();
+            this.description = this.description();
             return;
         }
         this.initialize();
-        this.initializeLength();
-        this.initializeDescription();
+        this.length = this.length();
+        this.description = this.description();
     }
 
-    private void initializeLength() {
+    private int length() {
         //default value;
-        this.length = Update.defaultLength;
+        int length = Update.defaultLength;
         // a simple field with column
         if (this.columnAnnotation != null && !this.collection && !this.map) {
-            this.length = this.columnAnnotation.length();
+            length = this.columnAnnotation.length();
         }
         //if update has length
         if (this.updateAnnotation != null && this.updateAnnotation.length() != Update.defaultLength) {
-            this.length = this.updateAnnotation.length();
+            length = this.updateAnnotation.length();
         }
+        return length;
     }
 
     private void initialize() {
@@ -213,9 +216,9 @@ public final class FieldReflector<T, V> {
             this.value = false;
             this.map = false;
             this.collection = true;
-            if (Updateable.class.isAssignableFrom(this.firstParameter) && PrimaryKey.class.isAssignableFrom(this.firstParameter)) {
+            if (Updatable.class.isAssignableFrom(this.firstParameter) && PrimaryKey.class.isAssignableFrom(this.firstParameter)) {
                 //collection of entities
-                this.updater = new EntityCollectionUpdater<>((BiConsumer<T, Collection<UpdateablePrimaryKey>>) this.setter, (Function<T, Collection<UpdateablePrimaryKey>>) this.getter, this.notNull, (Function<T, Collection<UpdateablePrimaryKey>>) this.getter, (Supplier<UpdateablePrimaryKey>) ReflectionUtils.supplierOf(this.firstParameter));
+                this.updater = new EntityCollectionUpdater<>((BiConsumer<T, Collection<UpdatablePrimaryKey>>) this.setter, (Function<T, Collection<UpdatablePrimaryKey>>) this.getter, this.notNull, (Function<T, Collection<UpdatablePrimaryKey>>) this.getter, (Supplier<UpdatablePrimaryKey>) ReflectionUtils.supplierOf(this.firstParameter));
             } else {
                 //collection of simple objects
                 this.updater = new CollectionUpdater<>((BiConsumer<T, Collection<Object>>) this.setter, (Function<T, Collection<Object>>) this.getter, this.notNull, (Function<T, Collection<Object>>) this.getter);
@@ -224,19 +227,19 @@ public final class FieldReflector<T, V> {
             this.value = false;
             this.map = true;
             this.collection = false;
-            if (Updateable.class.isAssignableFrom(this.secondParameter)) {
+            if (Updatable.class.isAssignableFrom(this.secondParameter)) {
                 //map of entities
-                this.updater = new EntityMapUpdater<>((BiConsumer<T, Map<Object, Updateable>>) this.setter, (Function<T, Map<Object, Updateable>>) this.getter, this.notNull, (Function<T, Map<Object, Updateable>>) this.getter, (Supplier<Updateable>) ReflectionUtils.supplierOf(this.secondParameter));
+                this.updater = new EntityMapUpdater<>((BiConsumer<T, Map<Object, Updatable>>) this.setter, (Function<T, Map<Object, Updatable>>) this.getter, this.notNull, (Function<T, Map<Object, Updatable>>) this.getter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.secondParameter));
             } else {
                 //map of simple objects
                 this.updater = new MapUpdater<>((BiConsumer<T, Map<Object, Object>>) this.setter, (Function<T, Map<Object, Object>>) this.getter, this.notNull, (Function<T, Map<Object, Object>>) this.getter);
             }
-        } else if (Updateable.class.isAssignableFrom(this.type)) {
+        } else if (Updatable.class.isAssignableFrom(this.type)) {
             this.value = false;
             this.map = false;
             this.collection = false;
             // entity
-            this.updater = new EntityUpdater<>((BiConsumer<T, Updateable>) this.setter, (Function<T, Updateable>) this.getter, this.notNull, (Function<T, Updateable>) this.getter, (Supplier<Updateable>) ReflectionUtils.supplierOf(this.type));
+            this.updater = new EntityUpdater<>((BiConsumer<T, Updatable>) this.setter, (Function<T, Updatable>) this.getter, this.notNull, (Function<T, Updatable>) this.getter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.type));
         } else {
             // simple value
             this.value = true;
@@ -471,13 +474,12 @@ public final class FieldReflector<T, V> {
         return this.description;
     }
 
-    private void initializeDescription() {
+    private String description() {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("\r\n");
         if (!this.valid) {
             stringBuilder.append("[Warning] Invalid Field (no valid setter and getter) [Warning]");
-            this.description = stringBuilder.toString();
-            return;
+            return stringBuilder.toString();
         }
         if (this.updatable) {
             stringBuilder.append("\t@Update");
@@ -513,10 +515,10 @@ public final class FieldReflector<T, V> {
         stringBuilder.append("\t\t");
         stringBuilder.append(this.name);
         stringBuilder.append("; \r\n");
-        this.description = stringBuilder.toString();
+        return stringBuilder.toString();
     }
 
-    private interface UpdateablePrimaryKey<T extends Updateable<T>, PK> extends Updateable<T>, PrimaryKey<PK> {
+    private interface UpdatablePrimaryKey<T extends Updatable<T>, PK> extends Updatable<T>, PrimaryKey<PK> {
     }
 
 }

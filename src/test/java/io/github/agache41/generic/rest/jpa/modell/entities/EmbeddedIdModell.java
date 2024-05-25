@@ -18,8 +18,8 @@
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
@@ -35,7 +35,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Update
 @Entity
-public class EmbeddedIdModell extends BaseEntity implements PrimaryKey<EmbeddedKeys>, Updateable<EmbeddedIdModell> {
+public class EmbeddedIdModell extends BaseEntity implements PrimaryKey<EmbeddedKeys>, Updatable<EmbeddedIdModell> {
 
     private static final long serialVersionUID = 4981653210124872352L;
 

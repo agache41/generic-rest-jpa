@@ -20,8 +20,8 @@ package io.github.agache41.generic.rest.jpa.dataAccess;
 
 import io.github.agache41.generic.rest.jpa.exceptions.ExpectedException;
 import io.github.agache41.generic.rest.jpa.exceptions.UnexpectedException;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import io.github.agache41.generic.rest.jpa.update.Updateable;
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
@@ -63,7 +63,7 @@ import static java.util.stream.Collectors.toList;
  */
 @Dependent
 @Named("base")
-public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> {
+public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
 
     private static final Set<String> reserved = Stream.of("cut", "maxResults", "firstResult")
                                                       .collect(Collectors.toSet());
@@ -621,7 +621,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updateable<ENTITY>, PK> 
      * @param maxResults  the max results
      * @return the persisted entity
      */
-    public Stream<ENTITY> streamByContentInValues(final HashMap<String, List<Object>> mapValues,
+    public Stream<ENTITY> streamByContentInValues(final Map<String, List<Object>> mapValues,
                                                   final int firstResult,
                                                   final int maxResults) {
         final CriteriaQuery<ENTITY> query = this.query();
