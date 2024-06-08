@@ -119,6 +119,11 @@ public interface ResourceServiceConfig {
         return autocompleteMaxResults;
     }
 
+    /**
+     * Gets verify.
+     *
+     * @return the verify
+     */
     default boolean getVerify() {
         return false;
     }

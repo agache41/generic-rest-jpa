@@ -130,8 +130,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/byIds/asList")
     public List<T> postByIdsAsList(final List<K> ids) {
-        return this.getDataAccess()
-                   .listByIds(ids);
+        final List<T> inserted = this.getDataAccess()
+                                     .listByIds(ids);
+        return this.doVerify(inserted);
     }
 
     /**
@@ -267,8 +268,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public T post(final T source) {
-        return this.getDataAccess()
-                   .merge(source);
+        final T inserted = this.getDataAccess()
+                               .merge(source);
+        return this.doVerify(inserted);
     }
 
     /**
@@ -293,26 +295,33 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public T put(final T source) {
-        final K id = source.getId();
-        return this.doVerify(this.getDataAccess()
-                                 .updateById(source), source.getId());
+        final T updated = this.getDataAccess()
+                              .updateById(source);
+        return this.doVerify(updated);
 
     }
 
-    T doVerify(final T processed,
-               final K originalId) {
+    T doVerify(final T updated) {
         if (!this.getConfig()
                  .getVerify()) {
-            return processed;
+            return updated;
         }
-
-        final K id = originalId == null || !originalId.equals(processed.getId()) ? processed.getId() : originalId;
+        final K id = updated.getId();
+        if (id == null) {
+            throw new RuntimeException(" Verify fail " + updated + " has null id! ");
+        }
         final T actual = this.getDataAccess()
                              .findById(id);
-        if (!processed.equals(actual)) {
-            throw new RuntimeException(" Verify fail " + processed + " <> " + actual);
+        if (!updated.equals(actual)) {
+            throw new RuntimeException(" Verify fail " + updated + " <> " + actual);
         }
         return actual;
+    }
+
+    List<T> doVerify(final List<T> updated) {
+        return updated.stream()
+                      .map(this::doVerify)
+                      .collect(Collectors.toList());
     }
 
     /**
@@ -324,8 +333,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list/asList")
     public List<T> putListAsList(final List<T> sources) {
-        return this.getDataAccess()
-                   .updateByIds(sources);
+        final List<T> updated = this.getDataAccess()
+                                    .updateByIds(sources);
+        return this.doVerify(updated);
     }
 
     /**
