@@ -50,6 +50,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
     private final List<T> updateData;
 
     private final ClassReflector<T> classReflector;
+
+    private final Producer<T> producer;
     private final FieldReflector<T, String> fieldReflector;
     private final String stringField;
     private final ResourceService<T, K> client;
@@ -75,6 +77,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
         this.insertData = insertData;
         this.updateData = updateData;
         this.classReflector = ClassReflector.ofClass(clazz);
+        this.producer = Producer.ofClass(clazz);
         if (stringField != null) {
             this.fieldReflector = ClassReflector.ofClass(clazz)
                                                 .getReflector(stringField, String.class);
@@ -246,7 +249,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
 
     @Test
     @Order(33)
-    public void testPutFieldForEachField() {
+    public void testPutEachField() {
         for (final T req : this.updateData) {
 
             //given
@@ -256,15 +259,9 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
 
             //iterate over the values in the object
             for (final FieldReflector reflector : this.classReflector.getValueReflectorsArray()) {
-
-                if (reflector.isId()) {
+                if (!reflector.isUpdatable() || reflector.isId()) {
                     continue;
                 }
-                if (reflector.getColumnAnnotation() != null && !reflector.getColumnAnnotation()
-                                                                         .updatable()) {   // field must not be updated
-                    continue;
-                }
-
                 // create new empty object
                 final T feldReq = this.classReflector.newInstance();
                 // set the id
@@ -272,8 +269,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
 
                 for (int repeatField = 2; repeatField > 0; repeatField--) {
                     // set only this field
-                    final Object value = Producer.ofClass(this.clazz)
-                                                 .produceField(feldReq, reflector);
+                    final Object value = this.producer.produceField(feldReq, reflector);
                     //when
                     final T feldRes = this.getClient()
                                           .put(feldReq);
@@ -284,17 +280,102 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
                     assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Checking field " + reflector.getName());
                     assertEquals(value, reflector.get(feldRes), " Checking field " + reflector.getName());
 
-                    final T getres = this.getClient()
+                    final T getRes = this.getClient()
                                          .get(id);
                     //then
-                    assertNotNull(getres);
-                    assertNotNull(getres.getId());
-                    assertEquals(id, getres.getId());
-                    assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Checking field " + reflector.getName());
-                    assertEquals(value, reflector.get(feldRes), " Checking field " + reflector.getName());
+                    assertNotNull(getRes);
+                    assertNotNull(getRes.getId());
+                    assertEquals(id, getRes.getId());
+                    assertEquals(reflector.get(feldReq), reflector.get(getRes), " Checking field " + reflector.getName());
+                    assertEquals(value, reflector.get(getRes), " Checking field " + reflector.getName());
                 }
             }
         }
+        this.deleteAll();
+    }
+
+    @Test
+    @Order(34)
+    public void testPostEachField() {
+
+        //iterate over the values in the object
+        for (final FieldReflector reflector : this.classReflector.getValueReflectorsArray()) {
+            if (!reflector.isUpdatable() || reflector.isId()) {
+                continue;
+            }
+            // create new empty object
+            final T feldReq = this.producer.produceMinimal();
+            //then
+            assertNotNull(feldReq);
+
+            // set only this field
+            final Object value = this.producer.produceField(feldReq, reflector);
+            //when
+            final T feldRes = this.getClient()
+                                  .post(feldReq);
+            //then
+            assertNotNull(feldRes);
+            final K id = feldRes.getId();
+            assertNotNull(id);
+
+            assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Checking field " + reflector.getName());
+            assertEquals(value, reflector.get(feldRes), " Checking field " + reflector.getName());
+
+            final T getRes = this.getClient()
+                                 .get(id);
+            //then
+            assertNotNull(getRes);
+            assertNotNull(getRes.getId());
+            assertEquals(id, getRes.getId());
+            assertEquals(reflector.get(feldReq), reflector.get(getRes), " Checking field " + reflector.getName());
+            assertEquals(value, reflector.get(getRes), " Checking field " + reflector.getName());
+
+        }
+        this.deleteAll();
+    }
+
+    @Test
+    @Order(34)
+    public void testPostMinimalPutEachField() {
+
+        //iterate over the values in the object
+        for (final FieldReflector reflector : this.classReflector.getValueReflectorsArray()) {
+            if (!reflector.isUpdatable() || reflector.isId()) {
+                continue;
+            }
+            // create new empty object
+            final T baseReq = this.producer.produceMinimal();
+            //then
+            assertNotNull(baseReq);
+            //when
+            final T baseRes = this.getClient()
+                                  .post(baseReq);
+            //then
+            assertNotNull(baseRes);
+            final K id = baseRes.getId();
+            assertNotNull(id);
+
+            // set only this field
+            final Object value = this.producer.produceField(baseRes, reflector);
+
+            final T feldRes = this.getClient()
+                                  .put(baseRes);
+
+
+            assertEquals(reflector.get(baseRes), reflector.get(feldRes), " Checking field " + reflector.getName());
+            assertEquals(value, reflector.get(feldRes), " Checking field " + reflector.getName());
+
+            final T getRes = this.getClient()
+                                 .get(id);
+            //then
+            assertNotNull(getRes);
+            assertNotNull(getRes.getId());
+            assertEquals(id, getRes.getId());
+            assertEquals(reflector.get(baseRes), reflector.get(getRes), " Checking field " + reflector.getName());
+            assertEquals(value, reflector.get(getRes), " Checking field " + reflector.getName());
+
+        }
+        this.deleteAll();
     }
 
     @Test

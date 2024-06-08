@@ -26,6 +26,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.function.Predicate.not;
 
 
 /**
@@ -238,6 +241,21 @@ public class Producer<T> {
         final T result = ClassReflector.ofClass(this.clazz)
                                        .newInstance();
         return this.produceUpdatableFields(result);
+    }
+
+    /**
+     * Produce a minimal instance of a new Object, inserting all the needed fields (nullable = false)
+     *
+     * @return the object
+     */
+    public T produceMinimal() {
+        final T result = ClassReflector.ofClass(this.clazz)
+                                       .newInstance();
+        Stream.of(ClassReflector.ofClass(this.clazz)
+                                .getUpdateReflectorsArray())
+              .filter(not(FieldReflector::isNullable))
+              .forEach(fieldReflector -> this.produceField(result, fieldReflector));
+        return result;
     }
 
     /**

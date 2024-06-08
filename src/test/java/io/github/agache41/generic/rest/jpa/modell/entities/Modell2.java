@@ -38,6 +38,7 @@ public class Modell2 implements PrimaryKey<String>, Updatable<Modell2> {
     private static final long serialVersionUID = 265448020827321843L;
 
     @Id
+    @Update(nullable = false)
     private String id;
 
     private String name;

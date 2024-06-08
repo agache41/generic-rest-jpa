@@ -105,12 +105,12 @@ public class BaseEntity {
     @Column(name = "vStringVal", length = 2, nullable = false)
     private String vStringVal;
 
-    @Update
+    @Update(length = 2, nullable = false)
     public String getVirtualStringVal() {
         return this.vStringVal;
     }
 
-    @Update(length = 2)
+    @Update(length = 2, nullable = false)
     public void setVirtualStringVal(final String virtualStringVal) {
         this.vStringVal = virtualStringVal;
     }
