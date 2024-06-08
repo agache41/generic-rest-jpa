@@ -66,11 +66,11 @@ public class ModellFks implements PrimaryKey<Long>, Updatable<ModellFks> {
     @Column(name = "name", length = -1)
     private String name;
 
-    @Update(notNull = false)
+    @Update(dynamic = false)
     @Column(name = "street", length = -1)
     private String street;
 
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private Integer number;
 
     @EqualsAndHashCode.Exclude

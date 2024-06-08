@@ -153,7 +153,7 @@ public class Modell extends BaseEntity implements PrimaryKey<Long>, Updatable<Mo
         return virtualCollectionEntities;
     }
 
-    @Update(length = 2, notNull = false)
+    @Update(length = 2, dynamic = false)
     public void setVirtualCollectionEntities(final List<Collection2Entity> virtualCollectionEntities) {
         this.vCollectionEntities.clear();
         this.vCollectionEntities.addAll(virtualCollectionEntities);

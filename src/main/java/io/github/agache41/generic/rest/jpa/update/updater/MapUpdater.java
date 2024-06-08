@@ -41,14 +41,14 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
      *
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if values is not null
+     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param sourceGetter the source getter
      */
     public MapUpdater(final BiConsumer<TARGET, Map<KEY, VALUE>> setter,
                       final Function<TARGET, Map<KEY, VALUE>> getter,
-                      final boolean notNull,
+                      final boolean dynamic,
                       final Function<SOURCE, Map<KEY, VALUE>> sourceGetter) {
-        super(setter, getter, notNull, sourceGetter);
+        super(setter, getter, dynamic, sourceGetter);
     }
 
 
@@ -62,7 +62,7 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
      * @param <K>          the type parameter of the map key
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if values is not null
+     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param sourceGetter the source getter
      * @param target       the target
      * @param source       the source
@@ -71,11 +71,11 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
     public static <T, S, V, K> boolean updateMap(
             final BiConsumer<T, Map<K, V>> setter,
             final Function<T, Map<K, V>> getter,
-            final boolean notNull,
+            final boolean dynamic,
             final Function<S, Map<K, V>> sourceGetter,
             final T target,
             final S source) {
-        return new MapUpdater<>(setter, getter, notNull, sourceGetter).update(target, source);
+        return new MapUpdater<>(setter, getter, dynamic, sourceGetter).update(target, source);
     }
 
     /**
@@ -92,7 +92,7 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
         final Map<KEY, VALUE> sourceValue = this.sourceGetter.apply(source);
         // nulls
         if (sourceValue == null) {
-            if (this.notNull || this.getter.apply(target) == null) {
+            if (this.dynamic || this.getter.apply(target) == null) {
                 return false;
             } else {
                 this.setter.accept(target, null);

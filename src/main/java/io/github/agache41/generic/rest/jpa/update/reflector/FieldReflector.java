@@ -23,6 +23,7 @@ import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.updater.*;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import org.jboss.logging.Logger;
 
 import java.lang.reflect.Field;
@@ -54,18 +55,21 @@ public final class FieldReflector<T, V> {
     private final Function<T, V> getter;
     private final BiConsumer<T, V> setter;
     private final Field field;
-    private final boolean notNull;
+    private final boolean dynamic;
     private final boolean updatable;
     private final boolean isFinal;
     private final boolean isTransient;
     private final boolean isHibernateIntern;
     private final boolean isEager;
     private final boolean valid;
+    private final boolean activ;
     private final Column columnAnnotation;
     private final Update updateAnnotation;
     private final String description;
     private final int length;
     private final boolean id;
+    private final boolean nullable;
+    private final boolean insertable;
     private Updater<T, T> updater;
     private boolean map;
     private boolean collection;
@@ -118,13 +122,19 @@ public final class FieldReflector<T, V> {
             this.isEager = false;
         }
 
-        if (!this.isFinal && !this.isHibernateIntern && this.updateAnnotation != null) {
-            this.updatable = true;
-            this.notNull = this.updateAnnotation.notNull();
+        if (this.valid && !this.isFinal && !this.isHibernateIntern && this.updateAnnotation != null) {
+            this.activ = true;
+            this.dynamic = this.updateAnnotation.dynamic();
+            this.updatable = this.updateAnnotation.updatable() && (this.columnAnnotation == null || this.columnAnnotation.updatable());
+            this.nullable = this.updateAnnotation.nullable() && (this.columnAnnotation == null || this.columnAnnotation.nullable()) && !field.isAnnotationPresent(NotNull.class);
+            this.insertable = this.updateAnnotation.insertable() && (this.columnAnnotation == null || this.columnAnnotation.insertable());
         } else {
             // no update needed.
+            this.activ = false;
+            this.dynamic = false;
             this.updatable = false;
-            this.notNull = false;
+            this.nullable = false;
+            this.insertable = false;
             this.updater = null;
             this.value = false;
             this.collection = false;
@@ -174,13 +184,19 @@ public final class FieldReflector<T, V> {
         this.id = false;
         this.isEager = false;
 
-        if (!this.isFinal && !this.isHibernateIntern && this.updateAnnotation != null) {
-            this.updatable = true;
-            this.notNull = this.updateAnnotation.notNull();
+        if (this.valid && !this.isFinal && !this.isHibernateIntern && this.updateAnnotation != null) {
+            this.activ = true;
+            this.dynamic = this.updateAnnotation.dynamic();
+            this.updatable = this.updateAnnotation.updatable();
+            this.insertable = this.updateAnnotation.insertable();
+            this.nullable = this.updateAnnotation.nullable();
         } else {
             // no update needed.
+            this.activ = false;
+            this.dynamic = false;
             this.updatable = false;
-            this.notNull = false;
+            this.nullable = false;
+            this.insertable = false;
             this.updater = null;
             this.value = false;
             this.collection = false;
@@ -218,10 +234,10 @@ public final class FieldReflector<T, V> {
             this.collection = true;
             if (Updatable.class.isAssignableFrom(this.firstParameter) && PrimaryKey.class.isAssignableFrom(this.firstParameter)) {
                 //collection of entities
-                this.updater = new EntityCollectionUpdater<>((BiConsumer<T, Collection<UpdatablePrimaryKey>>) this.setter, (Function<T, Collection<UpdatablePrimaryKey>>) this.getter, this.notNull, (Function<T, Collection<UpdatablePrimaryKey>>) this.getter, (Supplier<UpdatablePrimaryKey>) ReflectionUtils.supplierOf(this.firstParameter));
+                this.updater = new EntityCollectionUpdater<>((BiConsumer<T, Collection<UpdatablePrimaryKey>>) this.setter, (Function<T, Collection<UpdatablePrimaryKey>>) this.getter, this.dynamic, (Function<T, Collection<UpdatablePrimaryKey>>) this.getter, (Supplier<UpdatablePrimaryKey>) ReflectionUtils.supplierOf(this.firstParameter));
             } else {
                 //collection of simple objects
-                this.updater = new CollectionUpdater<>((BiConsumer<T, Collection<Object>>) this.setter, (Function<T, Collection<Object>>) this.getter, this.notNull, (Function<T, Collection<Object>>) this.getter);
+                this.updater = new CollectionUpdater<>((BiConsumer<T, Collection<Object>>) this.setter, (Function<T, Collection<Object>>) this.getter, this.dynamic, (Function<T, Collection<Object>>) this.getter);
             }
         } else if (ReflectionUtils.isClassMap(this.type) && this.firstParameter != null && this.secondParameter != null) {
             this.value = false;
@@ -229,23 +245,23 @@ public final class FieldReflector<T, V> {
             this.collection = false;
             if (Updatable.class.isAssignableFrom(this.secondParameter)) {
                 //map of entities
-                this.updater = new EntityMapUpdater<>((BiConsumer<T, Map<Object, Updatable>>) this.setter, (Function<T, Map<Object, Updatable>>) this.getter, this.notNull, (Function<T, Map<Object, Updatable>>) this.getter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.secondParameter));
+                this.updater = new EntityMapUpdater<>((BiConsumer<T, Map<Object, Updatable>>) this.setter, (Function<T, Map<Object, Updatable>>) this.getter, this.dynamic, (Function<T, Map<Object, Updatable>>) this.getter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.secondParameter));
             } else {
                 //map of simple objects
-                this.updater = new MapUpdater<>((BiConsumer<T, Map<Object, Object>>) this.setter, (Function<T, Map<Object, Object>>) this.getter, this.notNull, (Function<T, Map<Object, Object>>) this.getter);
+                this.updater = new MapUpdater<>((BiConsumer<T, Map<Object, Object>>) this.setter, (Function<T, Map<Object, Object>>) this.getter, this.dynamic, (Function<T, Map<Object, Object>>) this.getter);
             }
         } else if (Updatable.class.isAssignableFrom(this.type)) {
             this.value = false;
             this.map = false;
             this.collection = false;
             // entity
-            this.updater = new EntityUpdater<>((BiConsumer<T, Updatable>) this.setter, (Function<T, Updatable>) this.getter, this.notNull, (Function<T, Updatable>) this.getter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.type));
+            this.updater = new EntityUpdater<>((BiConsumer<T, Updatable>) this.setter, (Function<T, Updatable>) this.getter, this.dynamic, (Function<T, Updatable>) this.getter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.type));
         } else {
             // simple value
             this.value = true;
             this.map = false;
             this.collection = false;
-            this.updater = new ValueUpdater<>(this.setter, this.getter, this.notNull, this.getter);
+            this.updater = new ValueUpdater<>(this.setter, this.getter, this.dynamic, this.getter);
         }
     }
 
@@ -385,8 +401,8 @@ public final class FieldReflector<T, V> {
      *
      * @return the boolean
      */
-    public boolean isNotNull() {
-        return this.notNull;
+    public boolean isDynamic() {
+        return this.dynamic;
     }
 
     /**
@@ -453,6 +469,35 @@ public final class FieldReflector<T, V> {
     }
 
     /**
+     * Is activ boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isActiv() {
+        return this.activ;
+    }
+
+
+    /**
+     * Is nullable boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isNullable() {
+        return this.nullable;
+    }
+
+    /**
+     * Is insertable boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isInsertable() {
+        return this.insertable;
+    }
+
+
+    /**
      * Gets column annotation.
      *
      * @return the column annotation
@@ -461,14 +506,29 @@ public final class FieldReflector<T, V> {
         return this.columnAnnotation;
     }
 
+    /**
+     * Gets update annotation.
+     *
+     * @return the update annotation
+     */
     public Update getUpdateAnnotation() {
         return this.updateAnnotation;
     }
 
+    /**
+     * Gets length.
+     *
+     * @return the length
+     */
     public int getLength() {
         return this.length;
     }
 
+    /**
+     * Is id boolean.
+     *
+     * @return the boolean
+     */
     public boolean isId() {
         return this.id;
     }
@@ -490,20 +550,20 @@ public final class FieldReflector<T, V> {
         }
         if (this.updatable) {
             stringBuilder.append("\t@Update");
-            if (this.length != Update.defaultLength || !this.notNull) {
+            if (this.length != Update.defaultLength || !this.dynamic) {
                 stringBuilder.append("(");
             }
             if (this.length != Update.defaultLength) {
                 stringBuilder.append("length = ");
                 stringBuilder.append(this.length);
             }
-            if (this.length != Update.defaultLength && !this.notNull) {
+            if (this.length != Update.defaultLength && !this.dynamic) {
                 stringBuilder.append(", ");
             }
-            if (!this.notNull) {
+            if (!this.dynamic) {
                 stringBuilder.append("notNull = false");
             }
-            if (this.length != -1 || !this.notNull) {
+            if (this.length != -1 || !this.dynamic) {
                 stringBuilder.append(")");
             }
             stringBuilder.append("\r\n");

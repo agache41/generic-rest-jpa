@@ -43,10 +43,10 @@ public class Collection2Entity implements PrimaryKey<Long>, Updatable<Collection
     @Update
     private String subName;
 
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private String subStreet;
 
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private Integer subNumber;
 
     @EqualsAndHashCode.Exclude

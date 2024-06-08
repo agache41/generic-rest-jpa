@@ -47,16 +47,16 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
      *
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if entity map can be null
+     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param sourceGetter the source getter
      * @param constructor  the entity constructor
      */
     public EntityMapUpdater(final BiConsumer<TARGET, MAP> setter,
                             final Function<TARGET, MAP> getter,
-                            final boolean notNull,
+                            final boolean dynamic,
                             final Function<SOURCE, MAP> sourceGetter,
                             final Supplier<VALUE> constructor) {
-        super(setter, getter, notNull, sourceGetter);
+        super(setter, getter, dynamic, sourceGetter);
         this.constructor = constructor;
     }
 
@@ -71,7 +71,7 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
      * @param <K>          the type parameter of the map key
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if values can be not null
+     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param sourceGetter the source getter
      * @param constructor  the constructor for the map values
      * @param target       the target
@@ -81,12 +81,12 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
     public static <T, S, C extends Map<K, E>, E extends Updatable<E> & PrimaryKey<K>, K> boolean updateEntityMap(
             final BiConsumer<T, C> setter,
             final Function<T, C> getter,
-            final boolean notNull,
+            final boolean dynamic,
             final Function<S, C> sourceGetter,
             final Supplier<E> constructor,
             final T target,
             final S source) {
-        return new EntityMapUpdater<>(setter, getter, notNull, sourceGetter, constructor).update(target, source);
+        return new EntityMapUpdater<>(setter, getter, dynamic, sourceGetter, constructor).update(target, source);
     }
 
     /**
@@ -103,7 +103,7 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
         final MAP sourceValue = this.sourceGetter.apply(source);
         // nulls
         if (sourceValue == null) {
-            if (this.notNull || this.getter.apply(target) == null) // null ignore
+            if (this.dynamic || this.getter.apply(target) == null) // null ignore
             {
                 return false;
             } else {

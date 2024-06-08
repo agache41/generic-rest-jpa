@@ -47,16 +47,16 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
      *
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if entity collection can be null
+     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param sourceGetter the source getter
      * @param constructor  the entity constructor
      */
     public EntityCollectionUpdater(final BiConsumer<TARGET, COLLECTION> setter,
                                    final Function<TARGET, COLLECTION> getter,
-                                   final boolean notNull,
+                                   final boolean dynamic,
                                    final Function<SOURCE, COLLECTION> sourceGetter,
                                    final Supplier<VALUE> constructor) {
-        super(setter, getter, notNull, sourceGetter);
+        super(setter, getter, dynamic, sourceGetter);
         this.constructor = constructor;
     }
 
@@ -71,7 +71,7 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
      * @param <K>          the type parameter of the primary key of the entity
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if values is not null
+     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param sourceGetter the source getter
      * @param constructor  the constructor for collection values
      * @param target       the target
@@ -81,12 +81,12 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
     public static <T, S, C extends Collection<E>, E extends Updatable<E> & PrimaryKey<K>, K> boolean updateEntityCollection(
             final BiConsumer<T, C> setter,
             final Function<T, C> getter,
-            final boolean notNull,
+            final boolean dynamic,
             final Function<S, C> sourceGetter,
             final Supplier<E> constructor,
             final T target,
             final S source) {
-        return new EntityCollectionUpdater<>(setter, getter, notNull, sourceGetter, constructor).update(target, source);
+        return new EntityCollectionUpdater<>(setter, getter, dynamic, sourceGetter, constructor).update(target, source);
     }
 
     /**
@@ -103,7 +103,7 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
         final COLLECTION sourceValue = this.sourceGetter.apply(source);
         // nulls
         if (sourceValue == null) {
-            if (this.notNull || this.getter.apply(target) == null) // null ignore
+            if (this.dynamic || this.getter.apply(target) == null) // null ignore
             {
                 return false;
             } else {

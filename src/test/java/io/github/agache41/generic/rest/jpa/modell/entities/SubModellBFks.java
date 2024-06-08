@@ -64,10 +64,10 @@ public class SubModellBFks implements PrimaryKey<Long>, Updatable<SubModellBFks>
     @Update
     private String subName;
 
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private String subStreet;
 
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private Integer subNumber;
 
     @EqualsAndHashCode.Exclude

@@ -20,7 +20,6 @@ package io.github.agache41.generic.rest.jpa.producer;
 import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.*;
@@ -121,6 +120,8 @@ public class Producer<T> {
     /**
      * Adds a new Producer to the producer cache
      *
+     * @param <T>      the type parameter
+     * @param clazz    the clazz
      * @param supplier the supplier
      */
     public static <T> void add(final Class<T> clazz,
@@ -268,28 +269,26 @@ public class Producer<T> {
         return result;
     }
 
+    /**
+     * Produce field object.
+     *
+     * @param result         the result
+     * @param fieldReflector the field reflector
+     * @return the object
+     */
     public Object produceField(final T result,
                                final FieldReflector fieldReflector) {
 
-        Object fieldValue = null;
         final Object target = fieldReflector.get(result);
+        if (!fieldReflector.isInsertable()) {
+            return null;  // field not set and must not be inserted
+        }
+        if (target != null && !fieldReflector.isUpdatable()) {
+            return null; // field already set and must not be updated
+        }
         final int maxLength = fieldReflector.getLength();
-        final Column columnAnnotation = fieldReflector.getColumnAnnotation();
-        if (columnAnnotation != null) { // interpret the column annot
-            if (!columnAnnotation.insertable()) {
-                return null;
-            }  // field already set
-            if (target != null && !columnAnnotation.updatable()) {
-                return null;
-            }
-        }
-        // do not update id's that are already set
-        if (fieldReflector.isId() && target != null) {
-            return null;
-        }
-
         final Class<?> fieldType = fieldReflector.getType();
-
+        Object fieldValue = null;
         if (fieldReflector.isValue()) {
             if (!String.class.equals(fieldType) || maxLength < 0) {
                 fieldValue = Producer.ofClass(fieldType)

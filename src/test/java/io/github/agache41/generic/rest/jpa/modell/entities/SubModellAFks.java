@@ -64,10 +64,10 @@ public class SubModellAFks implements PrimaryKey<Long>, Updatable<SubModellAFks>
     @Update
     private String subName;
 
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private String subStreet;
 
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private Integer subNumber;
 
     @EqualsAndHashCode.Exclude

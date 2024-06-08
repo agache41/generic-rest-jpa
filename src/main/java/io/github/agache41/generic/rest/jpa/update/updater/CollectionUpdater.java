@@ -36,14 +36,14 @@ public class CollectionUpdater<TARGET, SOURCE, VALUE> extends ValueUpdater<TARGE
      *
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if values is not null
+     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param sourceGetter the source getter
      */
     public CollectionUpdater(final BiConsumer<TARGET, Collection<VALUE>> setter,
                              final Function<TARGET, Collection<VALUE>> getter,
-                             final boolean notNull,
+                             final boolean dynamic,
                              final Function<SOURCE, Collection<VALUE>> sourceGetter) {
-        super(setter, getter, notNull, sourceGetter);
+        super(setter, getter, dynamic, sourceGetter);
     }
 
     /**
@@ -55,7 +55,7 @@ public class CollectionUpdater<TARGET, SOURCE, VALUE> extends ValueUpdater<TARGE
      * @param <V>          the type parameter of the collection values
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if values is not null
+     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param sourceGetter the source getter
      * @param target       the target
      * @param source       the source
@@ -64,11 +64,11 @@ public class CollectionUpdater<TARGET, SOURCE, VALUE> extends ValueUpdater<TARGE
     public static <T, S, V> boolean updateCollection(
             final BiConsumer<T, Collection<V>> setter,
             final Function<T, Collection<V>> getter,
-            final boolean notNull,
+            final boolean dynamic,
             final Function<S, Collection<V>> sourceGetter,
             final T target,
             final S source) {
-        return new CollectionUpdater<>(setter, getter, notNull, sourceGetter).update(target, source);
+        return new CollectionUpdater<>(setter, getter, dynamic, sourceGetter).update(target, source);
     }
 
     /**
@@ -85,7 +85,7 @@ public class CollectionUpdater<TARGET, SOURCE, VALUE> extends ValueUpdater<TARGE
         final Collection<VALUE> sourceValue = this.sourceGetter.apply(source);
         // nulls
         if (sourceValue == null) {
-            if (this.notNull || this.getter.apply(target) == null) // null ignore
+            if (this.dynamic || this.getter.apply(target) == null) // null ignore
             {
                 return false;
             } else {

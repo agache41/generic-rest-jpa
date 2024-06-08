@@ -42,16 +42,16 @@ public class EntityUpdater<TARGET, SOURCE, VALUE extends Updatable<VALUE>> exten
      *
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if entity can be null
+     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param sourceGetter the source getter
      * @param constructor  the entity constructor
      */
     public EntityUpdater(final BiConsumer<TARGET, VALUE> setter,
                          final Function<TARGET, VALUE> getter,
-                         final boolean notNull,
+                         final boolean dynamic,
                          final Function<SOURCE, VALUE> sourceGetter,
                          final Supplier<VALUE> constructor) {
-        super(setter, getter, notNull, sourceGetter);
+        super(setter, getter, dynamic, sourceGetter);
         this.constructor = constructor;
     }
 
@@ -64,7 +64,7 @@ public class EntityUpdater<TARGET, SOURCE, VALUE extends Updatable<VALUE>> exten
      * @param <V>          the type parameter of the entity
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if values is not null
+     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param sourceGetter the source getter
      * @param constructor  the Entity constructor
      * @param target       the target
@@ -74,12 +74,12 @@ public class EntityUpdater<TARGET, SOURCE, VALUE extends Updatable<VALUE>> exten
     public static <T, S, V extends Updatable<V>> boolean updateEntity(
             final BiConsumer<T, V> setter,
             final Function<T, V> getter,
-            final boolean notNull,
+            final boolean dynamic,
             final Function<S, V> sourceGetter,
             final Supplier<V> constructor,
             final T target,
             final S source) {
-        return new EntityUpdater<>(setter, getter, notNull, sourceGetter, constructor).update(target, source);
+        return new EntityUpdater<>(setter, getter, dynamic, sourceGetter, constructor).update(target, source);
     }
 
     /**
@@ -97,7 +97,7 @@ public class EntityUpdater<TARGET, SOURCE, VALUE extends Updatable<VALUE>> exten
         // nulls
         if (sourceValue == null) {
             // null ignore or both null
-            if (this.notNull || this.getter.apply(target) == null) {
+            if (this.dynamic || this.getter.apply(target) == null) {
                 return false;
             }
             this.setter.accept(target, null);

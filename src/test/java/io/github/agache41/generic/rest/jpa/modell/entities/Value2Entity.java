@@ -41,10 +41,10 @@ public class Value2Entity implements PrimaryKey<Long>, Updatable<Value2Entity> {
     @Update
     private String subName;
 
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private String subStreet;
 
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private Integer subNumber;
 
     @EqualsAndHashCode.Exclude

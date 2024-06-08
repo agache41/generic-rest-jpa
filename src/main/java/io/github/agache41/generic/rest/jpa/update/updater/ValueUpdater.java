@@ -47,9 +47,9 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
      */
     protected final Function<TARGET, VALUE> getter;
     /**
-     * The Not null.
+     * If the update should be dynamic processed and nulls will be ignored.
      */
-    protected final boolean notNull;
+    protected final boolean dynamic;
     /**
      * The Source getter.
      */
@@ -61,16 +61,16 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
      *
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if values is not null
+     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param sourceGetter the source getter
      */
     public ValueUpdater(final BiConsumer<TARGET, VALUE> setter,
                         final Function<TARGET, VALUE> getter,
-                        final boolean notNull,
+                        final boolean dynamic,
                         final Function<SOURCE, VALUE> sourceGetter) {
         this.setter = setter;
         this.getter = getter;
-        this.notNull = notNull;
+        this.dynamic = dynamic;
         this.sourceGetter = sourceGetter;
     }
 
@@ -83,7 +83,7 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
      * @param <V>          the type parameter of the value
      * @param setter       the target setter
      * @param getter       the target getter
-     * @param notNull      if values is not null
+     * @param notNull      if the update should be dynamic processed and nulls will be ignored
      * @param sourceGetter the source getter
      * @param target       the target
      * @param source       the source
@@ -157,7 +157,7 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
         // nulls
         if (sourceValue == null) {
             // null ignore or both null
-            if (this.notNull || this.getter.apply(target) == null) {
+            if (this.dynamic || this.getter.apply(target) == null) {
                 return false;
             }
             this.setter.accept(target, null);

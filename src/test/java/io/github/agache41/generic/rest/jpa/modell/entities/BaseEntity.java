@@ -38,7 +38,7 @@ public class BaseEntity {
     private String stringVal;
 
     @Basic
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private String stringValNotNull;
 
     @Basic
@@ -50,11 +50,11 @@ public class BaseEntity {
     private Boolean isBoolean;
 
     @Basic
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private boolean booVal;
 
     @Basic
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private boolean isBool;
 
     @Basic
@@ -62,7 +62,7 @@ public class BaseEntity {
     private Integer integerVal;
 
     @Basic
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private int intVal;
 
     @Basic

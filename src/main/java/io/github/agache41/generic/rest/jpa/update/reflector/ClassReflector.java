@@ -141,7 +141,7 @@ public final class ClassReflector<T> {
 
         this.updateReflectors = this.reflectors.values()
                                                .stream()
-                                               .filter(FieldReflector::isUpdatable)
+                                               .filter(FieldReflector::isActiv)
                                                .collect(Collectors.toMap(FieldReflector::getName, Function.identity()));
         this.updateReflectorsArray = this.updateReflectors.values()
                                                           .toArray(new FieldReflector[this.updateReflectors.size()]);

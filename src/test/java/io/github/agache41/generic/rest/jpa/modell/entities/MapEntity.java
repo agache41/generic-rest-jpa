@@ -41,10 +41,10 @@ public class MapEntity implements PrimaryKey<Long>, Updatable<MapEntity> {
     @Update
     private String subName;
 
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private String subStreet;
 
-    @Update(notNull = false)
+    @Update(dynamic = false)
     private Integer subNumber;
 
     @EqualsAndHashCode.Exclude

@@ -29,7 +29,7 @@ import java.lang.annotation.*;
  *
  * By default the values can not be set to null, so if a null value is received, it will be skipped,
  * and the previous value will be kept.
- * The {@link Update#notNull()}  set to false means that the field will be updated also when a null value is provided.
+ * The {@link Update#dynamic()}  set to false means that the field will be updated also when a null value is provided.
  * This is only recommended to be used when the transfer object is always complete.
  * </pre>
  */
@@ -42,21 +42,64 @@ public @interface Update {
 
     /**
      * <pre>
-     * By default updates with a null value will be ignored. (true)
-     * That makes the update process lenient and only the changed fields will be sent in the update source object.
-     * If set to false, then the field must be always present in the update source object and
-     * if the field value in source is null then it will be set to null.
+     * A dynamic update process happens when only the fields that are present in the source object are being updated.
+     * The ones that are not set, and are null in the transfer object will be ignored.
+     * Only non null values will be updated.
+     *
+     * If set to false, this will cause null values to be written to the fields.
+     * This can be use only in updates where the complete update object is being sent (non dynamic)
+     *
+     * The value has impact on the update process.
+     * Default is true.
      * </pre>
      *
      * @return the boolean
      */
-    boolean notNull() default true;
+    boolean dynamic() default true;
+
+    /**
+     * <pre>
+     * Informal value,
+     * Tells if the field allows nulls.
+     * The value has no impact on the update process.
+     * Default is true.
+     * </pre>
+     *
+     * @return the boolean
+     */
+    boolean nullable() default true;
+
+    /**
+     * <pre>
+     * Informal value,
+     * Tells if the field can be updated.
+     * The value has no impact on the update process.
+     * Default is true.
+     * </pre>
+     *
+     * @return the boolean
+     */
+    boolean updatable() default true;
+
+
+    /**
+     * <pre>
+     * Informal value,
+     * Tells if the field can be inserted.
+     * The value has no impact on the update process.
+     * Default is true.
+     * </pre>
+     *
+     * @return the boolean
+     */
+    boolean insertable() default true;
 
     /**
      * <pre>
      * Informal value, telling the maximum allowed length of the field for String fields or
      * the maximum number of elements for an array or collection Type.
      * The value has no impact on the update process.
+     * Default is -1.
      * </pre>
      *
      * @return the length
