@@ -118,4 +118,8 @@ public interface ResourceServiceConfig {
         }
         return autocompleteMaxResults;
     }
+
+    default boolean getVerify() {
+        return false;
+    }
 }

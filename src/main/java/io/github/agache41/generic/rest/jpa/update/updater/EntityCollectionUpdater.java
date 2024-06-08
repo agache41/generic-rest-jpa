@@ -149,16 +149,18 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
             }
         }
 
-        ValueUpdater.updateMap(targetValueMap, sourceValueMap, this.constructor);
+        final boolean updated = ValueUpdater.updateMap(targetValueMap, sourceValueMap, this.constructor);
 
-        targetValue.clear();
-        // add the updated entities
-        targetValue.addAll(targetValueMap.values());
-        // add the new ones
-        targetValue.addAll(sourceValueList);
-        // collection work
-        // re set it
-        this.setter.accept(target, (COLLECTION) targetValue);
-        return true;
+        if (!sourceValueList.isEmpty() || updated) {
+            targetValue.clear();
+            // add the updated entities
+            targetValue.addAll(targetValueMap.values());
+            // add the new ones
+            targetValue.addAll(sourceValueList);
+            // collection work
+            // re set it
+            this.setter.accept(target, (COLLECTION) targetValue);
+        }
+        return updated;
     }
 }

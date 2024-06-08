@@ -22,9 +22,7 @@ import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.updater.*;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
-import jakarta.persistence.Column;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import org.jboss.logging.Logger;
 
 import java.lang.reflect.Field;
@@ -67,6 +65,7 @@ public final class FieldReflector<T, V> {
     private final Update updateAnnotation;
     private final String description;
     private final int length;
+    private final boolean id;
     private Updater<T, T> updater;
     private boolean map;
     private boolean collection;
@@ -109,6 +108,7 @@ public final class FieldReflector<T, V> {
         } else {
             this.updateAnnotation = null;
         }
+        this.id = field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class);
 
         if (field.isAnnotationPresent(OneToMany.class)) {
             this.isEager = field.getAnnotation(OneToMany.class)
@@ -171,7 +171,7 @@ public final class FieldReflector<T, V> {
         } else {
             this.updateAnnotation = null;
         }
-
+        this.id = false;
         this.isEager = false;
 
         if (!this.isFinal && !this.isHibernateIntern && this.updateAnnotation != null) {
@@ -469,6 +469,10 @@ public final class FieldReflector<T, V> {
         return this.length;
     }
 
+    public boolean isId() {
+        return this.id;
+    }
+
     @Override
     public String toString() {
         return this.description;
@@ -480,6 +484,9 @@ public final class FieldReflector<T, V> {
         if (!this.valid) {
             stringBuilder.append("[Warning] Invalid Field (no valid setter and getter) [Warning]");
             return stringBuilder.toString();
+        }
+        if (this.id) {
+            stringBuilder.append("\t@Id\r\n");
         }
         if (this.updatable) {
             stringBuilder.append("\t@Update");

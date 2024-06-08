@@ -22,9 +22,13 @@ import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 @Data
@@ -35,6 +39,8 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Update
 @Entity
+@DynamicUpdate
+@DynamicInsert
 public class EmbeddedIdModell extends BaseEntity implements PrimaryKey<EmbeddedKeys>, Updatable<EmbeddedIdModell> {
 
     private static final long serialVersionUID = 4981653210124872352L;
@@ -61,12 +67,12 @@ public class EmbeddedIdModell extends BaseEntity implements PrimaryKey<EmbeddedK
     @Fetch(FetchMode.SUBSELECT)
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumns({@JoinColumn(name = "key1", referencedColumnName = "key1"), @JoinColumn(name = "key2", referencedColumnName = "key2"), @JoinColumn(name = "key3", referencedColumnName = "key3")})
-    private List<EmbeddedIdSubModell1> embeddedIdSubModells1;
+    private List<EmbeddedIdSubModell1> embeddedIdSubModells1 = new LinkedList<>();
 
     @OrderColumn(name = "orderId")
     @Fetch(FetchMode.SUBSELECT)
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<EmbeddedIdSubModell2> embeddedIdSubModells2;
+    private List<EmbeddedIdSubModell2> embeddedIdSubModells2 = new ArrayList<>();
 
 
     @Fetch(FetchMode.JOIN)

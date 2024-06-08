@@ -130,7 +130,9 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
 
         // empty
         final boolean updated = ValueUpdater.updateMap(targetValue, sourceValue, this.constructor);
-        this.setter.accept(target, (MAP) targetValue);
+        if (updated) {
+            this.setter.accept(target, (MAP) targetValue);
+        }
         return updated;
     }
 }

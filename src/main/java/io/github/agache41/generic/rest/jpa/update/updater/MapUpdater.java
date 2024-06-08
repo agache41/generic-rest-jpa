@@ -136,7 +136,9 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
             updated = true;
         }
         //set it again
-        this.setter.accept(target, targetValue);
+        if (updated) {
+            this.setter.accept(target, targetValue);
+        }
         return updated;
     }
 }

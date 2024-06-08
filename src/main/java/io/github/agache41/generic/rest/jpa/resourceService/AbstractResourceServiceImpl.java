@@ -104,10 +104,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
                                 @QueryParam("maxResults") final Integer maxResults,
                                 @Context final UriInfo uriInfo) {
         return this.getDataAccess()
-                   .streamAll(this.getConfig()
-                                  .getFirstResult(firstResult), this.getConfig()
-                                                                    .getMaxResults(maxResults), uriInfo)
-                   .collect(Collectors.toList());
+                   .listAll(this.getConfig()
+                                .getFirstResult(firstResult), this.getConfig()
+                                                                  .getMaxResults(maxResults), uriInfo);
     }
 
     /**
@@ -119,8 +118,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Path("/byIds/{ids}/asList")
     public List<T> getByIdsAsList(@PathParam("ids") final List<K> ids) {
         return this.getDataAccess()
-                   .streamByIds(ids)
-                   .collect(Collectors.toList());
+                   .listByIds(ids);
     }
 
     /**
@@ -133,8 +131,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Path("/byIds/asList")
     public List<T> postByIdsAsList(final List<K> ids) {
         return this.getDataAccess()
-                   .streamByIds(ids)
-                   .collect(Collectors.toList());
+                   .listByIds(ids);
     }
 
     /**
@@ -149,10 +146,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
                                                          @QueryParam("firstResult") final Integer firstResult,
                                                          @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamByColumnEqualsValue(stringField, value, this.getConfig()
-                                                                      .getFirstResult(firstResult), this.getConfig()
-                                                                                                        .getMaxResults(maxResults))
-                   .collect(Collectors.toList());
+                   .listByColumnEqualsValue(stringField, value, this.getConfig()
+                                                                    .getFirstResult(firstResult), this.getConfig()
+                                                                                                      .getMaxResults(maxResults));
     }
 
     /**
@@ -167,10 +163,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
                                                        @QueryParam("firstResult") final Integer firstResult,
                                                        @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamByColumnLikeValue(stringField, value, this.getConfig()
-                                                                    .getFirstResult(firstResult), this.getConfig()
-                                                                                                      .getMaxResults(maxResults))
-                   .collect(Collectors.toList());
+                   .listByColumnLikeValue(stringField, value, this.getConfig()
+                                                                  .getFirstResult(firstResult), this.getConfig()
+                                                                                                    .getMaxResults(maxResults));
     }
 
     /**
@@ -185,10 +180,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
                                                       @QueryParam("firstResult") final Integer firstResult,
                                                       @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamByColumnInValues(stringField, values, this.getConfig()
-                                                                    .getFirstResult(firstResult), this.getConfig()
-                                                                                                      .getMaxResults(maxResults))
-                   .collect(Collectors.toList());
+                   .listByColumnInValues(stringField, values, this.getConfig()
+                                                                  .getFirstResult(firstResult), this.getConfig()
+                                                                                                    .getMaxResults(maxResults));
     }
 
     /**
@@ -209,8 +203,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
         }
         return this.getDataAccess()
                    .autocompleteByColumnLikeValue(stringField, value, this.getConfig()
-                                                                          .getAutocompleteMaxResults(maxResults), uriInfo)
-                   .collect(Collectors.toList());
+                                                                          .getAutocompleteMaxResults(maxResults), uriInfo);
     }
 
     /**
@@ -231,9 +224,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
         }
         return this.getDataAccess()
                    .autocompleteIdsByColumnLikeValue(stringField, value, this.getConfig()
-                                                                             .getAutocompleteMaxResults(maxResults), uriInfo)
-                   .collect(Collectors.toList());
-
+                                                                             .getAutocompleteMaxResults(maxResults), uriInfo);
     }
 
     /**
@@ -247,10 +238,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
                                                  @QueryParam("firstResult") final Integer firstResult,
                                                  @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamByContentEquals(value, this.getConfig()
-                                                     .getFirstResult(firstResult), this.getConfig()
-                                                                                       .getMaxResults(maxResults))
-                   .collect(Collectors.toList());
+                   .listByContentEquals(value, this.getConfig()
+                                                   .getFirstResult(firstResult), this.getConfig()
+                                                                                     .getMaxResults(maxResults));
     }
 
     /**
@@ -264,10 +254,9 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
                                              @QueryParam("firstResult") final Integer firstResult,
                                              @QueryParam("maxResults") final Integer maxResults) {
         return this.getDataAccess()
-                   .streamByContentInValues(values, this.getConfig()
-                                                        .getFirstResult(firstResult), this.getConfig()
-                                                                                          .getMaxResults(maxResults))
-                   .collect(Collectors.toList());
+                   .listByContentInValues(values, this.getConfig()
+                                                      .getFirstResult(firstResult), this.getConfig()
+                                                                                        .getMaxResults(maxResults));
     }
 
     /**
@@ -304,8 +293,26 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public T put(final T source) {
-        return this.getDataAccess()
-                   .updateById(source);
+        final K id = source.getId();
+        return this.doVerify(this.getDataAccess()
+                                 .updateById(source), source.getId());
+
+    }
+
+    T doVerify(final T processed,
+               final K originalId) {
+        if (!this.getConfig()
+                 .getVerify()) {
+            return processed;
+        }
+
+        final K id = originalId == null || !originalId.equals(processed.getId()) ? processed.getId() : originalId;
+        final T actual = this.getDataAccess()
+                             .findById(id);
+        if (!processed.equals(actual)) {
+            throw new RuntimeException(" Verify fail " + processed + " <> " + actual);
+        }
+        return actual;
     }
 
     /**
@@ -318,8 +325,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Path("/list/asList")
     public List<T> putListAsList(final List<T> sources) {
         return this.getDataAccess()
-                   .updateByIds(sources)
-                   .collect(Collectors.toList());
+                   .updateByIds(sources);
     }
 
     /**

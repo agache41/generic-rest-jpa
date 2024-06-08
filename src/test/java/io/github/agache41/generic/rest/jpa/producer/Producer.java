@@ -20,6 +20,7 @@ package io.github.agache41.generic.rest.jpa.producer;
 import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.*;
@@ -235,7 +236,7 @@ public class Producer<T> {
     public T produce() {
         final T result = ClassReflector.ofClass(this.clazz)
                                        .newInstance();
-        return this.processFields(result);
+        return this.produceUpdatableFields(result);
     }
 
     /**
@@ -252,87 +253,97 @@ public class Producer<T> {
             final T result = ClassReflector.ofClass(this.clazz)
                                            .newInstance();
             final Updatable updatableResult = (Updatable) result;
-            updatableResult.update((Updatable) this.processFields(source));
-            return result;
+            updatableResult.update((Updatable) source);
+            return this.produceUpdatableFields(result);
         }
-        return this.processFields(source);
+        return this.produceUpdatableFields(source);
     }
 
-    private T processFields(final T result) {
+    private T produceUpdatableFields(final T result) {
 
         for (final FieldReflector fieldReflector : ClassReflector.ofClass(this.clazz)
                                                                  .getUpdateReflectorsArray()) {
-            final Object target = fieldReflector.get(result);
-            final int maxLength = fieldReflector.getLength();
-            if (fieldReflector.getColumnAnnotation() != null) {
-                if (!fieldReflector.getColumnAnnotation()
-                                   .insertable()) {
-                    continue;
-                }
-                if (!fieldReflector.getColumnAnnotation()
-                                   .updatable() && target != null) {
-                    continue;
-                }
-            }
-
-            final Class<?> fieldType = fieldReflector.getType();
-
-            if (fieldReflector.isValue()) {
-                if (!String.class.equals(fieldType) || maxLength < 0) {
-                    fieldReflector.set(result, Producer.ofClass(fieldType)
-                                                       .produce());
-                } else {
-                    final String stringValue = Producer.ofClass(String.class)
-                                                       .produce();
-                    if (stringValue.length() <= maxLength) {
-                        fieldReflector.set(result, stringValue);
-                    } else {
-                        fieldReflector.set(result, stringValue.substring(0, maxLength));
-                    }
-                }
-            } else if (fieldReflector.isCollection()) {
-                final Class<Object> collectionType = fieldReflector.getFirstParameter();
-                Collection<Object> collection = (Collection<Object>) target;
-                final Producer<Object> objectProducer = Producer.ofClass(collectionType);
-                if (collection == null) {
-                    if (List.class.isAssignableFrom(fieldType)) {
-                        collection = (Collection<Object>) this.listSupplier.get();
-                        fieldReflector.set(result, collection);
-                    }
-                }
-                if (collection != null && collectionType != null) {
-                    final List<Object> applied = collection.stream()
-                                                           .map(objectProducer::change)
-                                                           .collect(Collectors.toList());
-                    collection.clear();
-                    collection.addAll(applied);
-                    collection.addAll(objectProducer
-                                              .produceList(maxLength));
-                    fieldReflector.set(result, collection);
-                }
-            } else if (fieldReflector.isMap()) {
-                final Class<Object> mapKeyParameter = fieldReflector.getFirstParameter();
-                final Class<Object> mapValueParameter = fieldReflector.getSecondParameter();
-                final Producer<Object> mapSupplier = Producer.ofClass(mapValueParameter);
-                Map map = (Map<Object, Object>) target;
-                if (map == null) {
-                    if (Map.class.isAssignableFrom(fieldType)) {
-                        map = this.mapSupplier.get();
-                        fieldReflector.set(result, map);
-                    }
-                }
-                if (map != null && mapKeyParameter != null && mapValueParameter != null) {
-                    mapSupplier.changeMap(map);
-                    map.putAll(mapSupplier.produceMap(mapKeyParameter, maxLength));
-                    fieldReflector.set(result, map);
-                }
-            } else {
-                // do recurse on the type
-                fieldReflector.set(result, ((Producer<Object>) Producer.ofClass(fieldType))
-                        .change(target));
-            }
+            this.produceField(result, fieldReflector);
         }
         return result;
+    }
+
+    public Object produceField(final T result,
+                               final FieldReflector fieldReflector) {
+
+        Object fieldValue = null;
+        final Object target = fieldReflector.get(result);
+        final int maxLength = fieldReflector.getLength();
+        final Column columnAnnotation = fieldReflector.getColumnAnnotation();
+        if (columnAnnotation != null) { // interpret the column annot
+            if (!columnAnnotation.insertable()) {
+                return null;
+            }  // field already set
+            if (target != null && !columnAnnotation.updatable()) {
+                return null;
+            }
+        }
+        // do not update id's that are already set
+        if (fieldReflector.isId() && target != null) {
+            return null;
+        }
+
+        final Class<?> fieldType = fieldReflector.getType();
+
+        if (fieldReflector.isValue()) {
+            if (!String.class.equals(fieldType) || maxLength < 0) {
+                fieldValue = Producer.ofClass(fieldType)
+                                     .produce();
+            } else {
+                final String stringValue = Producer.ofClass(String.class)
+                                                   .produce();
+                if (stringValue.length() <= maxLength) {
+                    fieldValue = stringValue;
+                } else {
+                    fieldValue = stringValue.substring(0, maxLength);
+                }
+            }
+        } else if (fieldReflector.isCollection()) {
+            final Class<Object> collectionType = fieldReflector.getFirstParameter();
+            Collection<Object> collection = (Collection<Object>) target;
+            final Producer<Object> objectProducer = Producer.ofClass(collectionType);
+            if (collection == null) {
+                if (List.class.isAssignableFrom(fieldType)) {
+                    collection = (Collection<Object>) this.listSupplier.get();
+                }
+            }
+            if (collection != null && collectionType != null) {
+                final List<Object> applied = collection.stream()
+                                                       .map(objectProducer::change)
+                                                       .collect(Collectors.toList());
+                collection.clear();
+                collection.addAll(applied);
+                collection.addAll(objectProducer.produceList(maxLength));
+                fieldValue = collection;
+            }
+        } else if (fieldReflector.isMap()) {
+            final Class<Object> mapKeyParameter = fieldReflector.getFirstParameter();
+            final Class<Object> mapValueParameter = fieldReflector.getSecondParameter();
+            final Producer<Object> mapSupplier = Producer.ofClass(mapValueParameter);
+            Map map = (Map<Object, Object>) target;
+            if (map == null) {
+                if (Map.class.isAssignableFrom(fieldType)) {
+                    map = this.mapSupplier.get();
+                }
+            }
+            if (map != null && mapKeyParameter != null && mapValueParameter != null) {
+                mapSupplier.changeMap(map);
+                map.putAll(mapSupplier.produceMap(mapKeyParameter, maxLength));
+                fieldValue = map;
+            }
+        } else {
+            // do recurse on the type
+            fieldValue = ((Producer<Object>) Producer.ofClass(fieldType)).change(target);
+        }
+        if (fieldValue != null) {
+            fieldReflector.set(result, fieldValue);
+        }
+        return fieldValue;
     }
 
     /**
@@ -363,5 +374,4 @@ public class Producer<T> {
         this.size = size;
         return this;
     }
-
 }

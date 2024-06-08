@@ -22,7 +22,7 @@
 
     <groupId>io.github.agache41</groupId>
     <artifactId>generic-rest-jpa</artifactId>
-    <version>0.2.7</version>
+    <version>0.2.8</version>
     <packaging>jar</packaging>
 
     <name>Generic REST Resources Service API and Data Access over JPA for JEE / Quarkus</name>
@@ -87,6 +87,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>jakarta.transaction</groupId>
+            <artifactId>jakarta.transaction-api</artifactId>
+            <version>2.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>
             <version>3.5.3.Final</version>
@@ -122,12 +128,6 @@
             <version>2.2.224</version>
             <scope>test</scope>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>org.postgresql</groupId>-->
-        <!--            <artifactId>postgresql</artifactId>-->
-        <!--            <version>42.7.3</version>-->
-        <!--            <scope>test</scope>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>

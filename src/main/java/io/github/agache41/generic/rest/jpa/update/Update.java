@@ -42,7 +42,10 @@ public @interface Update {
 
     /**
      * <pre>
-     * Indicates that a set to null operation is allowed.
+     * By default updates with a null value will be ignored. (true)
+     * That makes the update process lenient and only the changed fields will be sent in the update source object.
+     * If set to false, then the field must be always present in the update source object and
+     * if the field value in source is null then it will be set to null.
      * </pre>
      *
      * @return the boolean

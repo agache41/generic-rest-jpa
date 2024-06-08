@@ -20,6 +20,7 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
+import io.github.agache41.generic.rest.jpa.producer.Producer;
 import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
@@ -40,7 +41,10 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & Updatable<T>, K> {
 
+
     private static final Logger LOG = Logger.getLogger(AbstractResourceServiceImplTest.class);
+
+    private final Class<T> clazz;
     private final List<T> insertData;
 
     private final List<T> updateData;
@@ -65,6 +69,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
                                            final List<T> insertData,
                                            final List<T> updateData,
                                            final String stringField) {
+        this.clazz = clazz;
         this.client = client;
         assertEquals(insertData.size(), updateData.size(), " Please use two data lists of equal size!");
         this.insertData = insertData;
@@ -168,7 +173,6 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
         //then
         assertNotNull(res);
         assertEquals(this.insertData.size(), res.size());
-        //assertEquals(this.insertData, res);
         assertThat(this.insertData).hasSameElementsAs(res);
     }
 
@@ -188,7 +192,6 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
         //then
         assertNotNull(res);
         assertEquals(this.insertData.size(), res.size());
-        //assertEquals(this.insertData, res);
         assertThat(this.insertData).hasSameElementsAs(res);
     }
 
@@ -207,7 +210,6 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
         //then
         assertNotNull(res);
         assertEquals(this.insertData.size(), res.size());
-        //assertEquals(this.insertData, res);
         assertThat(this.insertData).hasSameElementsAs(res);
     }
 
@@ -229,7 +231,69 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
             //then
             assertNotNull(res);
             assertNotNull(res.getId());
+            assertEquals(id, res.getId());
             assertEquals(req, res);
+
+            final T getres = this.getClient()
+                                 .get(id);
+            //then
+            assertNotNull(getres);
+            assertNotNull(getres.getId());
+            assertEquals(id, getres.getId());
+            assertEquals(req, getres);
+        }
+    }
+
+    @Test
+    @Order(33)
+    public void testPutFieldForEachField() {
+        for (final T req : this.updateData) {
+
+            //given
+            assertNotNull(req);
+            final K id = req.getId();
+            assertNotNull(id);
+
+            //iterate over the values in the object
+            for (final FieldReflector reflector : this.classReflector.getValueReflectorsArray()) {
+
+                if (reflector.isId()) {
+                    continue;
+                }
+                if (reflector.getColumnAnnotation() != null && !reflector.getColumnAnnotation()
+                                                                         .updatable()) {   // field must not be updated
+                    continue;
+                }
+
+                // create new empty object
+                final T feldReq = this.classReflector.newInstance();
+                // set the id
+                feldReq.setId(id);
+
+                for (int repeatField = 2; repeatField > 0; repeatField--) {
+                    // set only this field
+                    final Object value = Producer.ofClass(this.clazz)
+                                                 .produceField(feldReq, reflector);
+                    //when
+                    final T feldRes = this.getClient()
+                                          .put(feldReq);
+                    //then
+                    assertNotNull(feldRes);
+                    assertNotNull(feldRes.getId());
+                    assertEquals(id, feldRes.getId());
+                    assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Checking field " + reflector.getName());
+                    assertEquals(value, reflector.get(feldRes), " Checking field " + reflector.getName());
+
+                    final T getres = this.getClient()
+                                         .get(id);
+                    //then
+                    assertNotNull(getres);
+                    assertNotNull(getres.getId());
+                    assertEquals(id, getres.getId());
+                    assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Checking field " + reflector.getName());
+                    assertEquals(value, reflector.get(feldRes), " Checking field " + reflector.getName());
+                }
+            }
         }
     }
 
@@ -273,8 +337,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
                            .setId(res.get(index)
                                      .getId());
         }
-        assertEquals(this.insertData, res);
-        assertEquals(this.insertData, this.getAll());
+        assertThat(this.insertData).hasSameElementsAs(res);
+        assertThat(this.insertData).hasSameElementsAs(this.getAll());
     }
 
     @Test
@@ -288,8 +352,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
         //then
         assertNotNull(res);
         assertEquals(this.updateData.size(), res.size());
-        assertEquals(this.updateData, res);
-        assertEquals(this.updateData, this.getAll());
+        assertThat(this.updateData).hasSameElementsAs(res);
+        assertThat(this.updateData).hasSameElementsAs(this.getAll());
     }
 
     @Test
@@ -434,7 +498,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
                                          .postListAsList(this.insertData);
         final List<T> data = this.getAll();
         assertEquals(this.insertData.size(), data.size());
-        assertEquals(this.insertData, data);
+        assertThat(this.insertData).hasSameElementsAs(data);
 
         final List<String> values = data.stream()
                                         .map(this.fieldReflector::get)

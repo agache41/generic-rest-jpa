@@ -113,7 +113,9 @@ public class EntityUpdater<TARGET, SOURCE, VALUE extends Updatable<VALUE>> exten
             return updated;
         }
         final boolean updated = targetValue.update(sourceValue);
-        this.setter.accept(target, targetValue);
+        if (updated) {
+            this.setter.accept(target, targetValue);
+        }
         return updated;
     }
 }
