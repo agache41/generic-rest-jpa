@@ -307,7 +307,6 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
             final T feldReq = this.producer.produceMinimal();
             //then
             assertNotNull(feldReq);
-
             // set only this field
             final Object value = this.producer.produceField(feldReq, reflector);
             //when
