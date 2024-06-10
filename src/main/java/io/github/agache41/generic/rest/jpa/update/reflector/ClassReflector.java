@@ -144,6 +144,9 @@ public final class ClassReflector<T> {
                                                .filter(FieldReflector::isActiv)
                                                .collect(Collectors.toMap(FieldReflector::getName, Function.identity()));
         this.updateReflectorsArray = this.updateReflectors.values()
+                                                          .stream()
+                                                          .sorted(Comparator.comparing(FieldReflector::getOrder))
+                                                          .collect(Collectors.toList())
                                                           .toArray(new FieldReflector[this.updateReflectors.size()]);
 
         final List<FieldReflector<T, Object>> valueReflectors = this.updateReflectors.values()
@@ -192,6 +195,7 @@ public final class ClassReflector<T> {
         stringBuilder.append(" { \r\n");
         this.reflectors.values()
                        .stream()
+                       .sorted(Comparator.comparing(FieldReflector::getOrder))
                        .map(Objects::toString)
                        .forEach(stringBuilder::append);
         stringBuilder.append(" }\r\n");

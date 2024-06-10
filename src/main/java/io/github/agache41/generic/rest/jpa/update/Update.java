@@ -39,6 +39,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Update {
     int defaultLength = -1;
+    int defaultOrder = 1000;
 
     /**
      * <pre>
@@ -105,6 +106,24 @@ public @interface Update {
      * @return the length
      */
     int length() default defaultLength;
+
+    /**
+     * <pre>
+     * A list of properties to be updated first.
+     * </pre>
+     *
+     * @return the length
+     */
+    String[] propertiesOrder() default {};
+
+    /**
+     * <pre>
+     * The order of updating this field.
+     * </pre>
+     *
+     * @return the length
+     */
+    int order() default defaultOrder;
 
     /**
      * <pre>

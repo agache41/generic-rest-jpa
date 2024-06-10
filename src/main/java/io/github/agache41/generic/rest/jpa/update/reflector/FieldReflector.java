@@ -31,9 +31,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static io.github.agache41.generic.rest.jpa.update.Update.defaultOrder;
 
 /**
  * <pre>
@@ -70,6 +73,7 @@ public final class FieldReflector<T, V> {
     private final boolean id;
     private final boolean nullable;
     private final boolean insertable;
+    private final int order;
     private Updater<T, T> updater;
     private boolean map;
     private boolean collection;
@@ -113,7 +117,7 @@ public final class FieldReflector<T, V> {
             this.updateAnnotation = null;
         }
         this.id = field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class);
-
+        this.order = this.order(this.field);
         if (field.isAnnotationPresent(OneToMany.class)) {
             this.isEager = field.getAnnotation(OneToMany.class)
                                 .fetch()
@@ -181,6 +185,7 @@ public final class FieldReflector<T, V> {
         } else {
             this.updateAnnotation = null;
         }
+        this.order = this.order(method);
         this.id = false;
         this.isEager = false;
 
@@ -533,6 +538,10 @@ public final class FieldReflector<T, V> {
         return this.id;
     }
 
+    public int getOrder() {
+        return this.order;
+    }
+
     @Override
     public String toString() {
         return this.description;
@@ -548,26 +557,42 @@ public final class FieldReflector<T, V> {
         if (this.id) {
             stringBuilder.append("\t@Id\r\n");
         }
-        if (this.updatable) {
-            stringBuilder.append("\t@Update");
-            if (this.length != Update.defaultLength || !this.dynamic) {
-                stringBuilder.append("(");
-            }
-            if (this.length != Update.defaultLength) {
-                stringBuilder.append("length = ");
-                stringBuilder.append(this.length);
-            }
-            if (this.length != Update.defaultLength && !this.dynamic) {
-                stringBuilder.append(", ");
-            }
-            if (!this.dynamic) {
-                stringBuilder.append("notNull = false");
-            }
-            if (this.length != -1 || !this.dynamic) {
-                stringBuilder.append(")");
-            }
-            stringBuilder.append("\r\n");
+        stringBuilder.append("\t@Update");
+        boolean before = false;
+        if (this.length != Update.defaultLength || !this.dynamic || this.order != defaultOrder) {
+            stringBuilder.append("(");
         }
+        if (this.order != defaultOrder) {
+            if (before) {
+                stringBuilder.append(", ");
+            } else {
+                before = true;
+            }
+            stringBuilder.append("order = ");
+            stringBuilder.append(this.order);
+        }
+        if (this.length != Update.defaultLength) {
+            if (before) {
+                stringBuilder.append(", ");
+            } else {
+                before = true;
+            }
+            stringBuilder.append("length = ");
+            stringBuilder.append(this.length);
+        }
+        if (!this.dynamic) {
+            if (before) {
+                stringBuilder.append(", ");
+            } else {
+                before = true;
+            }
+            stringBuilder.append("notNull = false");
+        }
+        if (this.length != -1 || !this.dynamic || this.order != defaultOrder) {
+            stringBuilder.append(")");
+        }
+        stringBuilder.append("\r\n");
+
         stringBuilder.append("\tprivate\t");
         stringBuilder.append(this.type.getSimpleName());
         if (this.firstParameter != null) {
@@ -583,6 +608,55 @@ public final class FieldReflector<T, V> {
         stringBuilder.append(this.name);
         stringBuilder.append("; \r\n");
         return stringBuilder.toString();
+    }
+
+    private int index(final String[] order) {
+        for (int index = 0; index < order.length; index++) {
+            if (Objects.equals(this.name, order[index])) {
+                return index;
+            }
+        }
+        return defaultOrder;
+    }
+
+    private int order(final Field field) {
+        int result = defaultOrder;
+        if (this.enclosingClass.isAnnotationPresent(Update.class)) {
+            final int index = this.index(this.enclosingClass.getAnnotation(Update.class)
+                                                            .propertiesOrder());
+            if (defaultOrder != index) {
+                result = index;
+            }
+        }
+        if (field.isAnnotationPresent(Update.class) && field.getAnnotation(Update.class)
+                                                            .order() != defaultOrder) {
+            if (defaultOrder != field.getAnnotation(Update.class)
+                                     .order()) {
+                result = field.getAnnotation(Update.class)
+                              .order();
+            }
+        }
+        return result;
+    }
+
+    private int order(final Method method) {
+        int result = defaultOrder;
+        if (this.enclosingClass.isAnnotationPresent(Update.class)) {
+            final int index = this.index(this.enclosingClass.getAnnotation(Update.class)
+                                                            .propertiesOrder());
+            if (index != defaultOrder) {
+                result = index;
+            }
+        }
+        if (method.isAnnotationPresent(Update.class) && method.getAnnotation(Update.class)
+                                                              .order() != defaultOrder) {
+            if (defaultOrder != method.getAnnotation(Update.class)
+                                      .order()) {
+                result = method.getAnnotation(Update.class)
+                               .order();
+            }
+        }
+        return result;
     }
 
     private interface UpdatablePrimaryKey<T extends Updatable<T>, PK> extends Updatable<T>, PrimaryKey<PK> {

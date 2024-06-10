@@ -37,7 +37,7 @@ import java.util.List;
 @AllArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-@Update
+@Update(propertiesOrder = {"id"})
 @Entity
 @DynamicUpdate
 @DynamicInsert
