@@ -14,6 +14,9 @@ Done:
 Undergoing:
 - add notnull support for @NotNull annotation and @Column nullable.
 Proposed:
+- remove @NotNull on static methods (see build log)
+- add findby id query
+- add list all query
 - check diff between findbyid and query where id=? for left join in @OneToOne
 - make tests methods independent
 - add better field producer for string with english words

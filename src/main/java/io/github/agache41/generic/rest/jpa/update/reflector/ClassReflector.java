@@ -20,7 +20,6 @@ package io.github.agache41.generic.rest.jpa.update.reflector;
 import io.github.agache41.generic.rest.jpa.exceptions.UnexpectedException;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
-import jakarta.validation.constraints.NotNull;
 import org.jboss.logging.Logger;
 
 import java.lang.reflect.Constructor;
@@ -170,7 +169,7 @@ public final class ClassReflector<T> {
      * @param clazz the clazz
      * @return class reflector
      */
-    public static <R> ClassReflector<R> ofClass(@NotNull final Class<R> clazz) {
+    public static <R> ClassReflector<R> ofClass(final Class<R> clazz) {
         return (ClassReflector<R>) concurrentClassReflectorCache.computeIfAbsent(clazz, cls -> new ClassReflector(cls));
     }
 
@@ -184,7 +183,7 @@ public final class ClassReflector<T> {
      * @param object the object
      * @return the class reflector
      */
-    public static <R> ClassReflector<R> ofObject(@NotNull final R object) {
+    public static <R> ClassReflector<R> ofObject(final R object) {
         return (ClassReflector<R>) concurrentClassReflectorCache.computeIfAbsent(object.getClass(), cls -> new ClassReflector(cls));
     }
 
