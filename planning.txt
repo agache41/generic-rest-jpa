@@ -18,7 +18,7 @@ Proposed:
 - add findby id query
 - add list all query
 - check diff between findbyid and query where id=? for left join in @OneToOne
-- make tests methods independent
+- make tests methods independent, add cleanup before and after
 - add better field producer for string with english words
 - add separate classes for read services and write services/separate delete/function switch
 - add support for Ag Grid

@@ -78,6 +78,5 @@ public class EmbeddedIdModell extends BaseEntity implements PrimaryKey<EmbeddedK
 
     @Fetch(FetchMode.JOIN)
     @OneToOne(fetch = FetchType.EAGER, mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumns({@JoinColumn(name = "key1", referencedColumnName = "key1"), @JoinColumn(name = "key2", referencedColumnName = "key2"), @JoinColumn(name = "key3", referencedColumnName = "key3"),})
     private EmbeddedIdSubModell3 embeddedIdSubModell3;
 }

@@ -557,41 +557,71 @@ public final class FieldReflector<T, V> {
         if (this.id) {
             stringBuilder.append("\t@Id\r\n");
         }
-        stringBuilder.append("\t@Update");
-        boolean before = false;
-        if (this.length != Update.defaultLength || !this.dynamic || this.order != defaultOrder) {
-            stringBuilder.append("(");
-        }
-        if (this.order != defaultOrder) {
-            if (before) {
-                stringBuilder.append(", ");
+        if (this.valid) {
+            if (this.activ) {
+                stringBuilder.append("\t@Update");
+                boolean before = false;
+                if (this.length != Update.defaultLength || !this.dynamic || this.order != defaultOrder || !this.updatable || !this.nullable || !this.insertable) {
+                    stringBuilder.append("(");
+                }
+                if (this.order != defaultOrder) {
+                    if (before) {
+                        stringBuilder.append(", ");
+                    } else {
+                        before = true;
+                    }
+                    stringBuilder.append("order = ");
+                    stringBuilder.append(this.order);
+                }
+                if (this.length != Update.defaultLength) {
+                    if (before) {
+                        stringBuilder.append(", ");
+                    } else {
+                        before = true;
+                    }
+                    stringBuilder.append("length = ");
+                    stringBuilder.append(this.length);
+                }
+                if (!this.nullable) {
+                    if (before) {
+                        stringBuilder.append(", ");
+                    } else {
+                        before = true;
+                    }
+                    stringBuilder.append("nullable = false");
+                }
+                if (!this.updatable) {
+                    if (before) {
+                        stringBuilder.append(", ");
+                    } else {
+                        before = true;
+                    }
+                    stringBuilder.append("updatable = false");
+                }
+                if (!this.insertable) {
+                    if (before) {
+                        stringBuilder.append(", ");
+                    } else {
+                        before = true;
+                    }
+                    stringBuilder.append("insertable = false");
+                }
+                if (!this.dynamic) {
+                    if (before) {
+                        stringBuilder.append(", ");
+                    } else {
+                        before = true;
+                    }
+                    stringBuilder.append("dynamic = false");
+                }
+                if (this.length != -1 || !this.dynamic || this.order != defaultOrder) {
+                    stringBuilder.append(")");
+                }
+                stringBuilder.append("\r\n");
             } else {
-                before = true;
+                stringBuilder.append("\t@Update.excluded\r\n");
             }
-            stringBuilder.append("order = ");
-            stringBuilder.append(this.order);
         }
-        if (this.length != Update.defaultLength) {
-            if (before) {
-                stringBuilder.append(", ");
-            } else {
-                before = true;
-            }
-            stringBuilder.append("length = ");
-            stringBuilder.append(this.length);
-        }
-        if (!this.dynamic) {
-            if (before) {
-                stringBuilder.append(", ");
-            } else {
-                before = true;
-            }
-            stringBuilder.append("notNull = false");
-        }
-        if (this.length != -1 || !this.dynamic || this.order != defaultOrder) {
-            stringBuilder.append(")");
-        }
-        stringBuilder.append("\r\n");
 
         stringBuilder.append("\tprivate\t");
         stringBuilder.append(this.type.getSimpleName());
