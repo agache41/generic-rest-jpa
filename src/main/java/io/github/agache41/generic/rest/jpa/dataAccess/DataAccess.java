@@ -29,10 +29,7 @@ import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.spi.InjectionPoint;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
-import jakarta.persistence.NonUniqueResultException;
-import jakarta.persistence.Tuple;
+import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.UriInfo;
@@ -68,6 +65,7 @@ import static java.util.stream.Collectors.toList;
 @Transactional(REQUIRED)
 public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
 
+    public static final String findById = "findById";
     private static final Set<String> reserved = Stream.of("cut", "maxResults", "firstResult")
                                                       .collect(Collectors.toSet());
     /**
@@ -111,6 +109,15 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * The Persisted field names.
      */
     protected final Predicate<Map.Entry<String, ?>> notReservedNames;
+
+
+    /**
+     * THe named queries available in the entity.
+     */
+    protected final Set<String> namedQueries;
+
+    protected final boolean hasFindByIdNamedQuery;
+
     /**
      * <pre>
      * The default EntityManager in use.
@@ -157,6 +164,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
                                               .map(FieldReflector::getName)
                                               .collect(Collectors.toList());
         this.notReservedNames = entry -> !reserved.contains(entry.getKey());
+        this.namedQueries = this.findEntityNamedQueries();
+        this.hasFindByIdNamedQuery = this.namedQueries.contains(findById);
     }
 
     /**
@@ -174,6 +183,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
     /**
      * <pre>
      * Finds an entity in the database using the Primary Key.
+     * If a named query findById is annotated on the entity, this will be used.
      * </pre>
      *
      * @param id       the primary key to use, must be not null
@@ -183,8 +193,15 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      */
     public ENTITY findById(final PK id,
                            final boolean expected) {
-        return this.assertNotNull(this.em()
-                                      .find(this.type, this.assertNotNull(id)), expected);
+        if (this.hasFindByIdNamedQuery) {
+            return this.em()
+                       .createNamedQuery(findById, this.type)
+                       .setParameter(PrimaryKey.ID, id)
+                       .getSingleResult();
+        } else {
+            return this.assertNotNull(this.em()
+                                          .find(this.type, this.assertNotNull(id)), expected);
+        }
     }
 
     /**
@@ -1124,5 +1141,20 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
         } catch (final InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Set<String> findEntityNamedQueries() {
+        final Set<String> entityNamedQueries = new HashSet<>();
+        final NamedQueries namedQueries = this.type.getAnnotation(NamedQueries.class);
+        if (namedQueries != null) {
+            Stream.of(namedQueries.value())
+                  .map(NamedQuery::name)
+                  .forEach(entityNamedQueries::add);
+        }
+        final NamedQuery namedQuery = this.type.getAnnotation(NamedQuery.class);
+        if (namedQuery != null) {
+            entityNamedQueries.add(namedQuery.name());
+        }
+        return entityNamedQueries;
     }
 }

@@ -11,11 +11,14 @@ Done:
 -- optimize has Field method and move in ClassReflector (was optimized so good that wasn't needed anymore) - deleted.
 -- add length to @Update.
 -- add equals for update fields (implement equals method for test).
+-- remove @NotNull on static methods (see build log)
+-- add support for @Column nullable, insertable and updatable.
+-- add findby id query
 Undergoing:
-- add notnull support for @NotNull annotation and @Column nullable.
+
 Proposed:
-- remove @NotNull on static methods (see build log)
-- add findby id query
+- add notnull support for @NotNull annotation and @Column nullable.
+
 - add list all query
 - check diff between findbyid and query where id=? for left join in @OneToOne
 - make tests methods independent, add cleanup before and after

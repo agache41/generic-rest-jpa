@@ -17,6 +17,7 @@
 
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
+import io.github.agache41.generic.rest.jpa.dataAccess.DataAccess;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
@@ -35,6 +36,7 @@ import java.util.*;
 @EqualsAndHashCode(callSuper = true)
 @Update
 @Entity
+@NamedQuery(name = DataAccess.findById, query = "SELECT modell from Modell modell where modell.id = :id")
 public class Modell extends BaseEntity implements PrimaryKey<Long>, Updatable<Modell> {
 
     private static final long serialVersionUID = 4981653210124872352L;
