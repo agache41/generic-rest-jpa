@@ -22,7 +22,7 @@
 
     <groupId>io.github.agache41</groupId>
     <artifactId>generic-rest-jpa</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
     <packaging>jar</packaging>
 
     <name>Generic REST Resources Service API and Data Access over JPA for JEE / Quarkus</name>
