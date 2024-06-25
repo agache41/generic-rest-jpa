@@ -269,7 +269,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Produces(MediaType.APPLICATION_JSON)
     public T post(final T source) {
         final T inserted = this.getDataAccess()
-                               .merge(source);
+                               .persist(source);
         return this.doVerify(inserted);
     }
 
@@ -283,8 +283,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Path("/list/asList")
     public List<T> postListAsList(final List<T> sources) {
         return this.getDataAccess()
-                   .mergeAll(sources)
-                   .collect(Collectors.toList());
+                   .persistAll(sources);
     }
 
     /**

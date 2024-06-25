@@ -108,12 +108,18 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
                 return false;
             } else {
                 this.setter.accept(target, null);
+                // todo: rise warning on collection set. this can causes trouble in  Hibernate.
+                System.out.println("Warning : Setting collection to null in Class " + target.getClass()
+                                                                                            .getSimpleName());
                 return true;
             }
         }
         final Collection<VALUE> targetValue = this.getter.apply(target);
         // collection not initialized
         if (targetValue == null) {
+            // todo: rise warning on collection set. this can causes trouble in  Hibernate.
+            System.out.println("Warning : Found not initialized (null) collection in Class " + target.getClass()
+                                                                                                     .getSimpleName());
             this.setter.accept(target, sourceValue);
             return true;
         }
@@ -150,16 +156,18 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
         }
 
         final boolean updated = ValueUpdater.updateMap(targetValueMap, sourceValueMap, this.constructor);
+        final List<VALUE> targetValueList = ValueUpdater.updateList(sourceValueList, this.constructor);
 
-        if (!sourceValueList.isEmpty() || updated) {
+        if (!targetValueList.isEmpty() || updated) {
             targetValue.clear();
             // add the updated entities
             targetValue.addAll(targetValueMap.values());
             // add the new ones
-            targetValue.addAll(sourceValueList);
+            targetValue.addAll(targetValueList);
             // collection work
             // re set it
             this.setter.accept(target, (COLLECTION) targetValue);
+            return true;
         }
         return updated;
     }

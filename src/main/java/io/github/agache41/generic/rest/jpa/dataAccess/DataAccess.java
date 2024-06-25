@@ -793,9 +793,10 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * @return the merged entities in a Stream&#x3C;ENTITY&#x3E;
      * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)
      */
-    public Stream<ENTITY> mergeAll(final Collection<ENTITY> sources) {
+    public List<ENTITY> mergeAll(final Collection<ENTITY> sources) {
         return sources.stream()
-                      .map(this::merge);
+                      .map(this::merge)
+                      .collect(toList());
     }
 
     /**
@@ -820,47 +821,13 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * </pre>
      *
      * @param sources the sources
-     * @return the merged entities in a Stream&#x3C;ENTITY&#x3E;
+     * @return the persisted entities in a Stream&#x3C;ENTITY&#x3E;
      * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)
      */
     public List<ENTITY> persistAll(final Collection<ENTITY> sources) {
         return sources.stream()
                       .map(this::persist)
                       .collect(toList());
-    }
-
-    /**
-     * <pre>
-     * Persists or updates an entity using the update mechanism of the annotation @ {@link Update },
-     * depending on the entity state, if it is already persisted or not.
-     * </pre>
-     *
-     * @param source the source
-     * @return entity entity
-     */
-    public ENTITY put(final ENTITY source) {
-        if (null == source.getId()) {
-            return this.persist(source);
-        } else {
-            return this.updateById(source);
-        }
-    }
-
-    /**
-     * <pre>
-     * Persists or updates a list of entities
-     * using the update mechanism of the annotation @ {@link Update},
-     * depending on the entity state, if it is already persisted or not.
-     * </pre>
-     *
-     * @param sources the sources
-     * @return stream stream
-     */
-    public List<ENTITY> putAll(final Collection<ENTITY> sources) {
-        return sources.stream()
-                      .map(this::put)
-                      .collect(toList());
-
     }
 
     /**

@@ -19,10 +19,7 @@ package io.github.agache41.generic.rest.jpa.update.updater;
 
 import io.github.agache41.generic.rest.jpa.update.Updatable;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -140,6 +137,27 @@ public class ValueUpdater<TARGET, SOURCE, VALUE> implements Updater<TARGET, SOUR
                                .reduce(updated, (u, n) -> u || n);
         }
         return updated;
+    }
+
+    /**
+     * Internal update method for lists.
+     *
+     * @param <KEY>       the type parameter
+     * @param <VALUE>     the type parameter
+     * @param sourceValue the source value
+     * @param constructor the constructor
+     * @return true if the target list has changes
+     */
+    protected static <KEY, VALUE extends Updatable<VALUE>> List<VALUE> updateList(
+            final List<VALUE> sourceValue,
+            final Supplier<VALUE> constructor) {
+        return sourceValue.stream()
+                          .map(source -> {
+                              final VALUE newValue = constructor.get();
+                              newValue.update(source);
+                              return newValue;
+                          })
+                          .collect(Collectors.toList());
     }
 
     /**

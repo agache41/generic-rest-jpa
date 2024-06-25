@@ -25,6 +25,7 @@ import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -47,18 +48,18 @@ public class ModellFks implements PrimaryKey<Long>, Updatable<ModellFks> {
 
     @Update
     @Basic
-    @Column(name = "keyA", length = 4, updatable = false)
+    @Column(name = "keyA", length = 4, nullable = false, updatable = false)
     private String keyA;
 
     @Update
     @Basic
-    @Column(name = "keyB", length = 4, updatable = false)
+    @Column(name = "keyB", length = 4, nullable = false, updatable = false)
     private String keyB;
 
 
     @Update
     @Basic
-    @Column(name = "keyC", length = 4, updatable = false)
+    @Column(name = "keyC", length = 4, nullable = false, updatable = false)
     private String keyC;
 
 
@@ -86,7 +87,7 @@ public class ModellFks implements PrimaryKey<Long>, Updatable<ModellFks> {
             @JoinColumn(name = "keyB", referencedColumnName = "keyB"),
             @JoinColumn(name = "keyC", referencedColumnName = "keyC")
     })
-    private List<SubModellAFks> subModellAFks;
+    private List<SubModellAFks> subModellAFks = new ArrayList<>();
 
 
     @Update
@@ -99,5 +100,5 @@ public class ModellFks implements PrimaryKey<Long>, Updatable<ModellFks> {
             @JoinColumn(name = "keyB", referencedColumnName = "keyB"),
             @JoinColumn(name = "keyC", referencedColumnName = "keyC")
     })
-    private List<SubModellBFks> subModellBFks;
+    private List<SubModellBFks> subModellBFks = new ArrayList<>();
 }

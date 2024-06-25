@@ -108,6 +108,9 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
                 return false;
             } else {
                 this.setter.accept(target, null);
+                // todo: rise warning on map set. this can causes trouble in  Hibernate.
+                System.out.println("Warning : Setting map to null in Class " + target.getClass()
+                                                                                     .getSimpleName());
                 return true;
             }
         }
@@ -116,6 +119,9 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
         // map not initialized
         if (targetValue == null) {
             this.setter.accept(target, sourceValue);
+            // todo: rise warning on map set. this can causes trouble in  Hibernate.
+            System.out.println("Warning : Found not initialized (null) map in Class " + target.getClass()
+                                                                                              .getSimpleName());
             return true;
         }
 
