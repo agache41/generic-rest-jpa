@@ -66,8 +66,8 @@ import static java.util.stream.Collectors.toList;
 public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
 
     public static final String findById = "findById";
-    private static final Set<String> reserved = Stream.of("cut", "maxResults", "firstResult")
-                                                      .collect(Collectors.toSet());
+    protected static final Set<String> reserved = Stream.of("cut", "maxResults", "firstResult")
+                                                        .collect(Collectors.toSet());
     /**
      * <pre>
      * The type of the persisted Object
@@ -473,8 +473,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
                    .getResultList();
     }
 
-    private <Y> Path<Y> attr(final Root<ENTITY> entity,
-                             final String name) {
+    protected <Y> Path<Y> attr(final Root<ENTITY> entity,
+                               final String name) {
         if (!name.contains(".")) {
             return entity.get(name);
         }
@@ -531,9 +531,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
                    .collect(toList());
     }
 
-    private Expression<Boolean> filterQueryParamsAnd(final Expression<Boolean> expression,
-                                                     final UriInfo uriInfo,
-                                                     final Root<ENTITY> entity) {
+    protected Expression<Boolean> filterQueryParamsAnd(final Expression<Boolean> expression,
+                                                       final UriInfo uriInfo,
+                                                       final Root<ENTITY> entity) {
 
         final Map<String, List<Object>> filterQueryParams = this.filterQueryParams(uriInfo);
         if (filterQueryParams.isEmpty()) {
@@ -543,7 +543,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
                    .and(expression, this.in(filterQueryParams, entity));
     }
 
-    private Map<String, List<Object>> filterQueryParams(final UriInfo uriInfo) {
+    protected Map<String, List<Object>> filterQueryParams(final UriInfo uriInfo) {
         if (uriInfo == null) {
             return Collections.emptyMap();
         }
@@ -1145,7 +1145,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
         }
     }
 
-    private Set<String> findEntityNamedQueries() {
+    protected Set<String> findEntityNamedQueries() {
         final Set<String> entityNamedQueries = new HashSet<>();
         final NamedQueries namedQueries = this.type.getAnnotation(NamedQueries.class);
         if (namedQueries != null) {
