@@ -513,12 +513,14 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
         final CriteriaQuery<Tuple> query = this.cb()
                                                .createTupleQuery();
         final Root<ENTITY> entity = query.from(this.type);
+        final Path<PK> id = entity.get(PrimaryKey.ID);
         final Path<String> attr = this.attr(entity, column);
-        final CriteriaQuery<Tuple> multiselect = query.multiselect(entity.get(PrimaryKey.ID), attr);
+        final CriteriaQuery<Tuple> multiselect = query.multiselect(id, attr);
         return this.em()
                    .createQuery(multiselect.where(this.filterQueryParamsAnd(this.like(column, value, true, entity), uriInfo, entity))
                                            .orderBy(this.cb()
-                                                        .asc(attr)))
+                                                        .asc(attr), this.cb()
+                                                                        .asc(id)))
                    .getResultStream()
                    .map(IdEntry<PK>::new)
                    .collect(Collectors.groupingBy(IdEntry::getValue, collectingAndThen(toList(), IdGroup<PK>::new)))

@@ -302,7 +302,7 @@ public class Producer<T> {
             return null;  // field not set and must not be inserted
         }
         if (target != null && !fieldReflector.isUpdatable()) {
-            return null; // field already set and must not be updated
+            return target; // field already set and must not be updated
         }
         final int maxLength = fieldReflector.getLength();
         final Class<?> fieldType = fieldReflector.getType();

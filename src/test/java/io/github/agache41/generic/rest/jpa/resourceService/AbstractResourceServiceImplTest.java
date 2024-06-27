@@ -43,19 +43,16 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
 
 
     private static final Logger LOG = Logger.getLogger(AbstractResourceServiceImplTest.class);
+    protected final Class<T> clazz;
+    protected final List<T> insertData;
+    protected final List<T> updateData;
+    protected final ClassReflector<T> classReflector;
 
-    private final Class<T> clazz;
-    private final List<T> insertData;
-
-    private final List<T> updateData;
-
-    private final ClassReflector<T> classReflector;
-
-    private final Producer<T> producer;
-    private final FieldReflector<T, String> fieldReflector;
-    private final String stringField;
-    private final ResourceService<T, K> client;
-    private final ResourceServiceConfig config = new ResourceServiceConfig() {
+    protected final Producer<T> producer;
+    protected final FieldReflector<T, String> fieldReflector;
+    protected final String stringField;
+    protected final ResourceService<T, K> client;
+    protected final ResourceServiceConfig config = new ResourceServiceConfig() {
     };
 
     public AbstractResourceServiceImplTest(final Class<T> clazz,
@@ -334,7 +331,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
     }
 
     @Test
-    @Order(34)
+    @Order(36)
     public void testPostMinimalPutEachField() {
 
         //iterate over the values in the object
