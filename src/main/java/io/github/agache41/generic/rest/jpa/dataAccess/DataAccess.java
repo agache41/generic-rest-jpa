@@ -207,7 +207,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
                            final boolean expected) {
         if (this.namedQueries.contains(this.findByIdNamedQuery)) {
             return this.em()
-                       .createNamedQuery(findById, this.type)
+                       .createNamedQuery(this.findByIdNamedQuery, this.type)
                        .setParameter(ID, id)
                        .getSingleResult();
         } else {
