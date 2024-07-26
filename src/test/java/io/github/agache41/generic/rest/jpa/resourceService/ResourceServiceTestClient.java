@@ -27,8 +27,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * ResourceServiceTestClient is a test client for the AbstractResourceServiceImpl
@@ -395,6 +394,22 @@ public class ResourceServiceTestClient<T extends PrimaryKey<K>, K> implements Re
                .delete(this.path + "/byIds/{ids}", this.toString(ids))
                .then()
                .statusCode(204);
+    }
+
+    public void deleteAll() {
+        final List<K> ids = this.getAll()
+                                .stream()
+                                .map(PrimaryKey::getId)
+                                .collect(Collectors.toList());
+        this.deleteByIds(ids);
+        final List<T> all = this.getAll();
+        assertTrue(all.isEmpty());
+    }
+
+    public List<T> getAll() {
+        return this.getAllAsList(this.getConfig()
+                                     .getFirstResult(), this.getConfig()
+                                                            .getMaxResults(), null);
     }
 
     protected String toString(final List<K> values) {

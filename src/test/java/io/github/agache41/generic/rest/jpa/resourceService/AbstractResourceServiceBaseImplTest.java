@@ -25,9 +25,7 @@ import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
 import org.jboss.logging.Logger;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 
 import java.util.List;
 import java.util.Set;
@@ -61,22 +59,42 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                                                final String path,
                                                final List<T> insertData,
                                                final List<T> updateData,
+                                               final String stringField,
+                                               final Producer<T> producer) {
+        this(new ResourceServiceTestClient<>(clazz, path), clazz, insertData, updateData, stringField, producer);
+    }
+
+    @Deprecated
+    public AbstractResourceServiceBaseImplTest(final Class<T> clazz,
+                                               final String path,
+                                               final List<T> insertData,
+                                               final List<T> updateData,
                                                final String stringField) {
         this(new ResourceServiceTestClient<>(clazz, path), clazz, insertData, updateData, stringField);
+    }
+
+    @Deprecated
+    public AbstractResourceServiceBaseImplTest(final ResourceService<T, K> client,
+                                               final Class<T> clazz,
+                                               final List<T> insertData,
+                                               final List<T> updateData,
+                                               final String stringField) {
+        this(client, clazz, insertData, updateData, stringField, Producer.ofClass(clazz));
     }
 
     public AbstractResourceServiceBaseImplTest(final ResourceService<T, K> client,
                                                final Class<T> clazz,
                                                final List<T> insertData,
                                                final List<T> updateData,
-                                               final String stringField) {
+                                               final String stringField,
+                                               final Producer<T> producer) {
         this.clazz = clazz;
         this.client = client;
         assertEquals(insertData.size(), updateData.size(), " Please use two data lists of equal size!");
         this.insertData = insertData;
         this.updateData = updateData;
         this.classReflector = ClassReflector.ofClass(clazz);
-        this.producer = Producer.ofClass(clazz);
+        this.producer = producer;
         if (stringField != null) {
             this.fieldReflector = ClassReflector.ofClass(clazz)
                                                 .getReflector(stringField, String.class);
@@ -87,18 +105,32 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
         }
     }
 
-    protected ResourceService<T, K> getClient() {
+    public ResourceService<T, K> getClient() {
         return this.client;
     }
 
-    protected ClassReflector<T> getClassReflector() {
+    public ClassReflector<T> getClassReflector() {
         return this.classReflector;
     }
 
-    protected Producer<T> getProducer() {
+    public Producer<T> getProducer() {
         return this.producer;
     }
 
+
+    @BeforeEach
+    public void beforeEach(final TestInfo testInfo) {
+        final String testName = testInfo.getDisplayName();
+        System.out.println("Starting " + this.getClass()
+                                             .getSimpleName() + "." + testName);
+    }
+
+    @AfterEach
+    public void afterEach(final TestInfo testInfo) {
+        final String testName = testInfo.getDisplayName();
+        System.out.println("Finished " + this.getClass()
+                                             .getSimpleName() + "." + testName);
+    }
 
     public void testPost() {
         for (int index = 0; index < this.insertData.size(); index++) {
@@ -600,7 +632,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                                          .postListAsList(this.insertData);
         final List<T> data = this.getAll();
         assertEquals(this.insertData.size(), data.size());
-        assertEquals(this.insertData, data);
+        assertThat(this.insertData).hasSameElementsAs(data);
 
         final List<String> values = data.stream()
                                         .map(this.fieldReflector::get)
@@ -676,7 +708,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
         this.deleteAll();
     }
 
-    protected void deleteAll() {
+    public void deleteAll() {
         final List<K> ids = this.getAll()
                                 .stream()
                                 .map(PrimaryKey::getId)
@@ -687,7 +719,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
         assertTrue(all.isEmpty());
     }
 
-    protected List<T> getAll() {
+    public List<T> getAll() {
         return this.getClient()
                    .getAllAsList(this.client.getConfig()
                                             .getFirstResult(), this.getClient()

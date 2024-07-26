@@ -24,6 +24,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -91,6 +92,18 @@ public class Producer<T> {
     protected Supplier<Map<?, T>> mapSupplier;
 
     /**
+     * Update method called after each produce.
+     * This lambda applies changes to the resulting Object after producing it and can be used for initialization.
+     */
+    protected Consumer<T> postProduce;
+
+    /**
+     * Update method called after each produce.
+     * This lambda applies changes to the resulting Object after changing it and can be used for initialization.
+     */
+    protected Consumer<T> postChange;
+
+    /**
      * Instantiates a new Producer.
      *
      * @param clazz the clazz
@@ -100,6 +113,8 @@ public class Producer<T> {
         this.size = defaultSize;
         this.listSupplier = LinkedList::new;
         this.mapSupplier = LinkedHashMap::new;
+        this.postProduce = null;
+        this.postChange = null;
     }
 
     /**
@@ -162,6 +177,31 @@ public class Producer<T> {
      */
     public Producer<T> withMap(final Supplier<Map<?, T>> mapSupplier) {
         this.mapSupplier = mapSupplier;
+        return this;
+    }
+
+    /**
+     * Update method called after each produce.
+     * This lambda applies changes to the resulting Object after it was produced
+     * and can be used for initialization.
+     *
+     * @param postProduce the post produce
+     * @return producer
+     */
+    public Producer<T> withPostProduce(final Consumer<T> postProduce) {
+        this.postProduce = postProduce;
+        return this;
+    }
+
+    /**
+     * Update method called after each produce.
+     * This lambda applies changes to the resulting Object after changing it and can be used for initialization.
+     *
+     * @param postChange the post change
+     * @return the producer
+     */
+    public Producer<T> withPostChange(final Consumer<T> postChange) {
+        this.postChange = postChange;
         return this;
     }
 
@@ -238,9 +278,13 @@ public class Producer<T> {
      * @return the t
      */
     public T produce() {
-        final T result = ClassReflector.ofClass(this.clazz)
-                                       .newInstance();
-        return this.produceUpdatableFields(result);
+        final T newInstance = ClassReflector.ofClass(this.clazz)
+                                            .newInstance();
+        final T result = this.produceUpdatableFields(newInstance);
+        if (this.postProduce != null) {
+            this.postProduce.accept(result);
+        }
+        return result;
     }
 
     /**
@@ -255,6 +299,9 @@ public class Producer<T> {
                                 .getUpdateReflectorsArray())
               .filter(not(FieldReflector::isNullable))
               .forEach(fieldReflector -> this.produceField(result, fieldReflector));
+        if (this.postProduce != null) {
+            this.postProduce.accept(result);
+        }
         return result;
     }
 
@@ -268,14 +315,18 @@ public class Producer<T> {
         if (source == null) {
             return this.produce();
         }
+        T result = source;
         if (Updatable.class.isAssignableFrom(this.clazz)) {
-            final T result = ClassReflector.ofClass(this.clazz)
-                                           .newInstance();
+            result = ClassReflector.ofClass(this.clazz)
+                                   .newInstance();
             final Updatable updatableResult = (Updatable) result;
             updatableResult.update((Updatable) source);
-            return this.produceUpdatableFields(result);
         }
-        return this.produceUpdatableFields(source);
+        result = this.produceUpdatableFields(result);
+        if (this.postChange != null) {
+            this.postChange.accept(result);
+        }
+        return result;
     }
 
     private T produceUpdatableFields(final T result) {

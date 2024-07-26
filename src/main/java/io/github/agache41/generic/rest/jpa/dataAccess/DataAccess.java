@@ -40,9 +40,12 @@ import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey.ID;
 import static jakarta.transaction.Transactional.TxType.REQUIRED;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -66,8 +69,12 @@ import static java.util.stream.Collectors.toList;
 public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
 
     public static final String findById = "findById";
-    protected static final Set<String> reserved = Stream.of("cut", "maxResults", "firstResult")
+    public static final String deleteById = "deleteById";
+    public static final String listAll = "listAll";
+
+    protected static final Set<String> reserved = Stream.of("cut", "maxResults", "firstResult", "orderBy")
                                                         .collect(Collectors.toSet());
+    protected static final Pattern orderByColumn = Pattern.compile("(?i)(\\w+)\\s?(asc|desc)?");
     /**
      * <pre>
      * The type of the persisted Object
@@ -116,7 +123,10 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      */
     protected final Set<String> namedQueries;
 
-    protected final boolean hasFindByIdNamedQuery;
+    protected final String findByIdNamedQuery;
+    protected final String deleteByIdNamedQuery;
+    protected final String listAllNamedQuery;
+
 
     /**
      * <pre>
@@ -165,7 +175,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
                                               .collect(Collectors.toList());
         this.notReservedNames = entry -> !reserved.contains(entry.getKey());
         this.namedQueries = this.findEntityNamedQueries();
-        this.hasFindByIdNamedQuery = this.namedQueries.contains(findById);
+        this.findByIdNamedQuery = this.type.getSimpleName() + "." + findById;
+        this.deleteByIdNamedQuery = this.type.getSimpleName() + "." + deleteById;
+        this.listAllNamedQuery = this.type.getSimpleName() + "." + listAll;
     }
 
     /**
@@ -193,10 +205,10 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      */
     public ENTITY findById(final PK id,
                            final boolean expected) {
-        if (this.hasFindByIdNamedQuery) {
+        if (this.namedQueries.contains(this.findByIdNamedQuery)) {
             return this.em()
                        .createNamedQuery(findById, this.type)
-                       .setParameter(PrimaryKey.ID, id)
+                       .setParameter(ID, id)
                        .getSingleResult();
         } else {
             return this.assertNotNull(this.em()
@@ -294,6 +306,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
     /**
      * <pre>
      * Finds all entities.
+     * The method creates a select all query and applies the given filter paramter.
+     * If a named query is provided in the entity (named ClassName.listAll), then this query will be used as a base
+     * and the given parameter will be applied.
      * </pre>
      *
      * @param firstResult the first result
@@ -304,18 +319,43 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
     public List<ENTITY> listAll(final int firstResult,
                                 final int maxResults,
                                 final UriInfo uriInfo) {
-        final CriteriaQuery<ENTITY> query = this.query();
-        final Root<ENTITY> entity = this.entity(query);
-        CriteriaQuery<ENTITY> select = query.select(entity);
-        final Map<String, List<Object>> filterQueryParams = this.filterQueryParams(uriInfo);
-        if (!filterQueryParams.isEmpty()) {
-            select = select.where(this.in(filterQueryParams, entity));
+        final TypedQuery<ENTITY> typedQuery;
+        if (this.namedQueries.contains(this.listAllNamedQuery)) {
+            typedQuery = this.em()
+                             .createNamedQuery(this.listAllNamedQuery, this.type);
+            final Map<String, List<Object>> filterQueryParams = this.filterQueryParams(uriInfo);
+            if (!filterQueryParams.isEmpty()) {
+                filterQueryParams.entrySet()
+                                 .stream()
+                                 .forEach(entry -> typedQuery.setParameter(entry.getKey(), entry.getValue()));
+            }
+        } else {
+            final CriteriaQuery<ENTITY> criteriaQuery = this.query();
+            final Root<ENTITY> entity = this.entity(criteriaQuery);
+            CriteriaQuery<ENTITY> select = criteriaQuery.select(entity);
+            final Map<String, List<Object>> filterQueryParams = this.filterQueryParams(uriInfo);
+            if (!filterQueryParams.isEmpty()) {
+                select = select.where(this.in(filterQueryParams, entity));
+            }
+            final LinkedHashMap<String, Boolean> orderBy = this.orderByQueryParams(uriInfo);
+            select.orderBy(orderBy.entrySet()
+                                  .stream()
+                                  .map(entry -> {
+                                      if (entry.getValue()) {
+                                          return this.cb()
+                                                     .asc(this.attr(entity, entry.getKey()));
+                                      } else {
+                                          return this.cb()
+                                                     .desc(this.attr(entity, entry.getKey()));
+                                      }
+                                  })
+                                  .collect(toList()));
+            typedQuery = this.em()
+                             .createQuery(select);
         }
-        return this.em()
-                   .createQuery(select)
-                   .setFirstResult(firstResult)
-                   .setMaxResults(maxResults)
-                   .getResultList();
+        return typedQuery.setFirstResult(firstResult)
+                         .setMaxResults(maxResults)
+                         .getResultList();
     }
 
     /**
@@ -327,9 +367,8 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * @return entities in a Stream&#x3C;ENTITY&#x3E;
      */
     public List<ENTITY> listByIds(final Collection<? extends PK> ids) {
-        return this.listByColumnInValues(PrimaryKey.ID, ids, 0, ids.size());
+        return this.listByColumnInValues(ID, ids, 0, ids.size());
     }
-
 
     /**
      * <pre>
@@ -489,7 +528,6 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
         return result;
     }
 
-
     /**
      * <pre>
      * Finds all entities whose value in a specified column are like the given value.
@@ -513,7 +551,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
         final CriteriaQuery<Tuple> query = this.cb()
                                                .createTupleQuery();
         final Root<ENTITY> entity = query.from(this.type);
-        final Path<PK> id = entity.get(PrimaryKey.ID);
+        final Path<PK> id = entity.get(ID);
         final Path<String> attr = this.attr(entity, column);
         final CriteriaQuery<Tuple> multiselect = query.multiselect(id, attr);
         return this.em()
@@ -555,6 +593,26 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
                                                                                  .stream()
                                                                                  .map(string -> (Object) string)
                                                                                  .collect(toList())));
+    }
+
+    private LinkedHashMap<String, Boolean> orderByQueryParams(final UriInfo uriInfo) {
+        final LinkedHashMap<String, Boolean> result = new LinkedHashMap<>();
+        if (uriInfo == null) {
+            return result;
+        }
+        final List<String> orderBy = uriInfo.getQueryParameters()
+                                            .get("orderBy");
+        if (orderBy == null || orderBy.isEmpty()) {
+            return result;
+        }
+        for (final String entry : orderBy) {
+            final Matcher matcher = orderByColumn.matcher(entry);
+            if (!matcher.matches()) {
+                throw new IllegalArgumentException("OrderBy parameter [orderBy=" + entry + "] does not match pattern [" + orderByColumn.pattern() + "]");
+            }
+            result.put(matcher.group(1), !"desc".equalsIgnoreCase(matcher.group(2)));
+        }
+        return result;
     }
 
 
@@ -669,8 +727,15 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * @see jakarta.persistence.EntityManager#remove(Object) jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)
      */
     public void remove(final ENTITY entity) {
-        this.em()
-            .remove(this.assertNotNull(entity));
+        if (this.namedQueries.contains(this.deleteByIdNamedQuery)) {
+            this.em()
+                .createNamedQuery(this.deleteByIdNamedQuery, this.type)
+                .setParameter(ID, entity.getId())
+                .executeUpdate();
+        } else {
+            this.em()
+                .remove(this.assertNotNull(entity));
+        }
     }
 
     /**
@@ -681,7 +746,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * @param id the primary key to look for
      */
     public void removeById(final PK id) {
-        this.removeByColumnEqualsValue(PrimaryKey.ID, id, false);
+        this.removeByColumnEqualsValue(ID, id, false);
     }
 
     /**
@@ -692,7 +757,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * @param ids the primary key to filter for
      */
     public void removeByIds(final Collection<PK> ids) {
-        this.removeByColumnInValues(PrimaryKey.ID, ids, false);
+        this.removeByColumnInValues(ID, ids, false);
     }
 
     /**

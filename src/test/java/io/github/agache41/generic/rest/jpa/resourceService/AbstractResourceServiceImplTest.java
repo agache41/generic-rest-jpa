@@ -19,6 +19,7 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
+import io.github.agache41.generic.rest.jpa.producer.Producer;
 import io.github.agache41.generic.rest.jpa.update.Updatable;
 import org.junit.jupiter.api.*;
 
@@ -31,7 +32,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & Updatable<T>, K> extends AbstractResourceServiceBaseImplTest<T, K> {
 
-
+    @Deprecated
     public AbstractResourceServiceImplTest(final Class<T> clazz,
                                            final String path,
                                            final List<T> insertData,
@@ -40,12 +41,31 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
         super(clazz, path, insertData, updateData, stringField);
     }
 
+    public AbstractResourceServiceImplTest(final Class<T> clazz,
+                                           final String path,
+                                           final List<T> insertData,
+                                           final List<T> updateData,
+                                           final String stringField,
+                                           final Producer<T> producer) {
+        super(clazz, path, insertData, updateData, stringField, producer);
+    }
+
+    @Deprecated
     public AbstractResourceServiceImplTest(final ResourceService<T, K> client,
                                            final Class<T> clazz,
                                            final List<T> insertData,
                                            final List<T> updateData,
                                            final String stringField) {
         super(client, clazz, insertData, updateData, stringField);
+    }
+
+    public AbstractResourceServiceImplTest(final ResourceService<T, K> client,
+                                           final Class<T> clazz,
+                                           final List<T> insertData,
+                                           final List<T> updateData,
+                                           final String stringField,
+                                           final Producer<T> producer) {
+        super(client, clazz, insertData, updateData, stringField, producer);
     }
 
 

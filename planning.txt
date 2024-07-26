@@ -14,13 +14,16 @@ Done:
 -- remove @NotNull on static methods (see build log)
 -- add support for @Column nullable, insertable and updatable.
 -- add findby id query
+-- add order by id in autocomplete by id
+-- add base class for AbstractTest
 Undergoing:
-
+- add postCreate postChange in creator
+- fix autocompleteidsStringvalue as sotred set remove equals
+- add sort support
+- add class prefix to named queries findbyID, delete by id, findAll, delete all
+- add list all query (with params)
 Proposed:
 - add notnull support for @NotNull annotation and @Column nullable.
-
-- add list all query
-- check diff between findbyid and query where id=? for left join in @OneToOne
 - make tests methods independent, add cleanup before and after
 - add better field producer for string with english words
 - add separate classes for read services and write services/separate delete/function switch
