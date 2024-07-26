@@ -38,11 +38,15 @@ public class BaseEntity {
     private String stringVal;
 
     @Basic
-    @Update(order = 3, dynamic = false)
+    @Update(order = 3, length = 1)
+    private String smallStringVal;
+
+    @Basic
+    @Update(order = 4, dynamic = false)
     private String stringValNotNull;
 
     @Basic
-    @Update(order = 4)
+    @Update(order = 5)
     private Boolean booleanVal;
 
     @Basic

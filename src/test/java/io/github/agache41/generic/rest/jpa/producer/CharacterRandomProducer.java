@@ -17,27 +17,34 @@
 
 package io.github.agache41.generic.rest.jpa.producer;
 
-public class StringRandomProducer extends Producer<String> {
+import java.util.Collections;
+import java.util.LinkedList;
 
-    public static final char[] charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$-_+!*'()".toCharArray();
-    private static final int max = charset.length - 1;
-    private static final int targetStringLength = 12;
+public class CharacterRandomProducer extends Producer<Character> {
 
-    public StringRandomProducer() {
-        super(String.class);
+    private final LinkedList<Character> charList = new LinkedList<>();
+
+    public CharacterRandomProducer() {
+        super(Character.class);
+        this.initCharList();
     }
 
     @Override
-    public String produce() {
-        final StringBuilder buffer = new StringBuilder(targetStringLength);
-        for (int i = 0; i < targetStringLength; i++) {
-            buffer.append(charset[(int) (this.random.nextFloat() * max)]);
+    public Character produce() {
+        if (this.charList.isEmpty()) {
+            this.initCharList();
         }
-        return buffer.toString();
+        return this.charList.remove();
+    }
+
+    private void initCharList() {
+        for (final char charVal : StringRandomProducer.charset)
+            this.charList.add(charVal);
+        Collections.shuffle(this.charList);
     }
 
     @Override
-    public String change(final String result) {
+    public Character change(final Character result) {
         return this.produce();
     }
 }

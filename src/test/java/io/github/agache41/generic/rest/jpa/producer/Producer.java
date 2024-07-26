@@ -42,6 +42,8 @@ import static java.util.function.Predicate.not;
  */
 public class Producer<T> {
 
+    private static final CharacterRandomProducer characterRandomProducer = new CharacterRandomProducer();
+    private static final StringRandomProducer stringRandomProducer = new StringRandomProducer();
     private static final Map<Class<?>, Producer<?>> producerCache = new ConcurrentHashMap<>();
     /**
      * The default size for collections and map generation.
@@ -49,7 +51,8 @@ public class Producer<T> {
     public static int defaultSize = 16;
 
     static {
-        Producer.add(new StringRandomProducer());
+        Producer.add(characterRandomProducer);
+        Producer.add(stringRandomProducer);
         //Producer.add(new EnglishWordsProducer());
         Producer.add(new IntegerRandomProducer());
         Producer.add(int.class, new IntegerRandomProducer());
@@ -363,12 +366,16 @@ public class Producer<T> {
                 fieldValue = Producer.ofClass(fieldType)
                                      .produce();
             } else {
-                final String stringValue = Producer.ofClass(String.class)
-                                                   .produce();
-                if (stringValue.length() <= maxLength) {
-                    fieldValue = stringValue;
+                if (maxLength == 1) {
+                    final Character characterValue = characterRandomProducer.produce();
+                    fieldValue = String.valueOf(characterValue);
                 } else {
-                    fieldValue = stringValue.substring(0, maxLength);
+                    final String stringValue = stringRandomProducer.produce();
+                    if (stringValue.length() <= maxLength) {
+                        fieldValue = stringValue;
+                    } else {
+                        fieldValue = stringValue.substring(0, maxLength);
+                    }
                 }
             }
         } else if (fieldReflector.isCollection()) {
