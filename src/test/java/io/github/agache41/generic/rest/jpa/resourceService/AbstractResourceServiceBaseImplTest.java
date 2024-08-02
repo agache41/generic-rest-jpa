@@ -331,7 +331,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                     assertNotNull(feldRes2);
                     assertNotNull(feldRes2.getId());
                     assertEquals(id, feldRes2.getId());
-                    assertEquals(reflector.get(feldRes), reflector.get(feldRes2), " Value returned from dynamic put is different than expected " + reflector.getName());
+                    assertEquals(reflector.get(feldRes), reflector.get(feldRes2), " Value returned from put with null (dynamic) is different than expected " + reflector.getName());
 
                     final T getRes2 = this.getClient()
                                           .get(id);
@@ -339,8 +339,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                     assertNotNull(getRes2);
                     assertNotNull(getRes2.getId());
                     assertEquals(id, getRes2.getId());
-                    assertEquals(reflector.get(feldRes), reflector.get(getRes2), " Value returned from get after dynamic put is different than expected  " + reflector.getName());
-                    assertEquals(value, reflector.get(getRes2), " Value returned from get after dynamic put is different than previous value " + reflector.getName());
+                    assertEquals(reflector.get(feldRes), reflector.get(getRes2), " Value returned from get after put with null (dynamic) is different than expected (value has changed!)  " + reflector.getName());
+                    assertEquals(value, reflector.get(getRes2), " Value returned from get after dynamic put is different than previous value (value has changed!)" + reflector.getName());
                 }
 
             }
