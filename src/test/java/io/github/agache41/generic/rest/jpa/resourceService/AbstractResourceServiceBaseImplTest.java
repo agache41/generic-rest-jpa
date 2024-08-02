@@ -330,7 +330,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
         //iterate over the values in the object
         for (final FieldReflector reflector : this.getClassReflector()
                                                   .getValueReflectorsArray()) {
-            if (!reflector.isUpdatable() || reflector.isId()) {
+            if (!reflector.isInsertable() || reflector.isId()) {
                 continue;
             }
             // create new empty object

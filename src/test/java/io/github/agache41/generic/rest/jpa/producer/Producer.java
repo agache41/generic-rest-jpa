@@ -351,8 +351,11 @@ public class Producer<T> {
     public Object produceField(final T result,
                                final FieldReflector fieldReflector) {
 
+        if (!fieldReflector.isInsertable() && !fieldReflector.isUpdatable()) {
+            return null; // nothing to do here
+        }
         final Object target = fieldReflector.get(result);
-        if (!fieldReflector.isInsertable()) {
+        if (target == null && !fieldReflector.isInsertable()) {
             return null;  // field not set and must not be inserted
         }
         if (target != null && !fieldReflector.isUpdatable()) {

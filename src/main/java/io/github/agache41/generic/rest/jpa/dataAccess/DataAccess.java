@@ -71,10 +71,9 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
     public static final String findById = "findById";
     public static final String deleteById = "deleteById";
     public static final String listAll = "listAll";
-
     protected static final Set<String> reserved = Stream.of("cut", "maxResults", "firstResult", "orderBy")
                                                         .collect(Collectors.toSet());
-    protected static final Pattern orderByColumn = Pattern.compile("(?i)(\\w+)\\s?(asc|desc)?");
+    protected static final Pattern orderByColumn = Pattern.compile("(?i)([a-zA-Z_$.0-9]+)(\\s(asc|desc))?");
     /**
      * <pre>
      * The type of the persisted Object
@@ -111,23 +110,17 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * </pre>
      */
     protected final List<String> eagerFields;
-
     /**
      * The Persisted field names.
      */
     protected final Predicate<Map.Entry<String, ?>> notReservedNames;
-
-
     /**
      * THe named queries available in the entity.
      */
     protected final Set<String> namedQueries;
-
     protected final String findByIdNamedQuery;
     protected final String deleteByIdNamedQuery;
     protected final String listAllNamedQuery;
-
-
     /**
      * <pre>
      * The default EntityManager in use.
@@ -610,7 +603,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
             if (!matcher.matches()) {
                 throw new IllegalArgumentException("OrderBy parameter [orderBy=" + entry + "] does not match pattern [" + orderByColumn.pattern() + "]");
             }
-            result.put(matcher.group(1), !"desc".equalsIgnoreCase(matcher.group(2)));
+            result.put(matcher.group(1), !"desc".equalsIgnoreCase(matcher.group(3)));
         }
         return result;
     }
@@ -729,7 +722,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
     public void remove(final ENTITY entity) {
         if (this.namedQueries.contains(this.deleteByIdNamedQuery)) {
             this.em()
-                .createNamedQuery(this.deleteByIdNamedQuery, this.type)
+                .createNamedQuery(this.deleteByIdNamedQuery)
                 .setParameter(ID, entity.getId())
                 .executeUpdate();
         } else {

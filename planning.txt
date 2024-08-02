@@ -16,13 +16,20 @@ Done:
 -- add findby id query
 -- add order by id in autocomplete by id
 -- add base class for AbstractTest
-Undergoing:
 - add postCreate postChange in creator
 - fix autocompleteidsStringvalue as sotred set remove equals
 - add sort support
 - add class prefix to named queries findbyID, delete by id, findAll, delete all
 - add list all query (with params)
+- fix deleteById remove Type
+- add unit tests for findById, deleteById, list all
+- fix add . in orderBy regex
+Undergoing:
+
 Proposed:
+- fix add . in orderBy regex
+
+- add Named query for delete all
 - add notnull support for @NotNull annotation and @Column nullable.
 - make tests methods independent, add cleanup before and after
 - add better field producer for string with english words
