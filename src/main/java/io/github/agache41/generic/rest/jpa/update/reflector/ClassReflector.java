@@ -252,10 +252,6 @@ public final class ClassReflector<T> {
             } else if (valueR == null) {
                 log.debugf("Found un-equal field %s.%s left=%s right=null", this.clazz.getSimpleName(), reflector.getName(), valueL.toString());
                 result = false;
-            } else if (!valueR.getClass()
-                              .equals(valueL.getClass())) {
-                log.debugf("Found un-equal field type %s.%s left=%s right=%s", this.clazz.getSimpleName(), reflector.getName(), valueL.getClass(), valueR.getClass());
-                result = false;
             } else if (Updatable.class.isAssignableFrom(valueR.getClass())) {
                 if (!((Updatable) valueL).updateEquals(valueR)) {
                     log.debugf("Found un-equal field %s.%s left=%s right=%s", this.clazz.getSimpleName(), reflector.getName(), valueL.toString(), valueR.toString());

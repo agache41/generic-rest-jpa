@@ -54,7 +54,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
     protected final ResourceService<T, K> client;
     protected final ResourceServiceConfig config = new ResourceServiceConfig() {
     };
-    protected boolean useUpdateEquals = true;
+    protected boolean useUpdateEquals = false;
 
     public AbstractResourceServiceBaseImplTest(final Class<T> clazz,
                                                final String path,
