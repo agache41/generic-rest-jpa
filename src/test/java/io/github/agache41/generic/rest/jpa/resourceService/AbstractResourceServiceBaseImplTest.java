@@ -54,7 +54,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
     protected final ResourceService<T, K> client;
     protected final ResourceServiceConfig config = new ResourceServiceConfig() {
     };
-    protected boolean useUpdateEquals = false;
+    protected boolean useUpdateEquals = true;
 
     public AbstractResourceServiceBaseImplTest(final Class<T> clazz,
                                                final String path,
@@ -118,6 +118,16 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
         return this.producer;
     }
 
+    protected void assertUpdateEquals(final T left,
+                                      final T right,
+                                      final String message) {
+        if (!this.useUpdateEquals) {
+            assertEquals(left, right, message);
+        } else {
+            assertTrue(left.updateEquals(right), message);
+        }
+    }
+
     @BeforeEach
     public void beforeEach(final TestInfo testInfo) {
         final String testName = testInfo.getDisplayName();
@@ -132,15 +142,6 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                                              .getSimpleName() + "." + testName);
     }
 
-    protected void assertUpdateEquals(final T left,
-                                      final T right,
-                                      final String message) {
-        if (!this.useUpdateEquals) {
-            assertEquals(left, right, message);
-        } else {
-            assertTrue(left.updateEquals(right), message);
-        }
-    }
 
     public void testPost() {
         for (int index = 0; index < this.insertData.size(); index++) {
