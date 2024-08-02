@@ -283,7 +283,7 @@ public class Producer<T> {
     public T produce() {
         final T newInstance = ClassReflector.ofClass(this.clazz)
                                             .newInstance();
-        final T result = this.produceUpdatableFields(newInstance);
+        final T result = this.produceUpdatableFields(newInstance, false);
         if (this.postProduce != null) {
             this.postProduce.accept(result);
         }
@@ -301,7 +301,7 @@ public class Producer<T> {
         Stream.of(ClassReflector.ofClass(this.clazz)
                                 .getUpdateReflectorsArray())
               .filter(not(FieldReflector::isNullable))
-              .forEach(fieldReflector -> this.produceField(result, fieldReflector));
+              .forEach(fieldReflector -> this.produceField(result, fieldReflector, false));
         if (this.postProduce != null) {
             this.postProduce.accept(result);
         }
@@ -325,18 +325,19 @@ public class Producer<T> {
             final Updatable updatableResult = (Updatable) result;
             updatableResult.update((Updatable) source);
         }
-        result = this.produceUpdatableFields(result);
+        result = this.produceUpdatableFields(result, true);
         if (this.postChange != null) {
             this.postChange.accept(result);
         }
         return result;
     }
 
-    private T produceUpdatableFields(final T result) {
+    private T produceUpdatableFields(final T result,
+                                     final boolean update) {
 
         for (final FieldReflector fieldReflector : ClassReflector.ofClass(this.clazz)
                                                                  .getUpdateReflectorsArray()) {
-            this.produceField(result, fieldReflector);
+            this.produceField(result, fieldReflector, update);
         }
         return result;
     }
@@ -349,17 +350,13 @@ public class Producer<T> {
      * @return the object
      */
     public Object produceField(final T result,
-                               final FieldReflector fieldReflector) {
-
-        if (!fieldReflector.isInsertable() && !fieldReflector.isUpdatable()) {
-            return null; // nothing to do here
-        }
+                               final FieldReflector fieldReflector,
+                               final boolean update) {
         final Object target = fieldReflector.get(result);
-        //if (target == null && !fieldReflector.isInsertable()) {
-        //    return null;  // field not set and must not be inserted
-        //}
-        if (target != null && !fieldReflector.isUpdatable()) {
-            return target; // field already set and must not be updated
+        if (!update && !fieldReflector.isInsertable()) {
+            return null; // in insert case not insertable
+        } else if (target != null && !fieldReflector.isUpdatable()) {
+            return target;  // field already set and must not be updated
         }
         final int maxLength = fieldReflector.getLength();
         final Class<?> fieldType = fieldReflector.getType();
@@ -416,7 +413,11 @@ public class Producer<T> {
             }
         } else {
             // do recurse on the type
-            fieldValue = ((Producer<Object>) Producer.ofClass(fieldType)).change(target);
+            if (update) {
+                fieldValue = ((Producer<Object>) Producer.ofClass(fieldType)).change(target);
+            } else {
+                fieldValue = ((Producer<Object>) Producer.ofClass(fieldType)).produce();
+            }
         }
         if (fieldValue != null) {
             fieldReflector.set(result, fieldValue);

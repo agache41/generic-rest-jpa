@@ -260,7 +260,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             //when
             final T res = this.getClient()
                               .put(req);
-
+            LOG.debugf("PUT: Request: %s", req);
             //then
             assertNotNull(res);
             assertNotNull(res.getId());
@@ -300,7 +300,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
 
                 // set only this field
                 final Object value = this.getProducer()
-                                         .produceField(feldReq, reflector);
+                                         .produceField(feldReq, reflector, true);
                 //when
                 final T feldRes = this.getClient()
                                       .put(feldReq);
@@ -363,7 +363,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertNotNull(feldReq);
             // set only this field
             final Object value = this.getProducer()
-                                     .produceField(feldReq, reflector);
+                                     .produceField(feldReq, reflector, true);
             //when
             final T feldRes = this.getClient()
                                   .post(feldReq);
@@ -411,7 +411,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
 
             // set only this field
             final Object value = this.getProducer()
-                                     .produceField(baseRes, reflector);
+                                     .produceField(baseRes, reflector, true);
 
             final T feldRes = this.getClient()
                                   .put(baseRes);
