@@ -308,8 +308,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                 assertNotNull(feldRes);
                 assertNotNull(feldRes.getId());
                 assertEquals(id, feldRes.getId());
-                assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Value returned from put is different from request for field " + reflector.getName());
-                assertEquals(value, reflector.get(feldRes), "Value returned from put is different from generated value for field " + reflector.getName());
+                assertEquals(value, reflector.get(feldReq));
+                assertEquals(value, reflector.get(feldRes), "Field value returned from put is different from request for field " + reflector.getName());
 
                 final T getRes = this.getClient()
                                      .get(id);
@@ -317,13 +317,11 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                 assertNotNull(getRes);
                 assertNotNull(getRes.getId());
                 assertEquals(id, getRes.getId());
-                assertEquals(reflector.get(feldReq), reflector.get(getRes), " Value returned from get is different from put request for field " + reflector.getName());
-                assertEquals(value, reflector.get(getRes), " Value returned from get is different from requested value for field " + reflector.getName());
+                assertEquals(value, reflector.get(getRes), " Field value returned from get is different after put request for field " + reflector.getName());
 
                 // if field is dynamic, then by put with null it should not change
                 if (reflector.isDynamic() && reflector.isNullable()) {
                     reflector.set(feldReq, null);
-
                     //when
                     final T feldRes2 = this.getClient()
                                            .put(feldReq);
@@ -331,7 +329,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                     assertNotNull(feldRes2);
                     assertNotNull(feldRes2.getId());
                     assertEquals(id, feldRes2.getId());
-                    assertEquals(reflector.get(feldRes), reflector.get(feldRes2), " Value returned from put with null (dynamic) is different than expected " + reflector.getName());
+                    assertNull(reflector.get(feldReq));
+                    assertEquals(value, reflector.get(feldRes2), "Field value returned from put with null (dynamic) is different than expected (value has changed) " + reflector.getName());
 
                     final T getRes2 = this.getClient()
                                           .get(id);
@@ -339,10 +338,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                     assertNotNull(getRes2);
                     assertNotNull(getRes2.getId());
                     assertEquals(id, getRes2.getId());
-                    assertEquals(reflector.get(feldRes), reflector.get(getRes2), " Value returned from get after put with null (dynamic) is different than expected (value has changed!)  " + reflector.getName());
-                    assertEquals(value, reflector.get(getRes2), " Value returned from get after dynamic put is different than previous value (value has changed!)" + reflector.getName());
+                    assertEquals(value, reflector.get(getRes2), " Field Value returned from get after put with null (dynamic) is different than previous value (value has changed!)" + reflector.getName());
                 }
-
             }
         }
         this.deleteAll();
@@ -371,9 +368,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertNotNull(feldRes);
             final K id = feldRes.getId();
             assertNotNull(id);
-
-            assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Checking field " + reflector.getName());
-            assertEquals(value, reflector.get(feldRes), " Checking field " + reflector.getName());
+            assertEquals(value, reflector.get(feldReq));
+            assertEquals(value, reflector.get(feldRes), " Wrong field Value returned from post :  " + reflector.getName());
 
             final T getRes = this.getClient()
                                  .get(id);
@@ -381,8 +377,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertNotNull(getRes);
             assertNotNull(getRes.getId());
             assertEquals(id, getRes.getId());
-            assertEquals(reflector.get(feldReq), reflector.get(getRes), " Checking field " + reflector.getName());
-            assertEquals(value, reflector.get(getRes), " Checking field " + reflector.getName());
+            assertEquals(value, reflector.get(getRes), "  Wrong field Value returned from get after post :  " + reflector.getName());
 
         }
         this.deleteAll();
@@ -416,9 +411,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             final T feldRes = this.getClient()
                                   .put(baseRes);
 
-
-            assertEquals(reflector.get(baseRes), reflector.get(feldRes), " Checking field " + reflector.getName());
-            assertEquals(value, reflector.get(feldRes), " Checking field " + reflector.getName());
+            assertEquals(value, reflector.get(baseRes));
+            assertEquals(value, reflector.get(feldRes), " Wrong field Value returned from put :" + reflector.getName());
 
             final T getRes = this.getClient()
                                  .get(id);
@@ -426,8 +420,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertNotNull(getRes);
             assertNotNull(getRes.getId());
             assertEquals(id, getRes.getId());
-            assertEquals(reflector.get(baseRes), reflector.get(getRes), " Checking field " + reflector.getName());
-            assertEquals(value, reflector.get(getRes), " Checking field " + reflector.getName());
+            assertEquals(value, reflector.get(getRes), " Wrong field Value returned from get after put :" + reflector.getName());
 
         }
         this.deleteAll();
