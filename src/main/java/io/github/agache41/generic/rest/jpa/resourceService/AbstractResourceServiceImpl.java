@@ -300,7 +300,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
 
     }
 
-    T doVerify(final T updated) {
+    protected T doVerify(final T updated) {
         if (!this.getConfig()
                  .getVerify()) {
             return updated;
@@ -317,7 +317,7 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
         return actual;
     }
 
-    List<T> doVerify(final List<T> updated) {
+    protected List<T> doVerify(final List<T> updated) {
         return updated.stream()
                       .map(this::doVerify)
                       .collect(Collectors.toList());
