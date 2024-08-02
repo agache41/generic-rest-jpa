@@ -73,6 +73,10 @@ public class BaseEntity {
     @Update
     private Long longVal;
 
+    @Basic
+    @Update(dynamic = false)
+    private long longpVal;
+
     // todo: fixparse
     //
     //    @Basic

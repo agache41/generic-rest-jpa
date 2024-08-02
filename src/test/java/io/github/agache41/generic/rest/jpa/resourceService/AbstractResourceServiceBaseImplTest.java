@@ -308,8 +308,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                 assertNotNull(feldRes);
                 assertNotNull(feldRes.getId());
                 assertEquals(id, feldRes.getId());
-                assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Checking field " + reflector.getName());
-                assertEquals(value, reflector.get(feldRes), " Checking field " + reflector.getName());
+                assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Value returned from put is different from request for field " + reflector.getName());
+                assertEquals(value, reflector.get(feldRes), "Value returned from put is different from generated value for field " + reflector.getName());
 
                 final T getRes = this.getClient()
                                      .get(id);
@@ -317,12 +317,12 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                 assertNotNull(getRes);
                 assertNotNull(getRes.getId());
                 assertEquals(id, getRes.getId());
-                assertEquals(reflector.get(feldReq), reflector.get(getRes), " Checking field " + reflector.getName());
-                assertEquals(value, reflector.get(getRes), " Checking field " + reflector.getName());
+                assertEquals(reflector.get(feldReq), reflector.get(getRes), " Value returned from get is different from put request for field " + reflector.getName());
+                assertEquals(value, reflector.get(getRes), " Value returned from get is different from requested value for field " + reflector.getName());
 
                 // if field is dynamic, then by put with null it should not change
                 if (reflector.isDynamic() && reflector.isNullable()) {
-                    reflector.set(feldRes, null);
+                    reflector.set(feldReq, null);
 
                     //when
                     final T feldRes2 = this.getClient()
@@ -331,7 +331,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                     assertNotNull(feldRes2);
                     assertNotNull(feldRes2.getId());
                     assertEquals(id, feldRes2.getId());
-                    assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Checking field " + reflector.getName());
+                    assertEquals(reflector.get(feldRes), reflector.get(feldRes2), " Value returned from dynamic put is different than expected " + reflector.getName());
 
                     final T getRes2 = this.getClient()
                                           .get(id);
@@ -339,8 +339,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                     assertNotNull(getRes2);
                     assertNotNull(getRes2.getId());
                     assertEquals(id, getRes2.getId());
-                    assertEquals(reflector.get(feldReq), reflector.get(getRes2), " Checking field " + reflector.getName());
-                    assertEquals(value, reflector.get(getRes2), " Checking field " + reflector.getName());
+                    assertEquals(reflector.get(feldRes), reflector.get(getRes2), " Value returned from get after dynamic put is different than expected  " + reflector.getName());
+                    assertEquals(value, reflector.get(getRes2), " Value returned from get after dynamic put is different than previous value " + reflector.getName());
                 }
 
             }
