@@ -29,10 +29,22 @@ import java.util.List;
  */
 public class IdGroup<PK> implements PrimaryKey<PK> {
     private static final long serialVersionUID = -6076116813129169704L;
-    private final String key;
-    private final PK id;
-    private final String value;
-    private final int count;
+    /**
+     * The Key.
+     */
+    protected final String key;
+    /**
+     * The Id.
+     */
+    protected final PK id;
+    /**
+     * The Value.
+     */
+    protected final String value;
+    /**
+     * The Count.
+     */
+    protected final int count;
 
     /**
      * Instantiates a new Id group.

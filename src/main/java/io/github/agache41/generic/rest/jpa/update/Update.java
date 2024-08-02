@@ -38,7 +38,13 @@ import java.lang.annotation.*;
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Update {
+    /**
+     * The constant defaultLength.
+     */
     int defaultLength = -1;
+    /**
+     * The constant defaultOrder.
+     */
     int defaultOrder = 1000;
 
     /**

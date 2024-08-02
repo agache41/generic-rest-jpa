@@ -50,6 +50,10 @@ public class Modell extends BaseEntity implements PrimaryKey<Long>, Updatable<Mo
     @Column(name = "id", updatable = false, insertable = false)
     private Long id;
 
+    @Basic
+    @Update(insertable = false)
+    private String notInsertableString;
+
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "subModell_id")
     private SubModell subModell;

@@ -29,9 +29,20 @@ import jakarta.persistence.Tuple;
  */
 public class IdEntry<PK> implements PrimaryKey<PK> {
     private static final long serialVersionUID = -6076116813129169704L;
-    private final PK id;
-    private final String value;
+    /**
+     * The Id.
+     */
+    protected final PK id;
+    /**
+     * The Value.
+     */
+    protected final String value;
 
+    /**
+     * Instantiates a new Id entry.
+     *
+     * @param tuple the tuple
+     */
     public IdEntry(final Tuple tuple) {
         this.id = (PK) tuple.get(0);
         this.value = (String) tuple.get(1);

@@ -68,11 +68,26 @@ import static java.util.stream.Collectors.toList;
 @Transactional(REQUIRED)
 public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
 
+    /**
+     * The constant findById must be used as a suffix for Named Queries. Syntax is ClassName.findById
+     */
     public static final String findById = "findById";
+    /**
+     * The constant deleteById must be used as a suffix for Named Queries. Syntax is ClassName.deleteById
+     */
     public static final String deleteById = "deleteById";
+    /**
+     * The constant listAll ust be used as a suffix for Named Queries. Syntax is ClassName.listAll
+     */
     public static final String listAll = "listAll";
+    /**
+     * The Set of reserved names to be excepted from URL Parameters.
+     */
     protected static final Set<String> reserved = Stream.of("cut", "maxResults", "firstResult", "orderBy")
                                                         .collect(Collectors.toSet());
+    /**
+     * The Regex matching orderBy URL Parameter content.
+     */
     protected static final Pattern orderByColumn = Pattern.compile("(?i)([a-zA-Z_$.0-9]+)(\\s(asc|desc))?");
     /**
      * <pre>
@@ -118,8 +133,17 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * THe named queries available in the entity.
      */
     protected final Set<String> namedQueries;
+    /**
+     * The Find by id named query.
+     */
     protected final String findByIdNamedQuery;
+    /**
+     * The Delete by id named query.
+     */
     protected final String deleteByIdNamedQuery;
+    /**
+     * The List all named query.
+     */
     protected final String listAllNamedQuery;
     /**
      * <pre>
@@ -194,7 +218,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * @param id       the primary key to use, must be not null
      * @param expected if a persisted entity must exist
      * @return the entity for the primary key or null if not found. If no entity is found and expected is set to true ExpectedException is thrown.
-     * @see jakarta.persistence.EntityManager#find(Class, Object) jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)
+     * @see jakarta.persistence.EntityManager#find(Class, Object) jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)
      */
     public ENTITY findById(final PK id,
                            final boolean expected) {
@@ -505,6 +529,14 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
                    .getResultList();
     }
 
+    /**
+     * Processes multipath Entity attributes. Example id.name
+     *
+     * @param <Y>    the type parameter
+     * @param entity the entity
+     * @param name   the name
+     * @return the path
+     */
     protected <Y> Path<Y> attr(final Root<ENTITY> entity,
                                final String name) {
         if (!name.contains(".")) {
@@ -562,6 +594,14 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
                    .collect(toList());
     }
 
+    /**
+     * Generates a filter expression from the query params that can be chained.
+     *
+     * @param expression the expression
+     * @param uriInfo    the uri info
+     * @param entity     the entity
+     * @return the expression
+     */
     protected Expression<Boolean> filterQueryParamsAnd(final Expression<Boolean> expression,
                                                        final UriInfo uriInfo,
                                                        final Root<ENTITY> entity) {
@@ -574,6 +614,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
                    .and(expression, this.in(filterQueryParams, entity));
     }
 
+    /**
+     * Generates a filter expression from the query params.
+     *
+     * @param uriInfo the uri info
+     * @return the map
+     */
     protected Map<String, List<Object>> filterQueryParams(final UriInfo uriInfo) {
         if (uriInfo == null) {
             return Collections.emptyMap();
@@ -717,7 +763,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * </pre>
      *
      * @param entity the given entity
-     * @see jakarta.persistence.EntityManager#remove(Object) jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)
+     * @see jakarta.persistence.EntityManager#remove(Object) jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)
      */
     public void remove(final ENTITY entity) {
         if (this.namedQueries.contains(this.deleteByIdNamedQuery)) {
@@ -854,7 +900,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      *
      * @param entity the entity
      * @return the merged entity
-     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)
+     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)
      */
     public ENTITY merge(final ENTITY entity) {
         return this.em()
@@ -868,7 +914,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      *
      * @param sources the sources
      * @return the merged entities in a Stream&#x3C;ENTITY&#x3E;
-     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)
+     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)
      */
     public List<ENTITY> mergeAll(final Collection<ENTITY> sources) {
         return sources.stream()
@@ -883,7 +929,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      *
      * @param source the source
      * @return the persisted entity
-     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)
+     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)
      */
     public ENTITY persist(final ENTITY source) {
         final ENTITY newEntity = this.newInstance(this.assertNotNull(source));
@@ -899,7 +945,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      *
      * @param sources the sources
      * @return the persisted entities in a Stream&#x3C;ENTITY&#x3E;
-     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)
+     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)
      */
     public List<ENTITY> persistAll(final Collection<ENTITY> sources) {
         return sources.stream()
@@ -1203,6 +1249,11 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
         }
     }
 
+    /**
+     * Find entity named queries set.
+     *
+     * @return the set
+     */
     protected Set<String> findEntityNamedQueries() {
         final Set<String> entityNamedQueries = new HashSet<>();
         final NamedQueries namedQueries = this.type.getAnnotation(NamedQueries.class);

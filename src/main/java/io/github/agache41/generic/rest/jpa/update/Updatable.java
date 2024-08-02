@@ -21,14 +21,23 @@ package io.github.agache41.generic.rest.jpa.update;
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import jakarta.persistence.Transient;
 
+
 /**
+ * @param <ENTITY> the type parameter
  * @author Alexandru.Agache.Extern@atruvia.de
- * <p>
+ * <pre>
  * Generic Interface for updatable Database Entities
  * It consists of one method to be implemented in the entity to coordinate the update process.
  * The default implementation uses the ClassReflector mechanism to update the fields.
+ * </pre>
  */
 public interface Updatable<ENTITY extends Updatable<ENTITY>> {
+    /**
+     * Updates the entity
+     *
+     * @param source the source
+     * @return true if there were changes
+     */
     @Transient
     default boolean update(final ENTITY source) {
         return ClassReflector.ofObject(this)

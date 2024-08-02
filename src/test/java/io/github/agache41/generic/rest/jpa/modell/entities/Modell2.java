@@ -47,6 +47,6 @@ public class Modell2 implements PrimaryKey<String>, Updatable<Modell2> {
 
     private Integer number;
 
-    private long age;
+    private Long age;
 
 }

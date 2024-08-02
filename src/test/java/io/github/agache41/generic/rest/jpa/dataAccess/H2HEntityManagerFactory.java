@@ -69,7 +69,7 @@ public class H2HEntityManagerFactory {
 
         map.put(HBM2DDL_AUTO, "create-drop");
         // comment this to reduce unnecessary logging
-        map.put(SHOW_SQL, "true");
+        // map.put(SHOW_SQL, "true");
         map.put(FORMAT_SQL, "true");
         map.put(HIGHLIGHT_SQL, "true");
         map.put(QUERY_STARTUP_CHECKING, "false");

@@ -538,6 +538,11 @@ public final class FieldReflector<T, V> {
         return this.id;
     }
 
+    /**
+     * Gets order value.
+     *
+     * @return the order
+     */
     public int getOrder() {
         return this.order;
     }

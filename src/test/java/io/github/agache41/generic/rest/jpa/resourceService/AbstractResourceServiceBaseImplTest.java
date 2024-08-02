@@ -297,29 +297,52 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                 // set the id
                 feldReq.setId(id);
 
-                for (int repeatField = 2; repeatField > 0; repeatField--) {
-                    // set only this field
-                    final Object value = this.getProducer()
-                                             .produceField(feldReq, reflector);
-                    //when
-                    final T feldRes = this.getClient()
-                                          .put(feldReq);
-                    //then
-                    assertNotNull(feldRes);
-                    assertNotNull(feldRes.getId());
-                    assertEquals(id, feldRes.getId());
-                    assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Checking field " + reflector.getName());
-                    assertEquals(value, reflector.get(feldRes), " Checking field " + reflector.getName());
 
-                    final T getRes = this.getClient()
-                                         .get(id);
+                // set only this field
+                final Object value = this.getProducer()
+                                         .produceField(feldReq, reflector);
+                //when
+                final T feldRes = this.getClient()
+                                      .put(feldReq);
+                //then
+                assertNotNull(feldRes);
+                assertNotNull(feldRes.getId());
+                assertEquals(id, feldRes.getId());
+                assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Checking field " + reflector.getName());
+                assertEquals(value, reflector.get(feldRes), " Checking field " + reflector.getName());
+
+                final T getRes = this.getClient()
+                                     .get(id);
+                //then
+                assertNotNull(getRes);
+                assertNotNull(getRes.getId());
+                assertEquals(id, getRes.getId());
+                assertEquals(reflector.get(feldReq), reflector.get(getRes), " Checking field " + reflector.getName());
+                assertEquals(value, reflector.get(getRes), " Checking field " + reflector.getName());
+
+                // if field is dynamic, then by put with null it should not change
+                if (reflector.isDynamic() && reflector.isNullable()) {
+                    reflector.set(feldRes, null);
+
+                    //when
+                    final T feldRes2 = this.getClient()
+                                           .put(feldReq);
                     //then
-                    assertNotNull(getRes);
-                    assertNotNull(getRes.getId());
-                    assertEquals(id, getRes.getId());
-                    assertEquals(reflector.get(feldReq), reflector.get(getRes), " Checking field " + reflector.getName());
-                    assertEquals(value, reflector.get(getRes), " Checking field " + reflector.getName());
+                    assertNotNull(feldRes2);
+                    assertNotNull(feldRes2.getId());
+                    assertEquals(id, feldRes2.getId());
+                    assertEquals(reflector.get(feldReq), reflector.get(feldRes), " Checking field " + reflector.getName());
+
+                    final T getRes2 = this.getClient()
+                                          .get(id);
+                    //then
+                    assertNotNull(getRes2);
+                    assertNotNull(getRes2.getId());
+                    assertEquals(id, getRes2.getId());
+                    assertEquals(reflector.get(feldReq), reflector.get(getRes2), " Checking field " + reflector.getName());
+                    assertEquals(value, reflector.get(getRes2), " Checking field " + reflector.getName());
                 }
+
             }
         }
         this.deleteAll();

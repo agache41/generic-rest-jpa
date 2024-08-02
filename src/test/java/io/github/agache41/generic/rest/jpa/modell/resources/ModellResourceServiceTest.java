@@ -26,6 +26,7 @@ import org.junit.jupiter.api.*;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
@@ -38,20 +39,23 @@ public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<M
     private static final List<Modell> insertData;
     private static final List<Modell> updateData;
 
+    private static final Consumer<Modell> fk = modell -> modell.setNotInsertableString("inserted");
+
     static {
 
         producer = Producer.ofClass(Modell.class)
                            .withList(LinkedList::new)
                            .withMap(LinkedHashMap::new)
-                           .withSize(Config.collectionSize);
+                           .withSize(Config.collectionSize)
+                           .withPostProduce(fk)
+                           .withPostChange(fk);
         insertData = producer.produceList();
         updateData = producer.changeList(insertData);
     }
 
 
     public ModellResourceServiceTest() {
-        super(new ModellResourceService(),
-              Modell.class, //
+        super(new ModellResourceService(), Modell.class, //
               insertData,   //
               updateData,   //
               stringField); //
