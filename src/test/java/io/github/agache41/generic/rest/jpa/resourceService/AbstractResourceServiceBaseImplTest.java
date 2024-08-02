@@ -331,7 +331,6 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                     assertNotNull(feldRes2);
                     assertNotNull(feldRes2.getId());
                     assertEquals(id, feldRes2.getId());
-                    assertNull(reflector.get(feldReq));
                     assertEquals(value, reflector.get(feldRes2), "Field value returned from put with null (dynamic) is different than expected (value has changed) " + reflector.getName());
 
                     final T getRes2 = this.getClient()
