@@ -18,6 +18,7 @@
 package io.github.agache41.generic.rest.jpa.update.reflector;
 
 import io.github.agache41.generic.rest.jpa.exceptions.UnexpectedException;
+import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 import org.jboss.logging.Logger;
@@ -218,6 +219,47 @@ public final class ClassReflector<T> {
             updated |= reflector.update(destination, source);
         }
         return updated;
+    }
+
+    /**
+     * Tells if the two objects are equal from the Update perspective.
+     *
+     * @param destination the destination
+     * @param source      the source
+     * @return the boolean
+     */
+    public boolean areEqual(final T destination,
+                            final Object source) {
+        if (destination == null) {
+            return source == null;
+        }
+        if (source == null) {
+            log.debugf("Found un-equal to null");
+            return false;
+        }
+
+        if (!source.getClass()
+                   .equals(this.clazz)) {
+            log.debugf("Found un-equal type classes!");
+            return false;
+        }
+        boolean result = true;
+        for (final FieldReflector reflector : this.updateReflectorsArray) {
+            final Object valueL = reflector.get(destination);
+            final Object valueR = reflector.get(source);
+            if (Updatable.class.isAssignableFrom(valueR.getClass())) {
+                if (!((Updatable) valueL).updateEquals(valueR)) {
+                    log.debugf("Found un-equal field %s.%s left=%s right=%s", this.clazz.getSimpleName(), reflector.getName(), valueL.toString(), valueR.toString());
+                    result = false;
+                }
+            } else {
+                if (!Objects.equals(valueL, valueR)) {
+                    log.debugf("Found un-equal field %s.%s left=%s right=%s", this.clazz.getSimpleName(), reflector.getName(), valueL.toString(), valueR.toString());
+                    result = false;
+                }
+            }
+        }
+        return result;
     }
 
     /**

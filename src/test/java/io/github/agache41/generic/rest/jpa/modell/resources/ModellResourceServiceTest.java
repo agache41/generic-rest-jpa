@@ -59,6 +59,7 @@ public class ModellResourceServiceTest extends AbstractResourceServiceImplTest<M
               insertData,   //
               updateData,   //
               stringField); //
+        //this.useUpdateEquals = true;
     }
 
     @BeforeEach

@@ -23,13 +23,10 @@ import jakarta.persistence.Transient;
 
 
 /**
+ * The interface Updatable.
+ *
  * @param <ENTITY> the type parameter
- * @author Alexandru.Agache.Extern@atruvia.de
- * <pre>
- * Generic Interface for updatable Database Entities
- * It consists of one method to be implemented in the entity to coordinate the update process.
- * The default implementation uses the ClassReflector mechanism to update the fields.
- * </pre>
+ * @author Alexandru.Agache.Extern @atruvia.de <pre> Generic Interface for updatable Database Entities It consists of one method to be implemented in the entity to coordinate the update process. The default implementation uses the ClassReflector mechanism to update the fields. </pre>
  */
 public interface Updatable<ENTITY extends Updatable<ENTITY>> {
     /**
@@ -42,5 +39,17 @@ public interface Updatable<ENTITY extends Updatable<ENTITY>> {
     default boolean update(final ENTITY source) {
         return ClassReflector.ofObject(this)
                              .update(this, source);
+    }
+
+    /**
+     * Tells if the two objects are equal from the Update perspective.
+     *
+     * @param source the source
+     * @return the boolean
+     */
+    @Transient
+    default boolean updateEquals(final Object source) {
+        return ClassReflector.ofObject(this)
+                             .areEqual(this, source);
     }
 }

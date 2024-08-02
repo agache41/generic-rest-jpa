@@ -87,29 +87,23 @@ public class Modell extends BaseEntity implements PrimaryKey<Long>, Updatable<Mo
     @EqualsAndHashCode.Exclude
     private Map<Long, MapEntity> mapEntities = new HashMap<>();
 
-    @Update.excluded
     @Fetch(FetchMode.SELECT)
     @ElementCollection(fetch = FetchType.EAGER)
     @OrderColumn
     @Column(name = "vCollectionValues")
     private List<String> vCollectionValues = new LinkedList<>();
 
-
-    @Update.excluded
     @Fetch(FetchMode.SELECT)
     @ElementCollection(fetch = FetchType.EAGER)
     @Column(name = "mapValues")
     private Map<Long, String> vMapValues = new HashMap<>();
 
-
-    @Update.excluded
     @Fetch(FetchMode.SELECT)
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     // add this to prevent Hibernate from using PersistentBag
     @OrderColumn(name = "id")
     private List<Collection2Entity> vCollectionEntities = new LinkedList<>();
 
-    @Update.excluded
     @Fetch(FetchMode.SELECT)
     @MapKey(name = "id")
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -117,8 +111,6 @@ public class Modell extends BaseEntity implements PrimaryKey<Long>, Updatable<Mo
     @EqualsAndHashCode.Exclude
     private Map<Long, Map2Entity> vMapEntities = new HashMap<>();
 
-
-    @Update.excluded
     @Fetch(FetchMode.JOIN)
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "value2Entity_id", referencedColumnName = "id")

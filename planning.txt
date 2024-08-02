@@ -24,21 +24,18 @@ Done:
 - fix deleteById remove Type
 - add unit tests for findById, deleteById, list all
 - fix add . in orderBy regex
-Undergoing:
-
-Proposed:
-- fix add . in orderBy regex
-
 - add Named query for delete all
-- add notnull support for @NotNull annotation and @Column nullable.
+Undergoing:
+- add equals for update fields
+Proposed:
 - make tests methods independent, add cleanup before and after
-- add better field producer for string with english words
+- add notnull support for @NotNull annotation and @Column nullable.
+
 - add separate classes for read services and write services/separate delete/function switch
 - add support for Ag Grid
--- add className.fieldName to Query Param name ?? do we do it ??
 -- refactor cb/query/root
 Proposed admin :
 --- add separate profile for github build and local with postgres
 --- read me update
 Rejected
--- optimize autocomplete id
+- add better field producer for string with english words
