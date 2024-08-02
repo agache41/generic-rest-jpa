@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
  * @param <T> the type parameter
  * @param <K> the type parameter
  */
-
 public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Updatable<T>, K> implements ResourceService<T, K> {
 
 
@@ -300,6 +299,12 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
 
     }
 
+    /**
+     * Verifies that the updated Entity has the same content in the database.
+     *
+     * @param updated the updated
+     * @return the t
+     */
     protected T doVerify(final T updated) {
         if (!this.getConfig()
                  .getVerify()) {
@@ -317,6 +322,12 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
         return actual;
     }
 
+    /**
+     * Does verify methode on a list.
+     *
+     * @param updated the updated
+     * @return the list
+     */
     protected List<T> doVerify(final List<T> updated) {
         return updated.stream()
                       .map(this::doVerify)
