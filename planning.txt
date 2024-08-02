@@ -27,10 +27,10 @@ Done:
 - add Named query for delete all
 Undergoing:
 - add equals for update fields
+- add messages to fails
 Proposed:
 - make tests methods independent, add cleanup before and after
 - add notnull support for @NotNull annotation and @Column nullable.
-
 - add separate classes for read services and write services/separate delete/function switch
 - add support for Ag Grid
 -- refactor cb/query/root
