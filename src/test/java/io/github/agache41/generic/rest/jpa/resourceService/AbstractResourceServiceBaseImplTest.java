@@ -42,7 +42,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K> & Updatable<T>, K> {
 
 
-    private static final Logger LOG = Logger.getLogger(AbstractResourceServiceBaseImplTest.class);
+    protected static final Logger LOG = Logger.getLogger(AbstractResourceServiceBaseImplTest.class);
     protected final Class<T> clazz;
     protected final List<T> insertData;
     protected final List<T> updateData;
@@ -131,15 +131,15 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
     @BeforeEach
     public void beforeEach(final TestInfo testInfo) {
         final String testName = testInfo.getDisplayName();
-        System.out.println("Starting " + this.getClass()
-                                             .getSimpleName() + "." + testName);
+        LOG.infof("Starting %s.%s", this.getClass()
+                                        .getSimpleName(), testName);
     }
 
     @AfterEach
     public void afterEach(final TestInfo testInfo) {
         final String testName = testInfo.getDisplayName();
-        System.out.println("Finished " + this.getClass()
-                                             .getSimpleName() + "." + testName);
+        LOG.infof("Finished %s.%s", this.getClass()
+                                        .getSimpleName(), testName);
     }
 
 
@@ -294,6 +294,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                 if (!reflector.isUpdatable() || reflector.isId()) {
                     continue;
                 }
+                LOG.infof("Starting Test Put Single for field %s.%s", this.clazz.getSimpleName(), reflector.getName());
                 // create new empty object
                 final T feldReq = this.getClassReflector()
                                       .newInstance();
@@ -322,8 +323,10 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                 assertEquals(id, getRes.getId());
                 assertEquals(value, reflector.get(getRes), " Field value returned from get is different after put request for field " + reflector.getName());
 
+                LOG.infof("Finished Test Put Single for field %s.%s", this.clazz.getSimpleName(), reflector.getName());
                 // if field is dynamic, then by put with null it should not change
                 if (reflector.isDynamic() && reflector.isNullable()) {
+                    LOG.infof("Starting Test null Put Single for field %s.%s", this.clazz.getSimpleName(), reflector.getName());
                     reflector.set(feldReq, null);
                     //when
                     final T feldRes2 = this.getClient()
@@ -332,7 +335,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                     assertNotNull(feldRes2);
                     assertNotNull(feldRes2.getId());
                     assertEquals(id, feldRes2.getId());
-                    assertEquals(value, reflector.get(feldRes2), "Field value returned from put with null (dynamic) is different than expected (value has changed) " + reflector.getName());
+                    assertEquals(value, reflector.get(feldRes2), "Field value returned from put with null (dynamic) is different than expected (value has changed)  for field " + reflector.getName());
 
                     final T getRes2 = this.getClient()
                                           .get(id);
@@ -340,7 +343,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                     assertNotNull(getRes2);
                     assertNotNull(getRes2.getId());
                     assertEquals(id, getRes2.getId());
-                    assertEquals(value, reflector.get(getRes2), " Field Value returned from get after put with null (dynamic) is different than previous value (value has changed!)" + reflector.getName());
+                    assertEquals(value, reflector.get(getRes2), " Field Value returned from get after put with null (dynamic) is different than previous value (value has changed!) for field " + reflector.getName());
+                    LOG.infof("Finished Test null Put Single for field %s.%s", this.clazz.getSimpleName(), reflector.getName());
                 }
             }
         }
@@ -355,6 +359,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             if (!reflector.isInsertable() || reflector.isId()) {
                 continue;
             }
+            LOG.infof("Starting Test Post Single for field %s.%s", this.clazz.getSimpleName(), reflector.getName());
             // create new empty object
             final T feldReq = this.getProducer()
                                   .produceMinimal();
@@ -371,7 +376,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             final K id = feldRes.getId();
             assertNotNull(id);
             assertEquals(value, reflector.get(feldReq));
-            assertEquals(value, reflector.get(feldRes), " Wrong field Value returned from post :  " + reflector.getName());
+            assertEquals(value, reflector.get(feldRes), " Wrong field Value returned from post for field " + reflector.getName());
 
             final T getRes = this.getClient()
                                  .get(id);
@@ -379,8 +384,9 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertNotNull(getRes);
             assertNotNull(getRes.getId());
             assertEquals(id, getRes.getId());
-            assertEquals(value, reflector.get(getRes), "  Wrong field Value returned from get after post :  " + reflector.getName());
+            assertEquals(value, reflector.get(getRes), "  Wrong field Value returned from get after post for field " + reflector.getName());
 
+            LOG.infof("Finished Test Post Single for field %s.%s", this.clazz.getSimpleName(), reflector.getName());
         }
         this.deleteAll();
     }
@@ -393,6 +399,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             if (!reflector.isUpdatable() || reflector.isId()) {
                 continue;
             }
+            LOG.infof("Starting Test Post Minimal Put Single for field %s.%s", this.clazz.getSimpleName(), reflector.getName());
             // create new empty object
             final T baseReq = this.getProducer()
                                   .produceMinimal();
@@ -405,6 +412,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertNotNull(baseRes);
             final K id = baseRes.getId();
             assertNotNull(id);
+            baseReq.setId(id);
 
             // set only this field
             final Object value = this.getProducer()
@@ -414,7 +422,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                                   .put(baseRes);
 
             assertEquals(value, reflector.get(baseRes));
-            assertEquals(value, reflector.get(feldRes), " Wrong field Value returned from put :" + reflector.getName());
+            assertEquals(value, reflector.get(feldRes), " Wrong field Value returned from put for field " + reflector.getName());
 
             final T getRes = this.getClient()
                                  .get(id);
@@ -422,7 +430,31 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertNotNull(getRes);
             assertNotNull(getRes.getId());
             assertEquals(id, getRes.getId());
-            assertEquals(value, reflector.get(getRes), " Wrong field Value returned from get after put :" + reflector.getName());
+            assertEquals(value, reflector.get(getRes), " Wrong field Value returned from get after put for field " + reflector.getName());
+
+            LOG.infof("Finished Test Post Minimal Put Single for field %s.%s", this.clazz.getSimpleName(), reflector.getName());
+            // if field is dynamic, then by put with null it should not change
+            if (reflector.isDynamic() && reflector.isNullable()) {
+                LOG.infof("Starting Test Post Minimal Put null Single for field %s.%s", this.clazz.getSimpleName(), reflector.getName());
+                reflector.set(baseReq, null);
+                //when
+                final T feldRes2 = this.getClient()
+                                       .put(baseReq);
+                //then
+                assertNotNull(feldRes2);
+                assertNotNull(feldRes2.getId());
+                assertEquals(id, feldRes2.getId());
+                assertEquals(value, reflector.get(feldRes2), "Field value returned from put with null (dynamic) is different than expected (value has changed) for field " + reflector.getName());
+
+                final T getRes2 = this.getClient()
+                                      .get(id);
+                //then
+                assertNotNull(getRes2);
+                assertNotNull(getRes2.getId());
+                assertEquals(id, getRes2.getId());
+                assertEquals(value, reflector.get(getRes2), " Field Value returned from get after put with null (dynamic) is different than previous value (value has changed!) for field " + reflector.getName());
+                LOG.infof("Finished Test Post Minimal Put null Single for field %s.%s", this.clazz.getSimpleName(), reflector.getName());
+            }
 
         }
         this.deleteAll();

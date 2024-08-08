@@ -352,10 +352,12 @@ public class Producer<T> {
     public Object produceField(final T result,
                                final FieldReflector fieldReflector,
                                final boolean update) {
-        final Object target = fieldReflector.get(result);
+
         if (!update && !fieldReflector.isInsertable()) {
             return null; // in insert case not insertable
-        } else if (target != null && !fieldReflector.isUpdatable()) {
+        }
+        final Object target = fieldReflector.get(result);
+        if (update && !fieldReflector.isUpdatable()) {
             return target;  // field already set and must not be updated
         }
         final int maxLength = fieldReflector.getLength();
