@@ -29,6 +29,7 @@ Undergoing:
 - add equals for update fields
 - add messages to fails
 - add logging to put each field
+- add logging when autocomplete cuts
 Proposed:
 - make tests methods independent, add cleanup before and after
 - add notnull support for @NotNull annotation and @Column nullable.

@@ -387,6 +387,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertEquals(value, reflector.get(getRes), "  Wrong field Value returned from get after post for field " + reflector.getName());
 
             LOG.infof("Finished Test Post Single for field %s.%s", this.clazz.getSimpleName(), reflector.getName());
+            this.getClient()
+                .delete(id);
         }
         this.deleteAll();
     }
@@ -455,7 +457,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
                 assertEquals(value, reflector.get(getRes2), " Field Value returned from get after put with null (dynamic) is different than previous value (value has changed!) for field " + reflector.getName());
                 LOG.infof("Finished Test Post Minimal Put null Single for field %s.%s", this.clazz.getSimpleName(), reflector.getName());
             }
-
+            this.getClient()
+                .delete(id);
         }
         this.deleteAll();
     }
