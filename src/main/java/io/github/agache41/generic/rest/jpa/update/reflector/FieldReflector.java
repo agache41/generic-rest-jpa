@@ -79,7 +79,6 @@ public final class FieldReflector<T, S, V> {
     private final boolean insertable;
     private final int order;
     private Updater<T, S> renderer;
-    //private Updater<S, T> updater;
     private boolean map;
     private boolean collection;
     private boolean value;
@@ -282,14 +281,12 @@ public final class FieldReflector<T, S, V> {
             this.map = false;
             this.collection = false;
             // entity
-            //this.updater = new EntityUpdater<>((BiConsumer<S, Updatable>) this.associatedSetter, (Function<S, Updatable>) this.associatedGetter, this.dynamic, (Function<T, Updatable>) this.getter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.type));
             this.renderer = new EntityUpdater<>((BiConsumer<T, Updatable>) this.setter, (Function<T, Updatable>) this.getter, this.dynamic, (Function<S, Updatable>) this.associatedGetter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.type));
         } else {
             // simple value
             this.value = true;
             this.map = false;
             this.collection = false;
-            //this.updater = new ValueUpdater<>(this.associatedSetter, this.associatedGetter, this.dynamic, this.getter);
             this.renderer = new ValueUpdater<>(this.setter, this.getter, this.dynamic, this.associatedGetter);
         }
     }
