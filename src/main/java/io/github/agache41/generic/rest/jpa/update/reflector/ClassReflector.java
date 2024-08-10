@@ -43,8 +43,9 @@ import java.util.stream.Collectors;
  * </pre>
  *
  * @param <T> the type parameter
+ * @param <S> the type parameter
  */
-public final class ClassReflector<T> {
+public final class ClassReflector<T, S> {
 
     private static final Logger log = Logger.getLogger(ClassReflector.class);
 
@@ -53,13 +54,15 @@ public final class ClassReflector<T> {
      * The cache map of available ClassReflectors, reachable by class
      * </pre>
      */
-    private static final Map<Class<?>, ClassReflector<?>> concurrentClassReflectorCache = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Map<Class<?>, ClassReflector<?, ?>>> concurrentClassReflectorCache = new ConcurrentHashMap<>();
     /**
      * <pre>
      * The type of this ClassReflector
      * </pre>
      */
     private final Class<T> clazz;
+
+    private final Class<S> associatedClass;
 
     /**
      * <pre>
@@ -72,13 +75,13 @@ public final class ClassReflector<T> {
      * The cache map of all available reflectors for fields, reachable by field name
      * </pre>
      */
-    private final Map<String, FieldReflector<T, Object>> reflectors;
+    private final Map<String, FieldReflector<T, S, Object>> reflectors;
     /**
      * <pre>
      * The cache map of all available reflectors for fields marked for update, reachable by field name
      * </pre>
      */
-    private final Map<String, FieldReflector<T, Object>> updateReflectors;
+    private final Map<String, FieldReflector<T, S, Object>> updateReflectors;
 
     /**
      * <pre>
@@ -116,9 +119,12 @@ public final class ClassReflector<T> {
      * The constructor is used when invoking a .forClass() static method.
      * </pre>
      */
-    private ClassReflector(final Class<T> sourceClass) {
+    private ClassReflector(final Class<T> sourceClass,
+                           final Class<S> associatedClass) {
 
         this.clazz = sourceClass;
+
+        this.associatedClass = associatedClass;
 
         this.isFinal = Modifier.isFinal(sourceClass.getModifiers());
 
@@ -126,14 +132,14 @@ public final class ClassReflector<T> {
 
         this.reflectors = ReflectionUtils.getDeclaredFields(sourceClass)
                                          .stream()
-                                         .map(field -> new FieldReflector<>(sourceClass, field))
+                                         .map(field -> new FieldReflector<>(sourceClass, associatedClass, field))
                                          .filter(FieldReflector::isValid)
                                          .collect(Collectors.toMap(FieldReflector::getName, Function.identity()));
 
         this.reflectors.putAll(ReflectionUtils.getDeclaredMethods(sourceClass)
                                               .stream()
                                               .filter(method -> method.isAnnotationPresent(Update.class))
-                                              .map(method -> new FieldReflector<>(sourceClass, method))
+                                              .map(method -> new FieldReflector<>(sourceClass, associatedClass, method))
                                               .filter(FieldReflector::isValid)
                                               //filter already mapped fields reflectors
                                               .filter(fieldReflector -> !this.reflectors.containsKey(fieldReflector.getName()))
@@ -149,10 +155,10 @@ public final class ClassReflector<T> {
                                                           .collect(Collectors.toList())
                                                           .toArray(new FieldReflector[this.updateReflectors.size()]);
 
-        final List<FieldReflector<T, Object>> valueReflectors = this.updateReflectors.values()
-                                                                                     .stream()
-                                                                                     .filter(FieldReflector::isValue)
-                                                                                     .collect(Collectors.toList());
+        final List<FieldReflector<T, S, Object>> valueReflectors = this.updateReflectors.values()
+                                                                                        .stream()
+                                                                                        .filter(FieldReflector::isValue)
+                                                                                        .collect(Collectors.toList());
         this.valueReflectorsArray = valueReflectors.toArray(new FieldReflector[valueReflectors.size()]);
 
         this.description = this.description();
@@ -162,7 +168,7 @@ public final class ClassReflector<T> {
 
     /**
      * <pre>
-     * Given a class, it returns the associated classdescriptor.
+     * Given a class, it returns the ClassReflector using the same type as associated.
      * There will be just one class descriptor per class (Singleton)
      * </pre>
      *
@@ -170,29 +176,74 @@ public final class ClassReflector<T> {
      * @param clazz the clazz
      * @return class reflector
      */
-    public static <R> ClassReflector<R> ofClass(final Class<R> clazz) {
-        return (ClassReflector<R>) concurrentClassReflectorCache.computeIfAbsent(clazz, cls -> new ClassReflector(cls));
+    public static <R> ClassReflector<R, R> ofClass(final Class<R> clazz) {
+        return ofClass(clazz, clazz);
     }
 
     /**
      * <pre>
-     * Given an object of a class, it returns the associated classdescriptor.
+     * Given a class, it returns the ClassReflector for the associated Type.
+     * There will be just one class descriptor per class and associated type (Singleton)
+     * </pre>
+     *
+     * @param <R>             the type parameter
+     * @param <U>             the associated type parameter
+     * @param clazz           the clazz
+     * @param associatedClass the associated class
+     * @return class reflector
+     */
+    public static <R, U> ClassReflector<R, U> ofClass(final Class<R> clazz,
+                                                      final Class<U> associatedClass) {
+        return (ClassReflector<R, U>) concurrentClassReflectorCache.computeIfAbsent(clazz, cls -> new ConcurrentHashMap<>())
+                                                                   .computeIfAbsent(associatedClass, cls -> new ClassReflector(cls, associatedClass));
+    }
+
+    /**
+     * <pre>
+     * Given an object of a class, it returns the associated ClassReflector.
      * There will be just one class descriptor per class (Singleton)
      * </pre>
      *
      * @param <R>    the type parameter
-     * @param object the object
+     * @param object the object of type
      * @return the class reflector
      */
-    public static <R> ClassReflector<R> ofObject(final R object) {
-        return (ClassReflector<R>) concurrentClassReflectorCache.computeIfAbsent(object.getClass(), cls -> new ClassReflector(cls));
+    public static <R> ClassReflector<R, R> ofObject(final R object) {
+        return ofClass((Class<R>) object.getClass());
     }
+
+    /**
+     * <pre>
+     * Given an object of a class, it returns the associated ClassReflector.
+     * There will be just one class descriptor per class (Singleton)
+     * </pre>
+     *
+     * @param <R>              the type parameter
+     * @param <U>              the associated type parameter
+     * @param object           the object
+     * @param associatedObject the associated object
+     * @return the class reflector
+     */
+    public static <R, U> ClassReflector<R, U> ofObject(final R object,
+                                                       final U associatedObject) {
+        return ofClass((Class<R>) object.getClass(), (Class<U>) associatedObject.getClass());
+    }
+
 
     private String description() {
         final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("public class \t");
+        stringBuilder.append("public class ");
         stringBuilder.append(this.clazz.getSimpleName());
-        stringBuilder.append(" { \r\n");
+        if (this.clazz.equals(this.associatedClass)) {
+            stringBuilder.append(" implements SelfTransferObject<");
+            stringBuilder.append(this.clazz.getSimpleName());
+        } else {
+            stringBuilder.append(" implements TransferObject<");
+            stringBuilder.append(this.clazz.getSimpleName());
+            stringBuilder.append(",");
+            stringBuilder.append(this.associatedClass.getSimpleName());
+        }
+        stringBuilder.append("> { \r\n");
         this.reflectors.values()
                        .stream()
                        .sorted(Comparator.comparing(FieldReflector::getOrder))
@@ -275,8 +326,8 @@ public final class ClassReflector<T> {
      * @param fieldName the field name
      * @return the reflector
      */
-    public FieldReflector<T, Object> getReflector(final String fieldName) {
-        final FieldReflector<T, Object> fieldReflector = this.reflectors.get(fieldName);
+    public FieldReflector<T, S, Object> getReflector(final String fieldName) {
+        final FieldReflector<T, S, Object> fieldReflector = this.reflectors.get(fieldName);
         if (fieldReflector == null) {
             throw new UnexpectedException(" No such field " + fieldName + " in " + this.clazz.getSimpleName());
         }
@@ -293,9 +344,9 @@ public final class ClassReflector<T> {
      * @param fieldType the field type
      * @return the reflector
      */
-    public <V> FieldReflector<T, V> getReflector(final String fieldName,
-                                                 final Class<V> fieldType) {
-        final FieldReflector<T, V> fieldReflector = (FieldReflector<T, V>) this.reflectors.get(fieldName);
+    public <V> FieldReflector<T, S, V> getReflector(final String fieldName,
+                                                    final Class<V> fieldType) {
+        final FieldReflector<T, S, V> fieldReflector = (FieldReflector<T, S, V>) this.reflectors.get(fieldName);
         if (fieldReflector == null) {
             throw new UnexpectedException(" No such field " + fieldName + " in " + this.clazz.getSimpleName());
         }
@@ -347,7 +398,7 @@ public final class ClassReflector<T> {
     public HashMap<String, Object> mapValues(final T source,
                                              final boolean nonTransient) {
         final HashMap<String, Object> result = new LinkedHashMap<>();
-        for (final FieldReflector<T, ?> fieldReflector : this.valueReflectorsArray) {
+        for (final FieldReflector<T, S, ?> fieldReflector : this.valueReflectorsArray) {
             if (nonTransient && fieldReflector.isTransient()) {
                 continue;
             }
@@ -370,7 +421,7 @@ public final class ClassReflector<T> {
     public HashMap<String, List<Object>> mapValues(final List<T> sources,
                                                    final boolean nonTransient) {
         final HashMap<String, List<Object>> result = new LinkedHashMap<>();
-        for (final FieldReflector<T, ?> fieldReflector : this.valueReflectorsArray) {
+        for (final FieldReflector<T, S, ?> fieldReflector : this.valueReflectorsArray) {
             if (nonTransient && fieldReflector.isTransient()) {
                 continue;
             }
@@ -404,7 +455,7 @@ public final class ClassReflector<T> {
      *
      * @return the reflectors
      */
-    public Map<String, FieldReflector<T, Object>> getReflectors() {
+    public Map<String, FieldReflector<T, S, Object>> getReflectors() {
         return this.reflectors;
     }
 
@@ -413,7 +464,7 @@ public final class ClassReflector<T> {
      *
      * @return the update reflectors
      */
-    public Map<String, FieldReflector<T, Object>> getUpdateReflectors() {
+    public Map<String, FieldReflector<T, S, Object>> getUpdateReflectors() {
         return this.updateReflectors;
     }
 

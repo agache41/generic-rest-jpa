@@ -46,7 +46,8 @@ public class Modell2ResourceServiceTest extends AbstractResourceServiceImplTest<
         super(new Modell2ResourceService(), Modell2.class, //
               insertData,
               updateData,
-              stringField); //
+              stringField,
+              producer); //
     }
 
     @BeforeEach

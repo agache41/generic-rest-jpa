@@ -22,8 +22,6 @@ import io.github.agache41.generic.rest.jpa.exceptions.ExpectedException;
 import io.github.agache41.generic.rest.jpa.exceptions.UnexpectedException;
 import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
-import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
-import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.spi.InjectionPoint;
@@ -101,12 +99,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * </pre>
      */
     protected final Constructor<ENTITY> noArgsConstructor;
-    /**
-     * <pre>
-     * The ClassReflector of the persisted Object
-     * </pre>
-     */
-    protected final ClassReflector<ENTITY> classReflector;
+//    /**
+//     * <pre>
+//     * The ClassReflector of the persisted Object
+//     * </pre>
+//     */
+//    protected final ClassReflector<ENTITY> classReflector;
     /**
      * <pre>
      * The type of the persisted Object Primary Key
@@ -119,12 +117,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * </pre>
      */
     protected final String name;
-    /**
-     * <pre>
-     * List with fields that are to be eager fetched.
-     * </pre>
-     */
-    protected final List<String> eagerFields;
+//    /**
+//     * <pre>
+//     * List with fields that are to be eager fetched.
+//     * </pre>
+//     */
+//    protected final List<String> eagerFields;
     /**
      * The Persisted field names.
      */
@@ -183,13 +181,13 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
         this.noArgsConstructor = ReflectionUtils.getNoArgsConstructor(type);
         this.keyType = keyType;
         this.name = DataAccess.class.getSimpleName() + "<" + this.type.getSimpleName() + "," + this.keyType.getSimpleName() + ">";
-        this.classReflector = ClassReflector.ofClass(this.type);
-        this.eagerFields = this.classReflector.getReflectors()
-                                              .values()
-                                              .stream()
-                                              .filter(FieldReflector::isEager)
-                                              .map(FieldReflector::getName)
-                                              .collect(Collectors.toList());
+//        this.classReflector = ClassReflector.ofClass(this.type);
+//        this.eagerFields = this.classReflector.getReflectors()
+//                                              .values()
+//                                              .stream()
+//                                              .filter(FieldReflector::isEager)
+//                                              .map(FieldReflector::getName)
+//                                              .collect(Collectors.toList());
         this.notReservedNames = entry -> !reserved.contains(entry.getKey());
         this.namedQueries = this.findEntityNamedQueries();
         this.findByIdNamedQuery = this.type.getSimpleName() + "." + findById;

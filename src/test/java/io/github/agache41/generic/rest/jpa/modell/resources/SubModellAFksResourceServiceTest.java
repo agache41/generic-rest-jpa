@@ -53,7 +53,8 @@ public class SubModellAFksResourceServiceTest extends AbstractResourceServiceImp
               SubModellAFks.class, //
               insertData, //
               updateData,
-              stringField); //
+              stringField,
+              producer); //
     }
 
     @BeforeEach

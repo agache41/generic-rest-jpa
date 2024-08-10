@@ -54,7 +54,8 @@ public class ModellFksResourceServiceTest extends AbstractResourceServiceImplTes
               ModellFks.class, //
               insertData, //
               updateData,
-              stringField); //
+              stringField,
+              producer); //
     }
 
     @BeforeEach

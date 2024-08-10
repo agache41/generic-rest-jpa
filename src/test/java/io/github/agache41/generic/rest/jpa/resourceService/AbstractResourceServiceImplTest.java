@@ -30,33 +30,14 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 @TestInstance(PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & Updatable<T>, K> extends AbstractResourceServiceBaseImplTest<T, K> {
-
-    @Deprecated
-    public AbstractResourceServiceImplTest(final Class<T> clazz,
-                                           final String path,
-                                           final List<T> insertData,
-                                           final List<T> updateData,
-                                           final String stringField) {
-        super(clazz, path, insertData, updateData, stringField);
-    }
-
+public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & Updatable<T>, K> extends AbstractResourceServiceBaseImplTest<T, K, T> {
     public AbstractResourceServiceImplTest(final Class<T> clazz,
                                            final String path,
                                            final List<T> insertData,
                                            final List<T> updateData,
                                            final String stringField,
                                            final Producer<T> producer) {
-        super(clazz, path, insertData, updateData, stringField, producer);
-    }
-
-    @Deprecated
-    public AbstractResourceServiceImplTest(final ResourceService<T, K> client,
-                                           final Class<T> clazz,
-                                           final List<T> insertData,
-                                           final List<T> updateData,
-                                           final String stringField) {
-        super(client, clazz, insertData, updateData, stringField);
+        super(clazz, clazz, path, insertData, updateData, stringField, producer);
     }
 
     public AbstractResourceServiceImplTest(final ResourceService<T, K> client,
@@ -65,7 +46,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
                                            final List<T> updateData,
                                            final String stringField,
                                            final Producer<T> producer) {
-        super(client, clazz, insertData, updateData, stringField, producer);
+        super(client, clazz, clazz, insertData, updateData, stringField, producer);
     }
 
 
