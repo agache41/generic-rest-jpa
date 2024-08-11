@@ -287,7 +287,7 @@ public final class FieldReflector<T, S, V> {
             this.value = true;
             this.map = false;
             this.collection = false;
-            this.renderer = new ValueUpdater<>(this.setter, this.getter, this.dynamic, this.associatedGetter);
+            this.renderer = new ValueUpdater<>(this.associatedGetter, this.associatedSetter, this.dynamic, this.getter, this.setter);
         }
     }
 

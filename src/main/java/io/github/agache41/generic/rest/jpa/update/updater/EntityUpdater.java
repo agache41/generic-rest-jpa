@@ -24,14 +24,14 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * The updater for entities types (implementing PrimaryKey and Updatable).
- * It updates the field value in the target based on the value of the field value in the source
+ * The updater for transfer object types (implementing Updatable).
+ * It updates the field value in the entity based on the value of the field value in the transfer object
  *
- * @param <TARGET> the type parameter of the target object
- * @param <SOURCE> the type parameter of the source object
+ * @param <TO>     the type parameter of the transfer object
+ * @param <ENTITY> the type parameter of the entity object
  * @param <VALUE>  the type parameter of the updating value
  */
-public class EntityUpdater<TARGET, SOURCE, VALUE extends Updatable<VALUE>> extends ValueUpdater<TARGET, SOURCE, VALUE> {
+public class EntityUpdater<TO, ENTITY, VALUE extends Updatable<VALUE>> extends ValueUpdater<TO, ENTITY, VALUE> {
     /**
      * The Constructor.
      */
@@ -40,81 +40,85 @@ public class EntityUpdater<TARGET, SOURCE, VALUE extends Updatable<VALUE>> exten
     /**
      * Instantiates a new Entity updater.
      *
-     * @param setter       the target setter
-     * @param getter       the target getter
+     * @param toGetter     the source entityGetter
+     * @param toSetter     the to setter
      * @param dynamic      if the update should be dynamic processed and nulls will be ignored
-     * @param sourceGetter the source getter
-     * @param constructor  the entity constructor
+     * @param entityGetter the target entityGetter
+     * @param entitySetter the target entitySetter
+     * @param constructor  the value constructor
      */
-    public EntityUpdater(final BiConsumer<TARGET, VALUE> setter,
-                         final Function<TARGET, VALUE> getter,
+    public EntityUpdater(final Function<TO, VALUE> toGetter,
+                         final BiConsumer<TO, VALUE> toSetter,
                          final boolean dynamic,
-                         final Function<SOURCE, VALUE> sourceGetter,
+                         final Function<ENTITY, VALUE> entityGetter,
+                         final BiConsumer<ENTITY, VALUE> entitySetter,
                          final Supplier<VALUE> constructor) {
-        super(setter, getter, dynamic, sourceGetter);
+        super(toGetter, toSetter, dynamic, entityGetter, entitySetter);
         this.constructor = constructor;
     }
 
     /**
      * Convenient static method.
-     * It updates the field value in the target based on the value of the field value in the source.
+     * It updates the field value in the transferObject based on the value of the field value in the entity.
      *
-     * @param <T>          the type parameter of the target object
-     * @param <S>          the type parameter of the source object
-     * @param <V>          the type parameter of the entity
-     * @param setter       the target setter
-     * @param getter       the target getter
-     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
-     * @param sourceGetter the source getter
-     * @param constructor  the Entity constructor
-     * @param target       the target
-     * @param source       the source
-     * @return true if the target changed
+     * @param <T>            the type parameter of the transferObject object
+     * @param <E>            the type parameter of the entity object
+     * @param <V>            the type parameter of the entity
+     * @param toGetter       the transferObject toGetter
+     * @param toSetter       the transferObject toSetter
+     * @param dynamic        if the update should be dynamic processed and nulls will be ignored
+     * @param entityGetter   the entity toGetter
+     * @param entitySetter   the entity setter
+     * @param constructor    the Entity constructor
+     * @param transferObject the transferObject
+     * @param entity         the entity
+     * @return true if the transferObject changed
      */
-    public static <T, S, V extends Updatable<V>> boolean updateEntity(
-            final BiConsumer<T, V> setter,
-            final Function<T, V> getter,
-            final boolean dynamic,
-            final Function<S, V> sourceGetter,
-            final Supplier<V> constructor,
-            final T target,
-            final S source) {
-        return new EntityUpdater<>(setter, getter, dynamic, sourceGetter, constructor).update(target, source);
+    public static <T, E, V extends Updatable<V>> boolean updateEntity(final Function<T, V> toGetter,
+                                                                      final BiConsumer<T, V> toSetter,
+                                                                      final boolean dynamic,
+                                                                      final Function<E, V> entityGetter,
+                                                                      final BiConsumer<E, V> entitySetter,
+                                                                      final Supplier<V> constructor,
+                                                                      final T transferObject,
+                                                                      final E entity) {
+        return new EntityUpdater<>(toGetter, toSetter, dynamic, entityGetter, entitySetter, constructor).update(transferObject, entity);
     }
 
     /**
      * The method updates the field in target based on the field the source
      *
-     * @param target the target
-     * @param source the source
+     * @param entity         the target
+     * @param transferObject the source
      * @return true if the target changed
      */
     @Override
-    public boolean update(final TARGET target,
-                          final SOURCE source) {
-        // the sourceValue to be updated
-        final VALUE sourceValue = this.toGetter.apply(source);
+    public boolean update(final TO transferObject,
+                          final ENTITY entity
+    ) {
+        // the toValue to be updated
+        final VALUE toValue = this.toGetter.apply(transferObject);
         // nulls
-        if (sourceValue == null) {
+        if (toValue == null) {
             // null ignore or both null
-            if (this.dynamic || this.entityGetter.apply(target) == null) {
+            if (this.dynamic || this.entityGetter.apply(entity) == null) {
                 return false;
             }
-            this.entitySetter.accept(target, null);
+            this.entitySetter.accept(entity, null);
             return true;
         }
-        final VALUE targetValue = this.entityGetter.apply(target);
+        final VALUE entityValue = this.entityGetter.apply(entity);
         // target not initialized
-        if (targetValue == null) {
-            // previous sourceValue was null, we assign the new one
+        if (entityValue == null) {
+            // previous toValue was null, we assign the new one
             final VALUE newValue = this.constructor.get();
-            final boolean updated = newValue.update(sourceValue);
-            this.entitySetter.accept(target, newValue);
-            return updated;
+            newValue.update(toValue);
+            this.entitySetter.accept(entity, newValue);
+            return true;
         }
-        final boolean updated = targetValue.update(sourceValue);
+        final boolean updated = entityValue.update(toValue);
         if (updated) {
-            this.entitySetter.accept(target, targetValue);
+            this.entitySetter.accept(entity, entityValue);
         }
         return updated;
     }

@@ -27,13 +27,27 @@ import java.util.stream.Collectors;
 
 /**
  * The updater for simple value types (String, Integer).
- * It updates the field value in the target based on the value of the field value in the source
+ * It updates the field value in the entity based on the value of the field value in the transfer object
  *
- * @param <TO>     the type parameter of the source object
- * @param <ENTITY> the type parameter of the target object
+ * @param <TO>     the type parameter of the transfer object
+ * @param <ENTITY> the type parameter of the entity
  * @param <VALUE>  the type parameter of the updating value
  */
 public class ValueUpdater<TO, ENTITY, VALUE> implements Updater<TO, ENTITY> {
+    /**
+     * The transfer object getter.
+     */
+    protected final Function<TO, VALUE> toGetter;
+
+    /**
+     * The transfer object getter.
+     */
+    protected final BiConsumer<TO, VALUE> toSetter;
+
+    /**
+     * If the update should be dynamic processed and nulls will be ignored.
+     */
+    protected final boolean dynamic;
 
     /**
      * The entity getter.
@@ -46,66 +60,52 @@ public class ValueUpdater<TO, ENTITY, VALUE> implements Updater<TO, ENTITY> {
     protected final BiConsumer<ENTITY, VALUE> entitySetter;
 
     /**
-     * If the update should be dynamic processed and nulls will be ignored.
-     */
-    protected final boolean dynamic;
-    /**
-     * The transfer object getter.
-     */
-    protected final Function<TO, VALUE> toGetter;
-
-    /**
-     * The transfer object getter.
-     */
-    protected final BiConsumer<TO, VALUE> toSetter;
-
-    /**
      * Instantiates a new Value updater.
      *
-     * @param entityGetter the entity getter
-     * @param entitySetter the entity setter
-     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param toGetter     the transfer object getter
      * @param toSetter     the transfer object setter
+     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
+     * @param entityGetter the entity getter
+     * @param entitySetter the entity setter
      */
-    public ValueUpdater(final Function<ENTITY, VALUE> entityGetter,
-                        final BiConsumer<ENTITY, VALUE> entitySetter,
+    public ValueUpdater(final Function<TO, VALUE> toGetter,
+                        final BiConsumer<TO, VALUE> toSetter,
                         final boolean dynamic,
-                        final Function<TO, VALUE> toGetter,
-                        final BiConsumer<TO, VALUE> toSetter) {
-        this.entityGetter = entityGetter;
-        this.entitySetter = entitySetter;
-        this.dynamic = dynamic;
+                        final Function<ENTITY, VALUE> entityGetter,
+                        final BiConsumer<ENTITY, VALUE> entitySetter
+
+    ) {
         this.toGetter = toGetter;
         this.toSetter = toSetter;
+        this.dynamic = dynamic;
+        this.entityGetter = entityGetter;
+        this.entitySetter = entitySetter;
     }
 
     /**
      * Convenient static method.
      * It updates the field value in the entity based on the value of the field value in the transfer object.
      *
-     * @param <E>            the type parameter of the entity object
      * @param <T>            the type parameter of the transfer object
+     * @param <E>            the type parameter of the entity object
      * @param <V>            the type parameter of the value
-     * @param entityGetter   the entity getter
-     * @param entitySetter   the entity setter
-     * @param notNull        if the update should be dynamic processed and nulls will be ignored
      * @param toGetter       the entity getter
      * @param toSetter       the transfer object setter
+     * @param dynamic        if the update should be dynamic processed and nulls will be ignored
+     * @param entityGetter   the entity getter
+     * @param entitySetter   the entity setter
      * @param transferObject the transfer object
      * @param entity         the entity
      * @return true if the target changed
      */
-    public static <E, T, V> boolean updateValue(
-            final Function<E, V> entityGetter,
-            final BiConsumer<E, V> entitySetter,
-            final boolean notNull,
-            final Function<T, V> toGetter,
-            final BiConsumer<T, V> toSetter,
-            final T transferObject,
-            final E entity
-    ) {
-        return new ValueUpdater<>(entityGetter, entitySetter, notNull, toGetter, toSetter).update(transferObject, entity);
+    public static <T, E, V> boolean updateValue(final Function<T, V> toGetter,
+                                                final BiConsumer<T, V> toSetter,
+                                                final boolean dynamic,
+                                                final Function<E, V> entityGetter,
+                                                final BiConsumer<E, V> entitySetter,
+                                                final T transferObject,
+                                                final E entity) {
+        return new ValueUpdater<>(toGetter, toSetter, dynamic, entityGetter, entitySetter).update(transferObject, entity);
     }
 
     /**
@@ -118,10 +118,9 @@ public class ValueUpdater<TO, ENTITY, VALUE> implements Updater<TO, ENTITY> {
      * @param constructor the constructor
      * @return true if the target map has changed
      */
-    protected static <KEY, VALUE extends Updatable<VALUE>> boolean updateMap(
-            final Map<KEY, VALUE> targetValue,
-            final Map<KEY, VALUE> sourceValue,
-            final Supplier<VALUE> constructor) {
+    protected static <KEY, VALUE extends Updatable<VALUE>> boolean updateMap(final Map<KEY, VALUE> targetValue,
+                                                                             final Map<KEY, VALUE> sourceValue,
+                                                                             final Supplier<VALUE> constructor) {
 
         final Set<KEY> targetKeys = targetValue.keySet();
         // make a copy to not change the input
@@ -154,15 +153,13 @@ public class ValueUpdater<TO, ENTITY, VALUE> implements Updater<TO, ENTITY> {
     /**
      * Internal update method for lists.
      *
-     * @param <KEY>       the type parameter
      * @param <VALUE>     the type parameter
      * @param sourceValue the source value
      * @param constructor the constructor
      * @return true if the target list has changes
      */
-    protected static <KEY, VALUE extends Updatable<VALUE>> List<VALUE> updateList(
-            final List<VALUE> sourceValue,
-            final Supplier<VALUE> constructor) {
+    protected static <VALUE extends Updatable<VALUE>> List<VALUE> updateList(final List<VALUE> sourceValue,
+                                                                             final Supplier<VALUE> constructor) {
         return sourceValue.stream()
                           .map(source -> {
                               final VALUE newValue = constructor.get();
@@ -173,20 +170,19 @@ public class ValueUpdater<TO, ENTITY, VALUE> implements Updater<TO, ENTITY> {
     }
 
     /**
-     * The method updates the field in target based on the field the source
+     * The method updates the field in entity based on the field the transfer object
      *
-     * @param entity         the target
-     * @param transferObject the source
+     * @param entity         the entity
+     * @param transferObject the transfer object
      * @return true if the target changed
      */
     @Override
     public boolean update(final TO transferObject,
-                          final ENTITY entity
-    ) {
+                          final ENTITY entity) {
         // the toValue to be updated
-        final VALUE sourceValue = this.toGetter.apply(transferObject);
+        final VALUE toValue = this.toGetter.apply(transferObject);
         // nulls
-        if (sourceValue == null) {
+        if (toValue == null) {
             // null ignore or both null
             if (this.dynamic || this.entityGetter.apply(entity) == null) {
                 return false;
@@ -196,9 +192,9 @@ public class ValueUpdater<TO, ENTITY, VALUE> implements Updater<TO, ENTITY> {
         }
         // nulls
 
-        if (!Objects.equals(this.entityGetter.apply(entity), sourceValue)) {
+        if (!Objects.equals(toValue, this.entityGetter.apply(entity))) {
             // equals check
-            this.entitySetter.accept(entity, sourceValue);
+            this.entitySetter.accept(entity, toValue);
             return true;
         } // otherwise no update
         return false;
