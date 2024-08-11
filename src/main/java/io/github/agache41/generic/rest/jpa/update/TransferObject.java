@@ -49,7 +49,7 @@ public interface TransferObject<TO, ENTITY> {
      * @return entity
      */
     @Transient
-    ENTITY update(ENTITY entity);
+    boolean update(ENTITY entity);
 
 
     /**

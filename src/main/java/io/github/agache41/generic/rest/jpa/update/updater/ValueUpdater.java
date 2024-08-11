@@ -17,13 +17,9 @@
 
 package io.github.agache41.generic.rest.jpa.update.updater;
 
-import io.github.agache41.generic.rest.jpa.update.Updatable;
-
-import java.util.*;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * The updater for simple value types (String, Integer).
@@ -33,31 +29,7 @@ import java.util.stream.Collectors;
  * @param <ENTITY> the type parameter of the entity
  * @param <VALUE>  the type parameter of the updating value
  */
-public class ValueUpdater<TO, ENTITY, VALUE> implements Updater<TO, ENTITY> {
-    /**
-     * The transfer object getter.
-     */
-    protected final Function<TO, VALUE> toGetter;
-
-    /**
-     * The transfer object getter.
-     */
-    protected final BiConsumer<TO, VALUE> toSetter;
-
-    /**
-     * If the update should be dynamic processed and nulls will be ignored.
-     */
-    protected final boolean dynamic;
-
-    /**
-     * The entity getter.
-     */
-    protected final Function<ENTITY, VALUE> entityGetter;
-
-    /**
-     * The entity setter.
-     */
-    protected final BiConsumer<ENTITY, VALUE> entitySetter;
+public class ValueUpdater<TO, ENTITY, VALUE> extends BaseUpdater<TO, ENTITY, VALUE, VALUE> {
 
     /**
      * Instantiates a new Value updater.
@@ -75,11 +47,7 @@ public class ValueUpdater<TO, ENTITY, VALUE> implements Updater<TO, ENTITY> {
                         final BiConsumer<ENTITY, VALUE> entitySetter
 
     ) {
-        this.toGetter = toGetter;
-        this.toSetter = toSetter;
-        this.dynamic = dynamic;
-        this.entityGetter = entityGetter;
-        this.entitySetter = entitySetter;
+        super(toGetter, toSetter, dynamic, entityGetter, entitySetter);
     }
 
     /**
@@ -108,67 +76,7 @@ public class ValueUpdater<TO, ENTITY, VALUE> implements Updater<TO, ENTITY> {
         return new ValueUpdater<>(toGetter, toSetter, dynamic, entityGetter, entitySetter).update(transferObject, entity);
     }
 
-    /**
-     * Internal update method for maps.
-     *
-     * @param <KEY>       the type parameter
-     * @param <VALUE>     the type parameter
-     * @param targetValue the target value
-     * @param sourceValue the source value
-     * @param constructor the constructor
-     * @return true if the target map has changed
-     */
-    protected static <KEY, VALUE extends Updatable<VALUE>> boolean updateMap(final Map<KEY, VALUE> targetValue,
-                                                                             final Map<KEY, VALUE> sourceValue,
-                                                                             final Supplier<VALUE> constructor) {
-
-        final Set<KEY> targetKeys = targetValue.keySet();
-        // make a copy to not change the input
-        final Set<KEY> valueKeys = sourceValue.keySet()
-                                              .stream()
-                                              .collect(Collectors.toCollection(LinkedHashSet::new));
-        //remove all that are now longer available
-        boolean updated = targetKeys.retainAll(valueKeys);
-        //update all that remained in the intersection
-        updated = targetKeys.stream()
-                            .map(k -> targetValue.get(k)
-                                                 .update(sourceValue.get(k)))
-                            .reduce(updated, (u, n) -> u || n);
-        //remove those that are updated
-        valueKeys.removeAll(targetKeys);
-        //insert all new (that remained)
-        if (!valueKeys.isEmpty()) {
-            updated = valueKeys.stream()
-                               .map(key -> {
-                                   final VALUE newValue = constructor.get();
-                                   final boolean upd = newValue.update(sourceValue.get(key));
-                                   targetValue.put(key, newValue);
-                                   return upd;
-                               })
-                               .reduce(updated, (u, n) -> u || n);
-        }
-        return updated;
-    }
-
-    /**
-     * Internal update method for lists.
-     *
-     * @param <VALUE>     the type parameter
-     * @param sourceValue the source value
-     * @param constructor the constructor
-     * @return true if the target list has changes
-     */
-    protected static <VALUE extends Updatable<VALUE>> List<VALUE> updateList(final List<VALUE> sourceValue,
-                                                                             final Supplier<VALUE> constructor) {
-        return sourceValue.stream()
-                          .map(source -> {
-                              final VALUE newValue = constructor.get();
-                              newValue.update(source);
-                              return newValue;
-                          })
-                          .collect(Collectors.toList());
-    }
-
+  
     /**
      * The method updates the field in entity based on the field the transfer object
      *
