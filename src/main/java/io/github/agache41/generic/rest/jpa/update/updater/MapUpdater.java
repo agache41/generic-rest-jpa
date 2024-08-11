@@ -89,20 +89,20 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
     public boolean update(final TARGET target,
                           final SOURCE source) {
         // the sourceValue to be updated
-        final Map<KEY, VALUE> sourceValue = this.sourceGetter.apply(source);
+        final Map<KEY, VALUE> sourceValue = this.toGetter.apply(source);
         // nulls
         if (sourceValue == null) {
-            if (this.dynamic || this.getter.apply(target) == null) {
+            if (this.dynamic || this.entityGetter.apply(target) == null) {
                 return false;
             } else {
-                this.setter.accept(target, null);
+                this.entitySetter.accept(target, null);
                 return true;
             }
         }
-        final Map<KEY, VALUE> targetValue = this.getter.apply(target);
+        final Map<KEY, VALUE> targetValue = this.entityGetter.apply(target);
         // map not initialized
         if (targetValue == null) {
-            this.setter.accept(target, sourceValue);
+            this.entitySetter.accept(target, sourceValue);
             return true;
         }
         // empty
@@ -137,7 +137,7 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
         }
         //set it again
         if (updated) {
-            this.setter.accept(target, targetValue);
+            this.entitySetter.accept(target, targetValue);
         }
         return updated;
     }

@@ -93,28 +93,28 @@ public class EntityUpdater<TARGET, SOURCE, VALUE extends Updatable<VALUE>> exten
     public boolean update(final TARGET target,
                           final SOURCE source) {
         // the sourceValue to be updated
-        final VALUE sourceValue = this.sourceGetter.apply(source);
+        final VALUE sourceValue = this.toGetter.apply(source);
         // nulls
         if (sourceValue == null) {
             // null ignore or both null
-            if (this.dynamic || this.getter.apply(target) == null) {
+            if (this.dynamic || this.entityGetter.apply(target) == null) {
                 return false;
             }
-            this.setter.accept(target, null);
+            this.entitySetter.accept(target, null);
             return true;
         }
-        final VALUE targetValue = this.getter.apply(target);
+        final VALUE targetValue = this.entityGetter.apply(target);
         // target not initialized
         if (targetValue == null) {
             // previous sourceValue was null, we assign the new one
             final VALUE newValue = this.constructor.get();
             final boolean updated = newValue.update(sourceValue);
-            this.setter.accept(target, newValue);
+            this.entitySetter.accept(target, newValue);
             return updated;
         }
         final boolean updated = targetValue.update(sourceValue);
         if (updated) {
-            this.setter.accept(target, targetValue);
+            this.entitySetter.accept(target, targetValue);
         }
         return updated;
     }

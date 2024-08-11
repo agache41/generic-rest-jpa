@@ -82,21 +82,21 @@ public class CollectionUpdater<TARGET, SOURCE, VALUE> extends ValueUpdater<TARGE
     public boolean update(final TARGET target,
                           final SOURCE source) {
         // the sourceValue to be updated
-        final Collection<VALUE> sourceValue = this.sourceGetter.apply(source);
+        final Collection<VALUE> sourceValue = this.toGetter.apply(source);
         // nulls
         if (sourceValue == null) {
-            if (this.dynamic || this.getter.apply(target) == null) // null ignore
+            if (this.dynamic || this.entityGetter.apply(target) == null) // null ignore
             {
                 return false;
             } else {
-                this.setter.accept(target, null);
+                this.entitySetter.accept(target, null);
                 return true;
             }
         }
-        final Collection<VALUE> targetValue = this.getter.apply(target);
+        final Collection<VALUE> targetValue = this.entityGetter.apply(target);
         // collection not initialized
         if (targetValue == null) {
-            this.setter.accept(target, sourceValue);
+            this.entitySetter.accept(target, sourceValue);
             return true;
         }
         // empty
@@ -114,7 +114,7 @@ public class CollectionUpdater<TARGET, SOURCE, VALUE> extends ValueUpdater<TARGE
         targetValue.addAll(sourceValue);
         // collection work
         // re-set it
-        this.setter.accept(target, targetValue);
+        this.entitySetter.accept(target, targetValue);
         return true;
     }
 }

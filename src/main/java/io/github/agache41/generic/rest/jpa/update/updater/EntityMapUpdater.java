@@ -100,14 +100,14 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
     public boolean update(final TARGET target,
                           final SOURCE source) {
         // the sourceValue to be updated
-        final MAP sourceValue = this.sourceGetter.apply(source);
+        final MAP sourceValue = this.toGetter.apply(source);
         // nulls
         if (sourceValue == null) {
-            if (this.dynamic || this.getter.apply(target) == null) // null ignore
+            if (this.dynamic || this.entityGetter.apply(target) == null) // null ignore
             {
                 return false;
             } else {
-                this.setter.accept(target, null);
+                this.entitySetter.accept(target, null);
                 // todo: rise warning on map set. this can causes trouble in  Hibernate.
                 System.out.println("Warning : Setting map to null in Class " + target.getClass()
                                                                                      .getSimpleName());
@@ -115,10 +115,10 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
             }
         }
 
-        final Map<KEY, VALUE> targetValue = this.getter.apply(target);
+        final Map<KEY, VALUE> targetValue = this.entityGetter.apply(target);
         // map not initialized
         if (targetValue == null) {
-            this.setter.accept(target, sourceValue);
+            this.entitySetter.accept(target, sourceValue);
             // todo: rise warning on map set. this can causes trouble in  Hibernate.
             System.out.println("Warning : Found not initialized (null) map in Class " + target.getClass()
                                                                                               .getSimpleName());
@@ -137,7 +137,7 @@ public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE
         // empty
         final boolean updated = ValueUpdater.updateMap(targetValue, sourceValue, this.constructor);
         if (updated) {
-            this.setter.accept(target, (MAP) targetValue);
+            this.entitySetter.accept(target, (MAP) targetValue);
         }
         return updated;
     }

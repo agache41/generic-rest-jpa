@@ -100,27 +100,27 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
     public boolean update(final TARGET target,
                           final SOURCE source) {
         // the sourceValue to be updated
-        final COLLECTION sourceValue = this.sourceGetter.apply(source);
+        final COLLECTION sourceValue = this.toGetter.apply(source);
         // nulls
         if (sourceValue == null) {
-            if (this.dynamic || this.getter.apply(target) == null) // null ignore
+            if (this.dynamic || this.entityGetter.apply(target) == null) // null ignore
             {
                 return false;
             } else {
-                this.setter.accept(target, null);
+                this.entitySetter.accept(target, null);
                 // todo: rise warning on collection set. this can causes trouble in  Hibernate.
                 System.out.println("Warning : Setting collection to null in Class " + target.getClass()
                                                                                             .getSimpleName());
                 return true;
             }
         }
-        final Collection<VALUE> targetValue = this.getter.apply(target);
+        final Collection<VALUE> targetValue = this.entityGetter.apply(target);
         // collection not initialized
         if (targetValue == null) {
             // todo: rise warning on collection set. this can causes trouble in  Hibernate.
             System.out.println("Warning : Found not initialized (null) collection in Class " + target.getClass()
                                                                                                      .getSimpleName());
-            this.setter.accept(target, sourceValue);
+            this.entitySetter.accept(target, sourceValue);
             return true;
         }
         // empty
@@ -166,7 +166,7 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
             targetValue.addAll(targetValueList);
             // collection work
             // re set it
-            this.setter.accept(target, (COLLECTION) targetValue);
+            this.entitySetter.accept(target, (COLLECTION) targetValue);
             return true;
         }
         return updated;
