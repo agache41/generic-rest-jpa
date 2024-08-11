@@ -34,10 +34,11 @@ public class CollectionUpdater<TO, ENTITY, VALUE> extends ValueUpdater<TO, ENTIT
     /**
      * Instantiates a new Collection updater.
      *
-     * @param toSetter     the target entity
      * @param toGetter     the target toGetter
+     * @param toSetter     the target entity
      * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param entityGetter the source toGetter
+     * @param entitySetter the entity setter
      */
     public CollectionUpdater(
             final Function<TO, Collection<VALUE>> toGetter,
@@ -56,10 +57,11 @@ public class CollectionUpdater<TO, ENTITY, VALUE> extends ValueUpdater<TO, ENTIT
      * @param <T>          the type parameter of the target object
      * @param <S>          the type parameter of the source object
      * @param <V>          the type parameter of the collection values
-     * @param toSetter     the target toSetter
      * @param toGetter     the target toGetter
+     * @param toSetter     the target toSetter
      * @param dynamic      if the update should be dynamic processed and nulls will be ignored
      * @param entityGetter the source toGetter
+     * @param entitySetter the entity setter
      * @param target       the target
      * @param source       the source
      * @return true if the target changed

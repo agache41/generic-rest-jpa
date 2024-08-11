@@ -17,7 +17,7 @@
 
 package io.github.agache41.generic.rest.jpa.update.updater;
 
-import io.github.agache41.generic.rest.jpa.update.Updatable;
+import io.github.agache41.generic.rest.jpa.update.TransferObject;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -90,41 +90,43 @@ public abstract class BaseUpdater<TO, ENTITY, TOVALUE, ENVALUE> implements Updat
     /**
      * Internal update method for maps.
      *
-     * @param <KEY>       the type parameter
-     * @param <VALUE>     the type parameter
-     * @param targetValue the target value
-     * @param sourceValue the source value
-     * @param constructor the constructor
+     * @param <KEY>              the type parameter
+     * @param <TVALUE>           the type parameter
+     * @param <ENVALUE>          the type parameter
+     * @param toMap              the source value
+     * @param enMap              the target value
+     * @param enValueConstructor the enValueConstructor
      * @return true if the target map has changed
      */
-    protected static <KEY, VALUE extends Updatable<VALUE>> boolean updateMap(final Map<KEY, VALUE> targetValue,
-                                                                             final Map<KEY, VALUE> sourceValue,
-                                                                             final Supplier<VALUE> constructor) {
+    protected static <KEY, TVALUE extends TransferObject<TVALUE, ENVALUE>, ENVALUE> boolean updateMap(final Map<KEY, TVALUE> toMap,
+                                                                                                      final Map<KEY, ENVALUE> enMap,
+                                                                                                      final Supplier<ENVALUE> enValueConstructor) {
 
-        final Set<KEY> targetKeys = targetValue.keySet();
+        final Set<KEY> enKeys = enMap.keySet();
         // make a copy to not change the input
-        final Set<KEY> valueKeys = sourceValue.keySet()
-                                              .stream()
-                                              .collect(Collectors.toCollection(LinkedHashSet::new));
+        final Set<KEY> toKeys = toMap.keySet()
+                                     .stream()
+                                     .collect(Collectors.toCollection(LinkedHashSet::new));
         //remove all that are now longer available
-        boolean updated = targetKeys.retainAll(valueKeys);
+        boolean updated = enKeys.retainAll(toKeys);
         //update all that remained in the intersection
-        updated = targetKeys.stream()
-                            .map(k -> targetValue.get(k)
-                                                 .update(sourceValue.get(k)))
-                            .reduce(updated, (u, n) -> u || n);
+        updated = enKeys.stream()
+                        .map(k -> toMap.get(k)
+                                       .update(enMap.get(k)))
+                        .reduce(updated, (u, n) -> u || n);
         //remove those that are updated
-        valueKeys.removeAll(targetKeys);
+        toKeys.removeAll(enKeys);
         //insert all new (that remained)
-        if (!valueKeys.isEmpty()) {
-            updated = valueKeys.stream()
-                               .map(key -> {
-                                   final VALUE newValue = constructor.get();
-                                   final boolean upd = newValue.update(sourceValue.get(key));
-                                   targetValue.put(key, newValue);
-                                   return upd;
-                               })
-                               .reduce(updated, (u, n) -> u || n);
+        if (!toKeys.isEmpty()) {
+            updated = toKeys.stream()
+                            .map(key -> {
+                                final ENVALUE newValue = enValueConstructor.get();
+                                final boolean upd = toMap.get(key)
+                                                         .update(newValue);
+                                enMap.put(key, newValue);
+                                return upd;
+                            })
+                            .reduce(updated, (u, n) -> u || n);
         }
         return updated;
     }
@@ -132,20 +134,21 @@ public abstract class BaseUpdater<TO, ENTITY, TOVALUE, ENVALUE> implements Updat
     /**
      * Internal update method for lists.
      *
-     * @param <VALUE>     the type parameter
-     * @param sourceValue the source value
-     * @param constructor the constructor
+     * @param <TVALUE>           the type parameter
+     * @param <ENVALUE>          the type parameter
+     * @param toList             the to list
+     * @param enValueConstructor the enValueConstructor
      * @return true if the target list has changes
      */
-    protected static <VALUE extends Updatable<VALUE>> List<VALUE> updateList(final List<VALUE> sourceValue,
-                                                                             final Supplier<VALUE> constructor) {
-        return sourceValue.stream()
-                          .map(source -> {
-                              final VALUE newValue = constructor.get();
-                              newValue.update(source);
-                              return newValue;
-                          })
-                          .collect(Collectors.toList());
+    protected static <TVALUE extends TransferObject<TVALUE, ENVALUE>, ENVALUE> List<ENVALUE> updateList(final List<TVALUE> toList,
+                                                                                                        final Supplier<ENVALUE> enValueConstructor) {
+        return toList.stream()
+                     .map(source -> {
+                         final ENVALUE newValue = enValueConstructor.get();
+                         source.update(newValue);
+                         return newValue;
+                     })
+                     .collect(Collectors.toList());
     }
 
 }

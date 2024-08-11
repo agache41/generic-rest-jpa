@@ -358,4 +358,21 @@ public class ReflectionUtils {
         }
         return (Class<?>) actualTypeArguments[genericParameterIndex];
     }
+
+    public static Class<?> getFieldType(final Class<?> enclosingClass,
+                                        final String name) {
+        try {
+            final Field namedField = enclosingClass.getField(name);
+            return namedField.getType();
+        } catch (final NoSuchFieldException nf) {
+            final String capitalizedName = StringUtils.capitalize(name);
+            try {
+                // the getter method to use
+                final Method getter = enclosingClass.getMethod(GETTER_PREFIX + capitalizedName);
+                return getter.getReturnType();
+            } catch (final NoSuchMethodException nm) {
+                return null;
+            }
+        }
+    }
 }

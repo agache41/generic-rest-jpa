@@ -76,7 +76,7 @@ public class ValueUpdater<TO, ENTITY, VALUE> extends BaseUpdater<TO, ENTITY, VAL
         return new ValueUpdater<>(toGetter, toSetter, dynamic, entityGetter, entitySetter).update(transferObject, entity);
     }
 
-  
+
     /**
      * The method updates the field in entity based on the field the transfer object
      *

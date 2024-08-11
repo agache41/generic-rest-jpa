@@ -18,6 +18,7 @@
 package io.github.agache41.generic.rest.jpa.update.reflector;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
+import io.github.agache41.generic.rest.jpa.update.TransferObject;
 import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.updater.*;
@@ -44,23 +45,24 @@ import static io.github.agache41.generic.rest.jpa.update.Update.defaultOrder;
  * The class processes a single field and builds the necessary structure for the update pattern.
  * </pre>
  *
- * @param <T> the type parameter
- * @param <V> the type parameter
+ * @param <T>  the type parameter
+ * @param <TV> the type parameter
  */
-public final class FieldReflector<T, S, V> {
+public final class FieldReflector<T, S, TV, SV> {
 
     private static final Logger log = Logger.getLogger(ClassReflector.class);
     private final String name;
     private final String associatedName;
     private final Class<T> enclosingClass;
     private final Class<S> associatedClass;
-    private final Class<V> type;
+    private final Class<TV> type;
+    private final Class<SV> associatedType;
     private final Class<?> firstParameter;
     private final Class<?> secondParameter;
-    private final Function<T, V> getter;
-    private final BiConsumer<T, V> setter;
-    private final Function<S, V> associatedGetter;
-    private final BiConsumer<S, V> associatedSetter;
+    private final Function<T, TV> getter;
+    private final BiConsumer<T, TV> setter;
+    private final Function<S, SV> associatedGetter;
+    private final BiConsumer<S, SV> associatedSetter;
     private final Field field;
     private final boolean dynamic;
     private final boolean updatable;
@@ -98,7 +100,7 @@ public final class FieldReflector<T, S, V> {
         this.associatedClass = associatedClass;
         this.field = field;
         this.name = field.getName();
-        this.type = (Class<V>) field.getType();
+        this.type = (Class<TV>) field.getType();
         this.isFinal = Modifier.isFinal(field.getModifiers());
         this.isTransient = Modifier.isTransient(field.getModifiers());
         this.isHibernateIntern = field.getName()
@@ -139,8 +141,9 @@ public final class FieldReflector<T, S, V> {
             this.nullable = this.updateAnnotation.nullable() && (this.columnAnnotation == null || this.columnAnnotation.nullable()) && !field.isAnnotationPresent(NotNull.class);
             this.insertable = this.updateAnnotation.insertable() && (this.columnAnnotation == null || this.columnAnnotation.insertable());
             this.associatedName = "".equals(this.updateAnnotation.name()) ? this.name : this.updateAnnotation.name();
-            this.associatedGetter = ReflectionUtils.getGetter(this.associatedClass, this.associatedName, this.type);
-            this.associatedSetter = ReflectionUtils.getSetter(this.associatedClass, this.associatedName, this.type);
+            this.associatedType = (Class<SV>) ReflectionUtils.getFieldType(this.associatedClass, this.associatedName);
+            this.associatedGetter = ReflectionUtils.getGetter(this.associatedClass, this.associatedName, this.associatedType);
+            this.associatedSetter = ReflectionUtils.getSetter(this.associatedClass, this.associatedName, this.associatedType);
             //todo: check null and throw
         } else {
             // no update needed.
@@ -150,6 +153,7 @@ public final class FieldReflector<T, S, V> {
             this.nullable = false;
             this.insertable = false;
             this.associatedName = null;
+            this.associatedType = null;
             this.associatedGetter = null;
             this.associatedSetter = null;
             this.renderer = null;
@@ -180,7 +184,7 @@ public final class FieldReflector<T, S, V> {
         this.associatedClass = associatedClass;
         this.field = null;
         this.name = ReflectionUtils.getSetterFieldName(method);
-        this.type = method.getParameterTypes().length == 1 ? (Class<V>) method.getParameterTypes()[0] : null;
+        this.type = method.getParameterTypes().length == 1 ? (Class<TV>) method.getParameterTypes()[0] : null;
         this.isFinal = (this.name == null || this.type == null);
         // using transient to mark setter/getter update without field
         this.isTransient = true;
@@ -211,8 +215,10 @@ public final class FieldReflector<T, S, V> {
             this.insertable = this.updateAnnotation.insertable();
             this.nullable = this.updateAnnotation.nullable();
             this.associatedName = "".equals(this.updateAnnotation.name()) ? this.name : this.updateAnnotation.name();
-            this.associatedGetter = ReflectionUtils.getGetter(this.associatedClass, this.associatedName, this.type);
-            this.associatedSetter = ReflectionUtils.getSetter(this.associatedClass, this.associatedName, this.type);
+            this.associatedType = (Class<SV>) ReflectionUtils.getFieldType(this.associatedClass, this.associatedName);
+            this.associatedGetter = ReflectionUtils.getGetter(this.associatedClass, this.associatedName, this.associatedType);
+            this.associatedSetter = ReflectionUtils.getSetter(this.associatedClass, this.associatedName, this.associatedType);
+            //todo: check null and throw
         } else {
             // no update needed.
             this.activ = false;
@@ -221,6 +227,7 @@ public final class FieldReflector<T, S, V> {
             this.nullable = false;
             this.insertable = false;
             this.associatedName = null;
+            this.associatedType = null;
             this.associatedGetter = null;
             this.associatedSetter = null;
             this.renderer = null;
@@ -276,18 +283,18 @@ public final class FieldReflector<T, S, V> {
                 //map of simple objects
                 this.renderer = new MapUpdater<>((BiConsumer<T, Map<Object, Object>>) this.setter, (Function<T, Map<Object, Object>>) this.getter, this.dynamic, (Function<S, Map<Object, Object>>) this.associatedGetter);
             }
-        } else if (Updatable.class.isAssignableFrom(this.type)) {
+        } else if (TransferObject.class.isAssignableFrom(this.type)) {
             this.value = false;
             this.map = false;
             this.collection = false;
             // entity
-            this.renderer = new EntityUpdater<>((BiConsumer<T, Updatable>) this.setter, (Function<T, Updatable>) this.getter, this.dynamic, (Function<S, Updatable>) this.associatedGetter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.type));
+            this.renderer = new EntityUpdater<>(this.getter, this.setter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.type), this.dynamic, this.associatedGetter, this.associatedSetter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.type));
         } else {
             // simple value
             this.value = true;
             this.map = false;
             this.collection = false;
-            this.renderer = new ValueUpdater<>(this.associatedGetter, this.associatedSetter, this.dynamic, this.getter, this.setter);
+            this.renderer = new ValueUpdater<>(this.getter, this.setter, this.dynamic, this.associatedGetter, this.associatedSetter);
         }
     }
 
@@ -313,7 +320,7 @@ public final class FieldReflector<T, S, V> {
      * @param source the source
      * @return the object
      */
-    public V get(final T source) {
+    public TV get(final T source) {
         return this.getter.apply(source);
     }
 
@@ -326,7 +333,7 @@ public final class FieldReflector<T, S, V> {
      * @param value  the value
      */
     public void set(final T source,
-                    final V value) {
+                    final TV value) {
         this.setter.accept(source, value);
     }
 
@@ -409,7 +416,7 @@ public final class FieldReflector<T, S, V> {
      *
      * @return the getter
      */
-    public Function<T, V> getGetter() {
+    public Function<T, TV> getGetter() {
         return this.getter;
     }
 
@@ -418,7 +425,7 @@ public final class FieldReflector<T, S, V> {
      *
      * @return the setter
      */
-    public BiConsumer<T, V> getSetter() {
+    public BiConsumer<T, TV> getSetter() {
         return this.setter;
     }
 
