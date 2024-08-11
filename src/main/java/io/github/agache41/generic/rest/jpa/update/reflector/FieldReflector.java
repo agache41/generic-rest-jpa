@@ -48,7 +48,7 @@ import static io.github.agache41.generic.rest.jpa.update.Update.defaultOrder;
  * @param <T>  the type parameter
  * @param <TV> the type parameter
  */
-public final class FieldReflector<T, S, TV, SV> {
+public final class FieldReflector<T, S, TV, SV, TVS extends TransferObject<TVS, SV>> {
 
     private static final Logger log = Logger.getLogger(ClassReflector.class);
     private final String name;
@@ -288,13 +288,23 @@ public final class FieldReflector<T, S, TV, SV> {
             this.map = false;
             this.collection = false;
             // entity
-            this.renderer = new EntityUpdater<>(this.getter, this.setter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.type), this.dynamic, this.associatedGetter, this.associatedSetter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.type));
+            this.renderer = new EntityUpdater<>((Function<T, TVS>) this.getter,
+                                                (BiConsumer<T, TVS>) this.setter,
+                                                (Supplier<TVS>) ReflectionUtils.supplierOf(this.type),
+                                                this.dynamic,
+                                                this.associatedGetter,
+                                                this.associatedSetter,
+                                                ReflectionUtils.supplierOf(this.associatedType));
         } else {
-            // simple value
-            this.value = true;
-            this.map = false;
-            this.collection = false;
-            this.renderer = new ValueUpdater<>(this.getter, this.setter, this.dynamic, this.associatedGetter, this.associatedSetter);
+            if (this.type.equals(this.associatedType)) {
+                // simple value
+                this.value = true;
+                this.map = false;
+                this.collection = false;
+                this.renderer = new ValueUpdater<>(this.getter, this.setter, this.dynamic, (Function<S, TV>) this.associatedGetter, (BiConsumer<S, TV>) this.associatedSetter);
+            } else {
+                throw new RuntimeException(" Different type for field " + this.name);
+            }
         }
     }
 
