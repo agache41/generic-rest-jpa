@@ -17,39 +17,24 @@
 
 package io.github.agache41.generic.rest.jpa.update;
 
-
-import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import jakarta.persistence.Transient;
 
-
 /**
- * The interface Updatable.
+ * The interface Self transfer object.
  *
  * @param <ENTITY> the type parameter
- * @author Alexandru.Agache.Extern @atruvia.de <pre> Generic Interface for updatable Database Entities It consists of one method to be implemented in the entity to coordinate the update process. The default implementation uses the ClassReflector mechanism to update the fields. </pre>
  */
-public interface Updatable<ENTITY extends Updatable<ENTITY>> {
-    /**
-     * Updates the entity
-     *
-     * @param source the source
-     * @return true if there were changes
-     */
+public interface Updatable<ENTITY extends TransferObject<ENTITY, ENTITY>> extends TransferObject<ENTITY, ENTITY> {
+
+    @Override
     @Transient
-    default boolean update(final ENTITY source) {
-        return ClassReflector.ofObject(this)
-                             .update(this, source);
+    default ENTITY create(final ENTITY entity) {
+        return entity;
     }
 
-    /**
-     * Tells if the two objects are equal from the Update perspective.
-     *
-     * @param source the source
-     * @return the boolean
-     */
+    @Override
     @Transient
-    default boolean updateEquals(final Object source) {
-        return ClassReflector.ofObject(this)
-                             .areEqual(this, source);
+    default ENTITY render(final ENTITY entity) {
+        return entity;
     }
 }

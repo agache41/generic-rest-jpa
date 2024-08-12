@@ -48,21 +48,19 @@ import static io.github.agache41.generic.rest.jpa.update.Update.defaultOrder;
  * @param <T>  the type parameter
  * @param <TV> the type parameter
  */
-public final class FieldReflector<T, S, TV, SV, TVS extends TransferObject<TVS, SV>> {
+public final class FieldReflector<T, S, TV, SV> {
 
     private static final Logger log = Logger.getLogger(ClassReflector.class);
     private final String name;
     private final String associatedName;
     private final Class<T> enclosingClass;
     private final Class<S> associatedClass;
+    private final FieldReflector<S, T, SV, TV> associatedReflector;
     private final Class<TV> type;
-    private final Class<SV> associatedType;
     private final Class<?> firstParameter;
     private final Class<?> secondParameter;
     private final Function<T, TV> getter;
     private final BiConsumer<T, TV> setter;
-    private final Function<S, SV> associatedGetter;
-    private final BiConsumer<S, SV> associatedSetter;
     private final Field field;
     private final boolean dynamic;
     private final boolean updatable;
@@ -80,6 +78,7 @@ public final class FieldReflector<T, S, TV, SV, TVS extends TransferObject<TVS, 
     private final boolean nullable;
     private final boolean insertable;
     private final int order;
+
     private Updater<T, S> renderer;
     private boolean map;
     private boolean collection;
@@ -140,10 +139,14 @@ public final class FieldReflector<T, S, TV, SV, TVS extends TransferObject<TVS, 
             this.updatable = this.updateAnnotation.updatable() && (this.columnAnnotation == null || this.columnAnnotation.updatable());
             this.nullable = this.updateAnnotation.nullable() && (this.columnAnnotation == null || this.columnAnnotation.nullable()) && !field.isAnnotationPresent(NotNull.class);
             this.insertable = this.updateAnnotation.insertable() && (this.columnAnnotation == null || this.columnAnnotation.insertable());
-            this.associatedName = "".equals(this.updateAnnotation.name()) ? this.name : this.updateAnnotation.name();
-            this.associatedType = (Class<SV>) ReflectionUtils.getFieldType(this.associatedClass, this.associatedName);
-            this.associatedGetter = ReflectionUtils.getGetter(this.associatedClass, this.associatedName, this.associatedType);
-            this.associatedSetter = ReflectionUtils.getSetter(this.associatedClass, this.associatedName, this.associatedType);
+            if (this.associatedClass.equals(this.enclosingClass)) {
+                this.associatedName = this.name;
+                this.associatedReflector = (FieldReflector<S, T, SV, TV>) this;
+            } else {
+                this.associatedName = "".equals(this.updateAnnotation.name()) ? this.name : this.updateAnnotation.name();
+                this.associatedReflector = (FieldReflector<S, T, SV, TV>) ClassReflector.ofClass(this.associatedClass)
+                                                                                        .getReflector(this.associatedName);
+            }
             //todo: check null and throw
         } else {
             // no update needed.
@@ -153,9 +156,7 @@ public final class FieldReflector<T, S, TV, SV, TVS extends TransferObject<TVS, 
             this.nullable = false;
             this.insertable = false;
             this.associatedName = null;
-            this.associatedType = null;
-            this.associatedGetter = null;
-            this.associatedSetter = null;
+            this.associatedReflector = null;
             this.renderer = null;
             this.value = false;
             this.collection = false;
@@ -214,10 +215,14 @@ public final class FieldReflector<T, S, TV, SV, TVS extends TransferObject<TVS, 
             this.updatable = this.updateAnnotation.updatable();
             this.insertable = this.updateAnnotation.insertable();
             this.nullable = this.updateAnnotation.nullable();
-            this.associatedName = "".equals(this.updateAnnotation.name()) ? this.name : this.updateAnnotation.name();
-            this.associatedType = (Class<SV>) ReflectionUtils.getFieldType(this.associatedClass, this.associatedName);
-            this.associatedGetter = ReflectionUtils.getGetter(this.associatedClass, this.associatedName, this.associatedType);
-            this.associatedSetter = ReflectionUtils.getSetter(this.associatedClass, this.associatedName, this.associatedType);
+            if (this.associatedClass.equals(this.enclosingClass)) {
+                this.associatedName = this.name;
+                this.associatedReflector = (FieldReflector<S, T, SV, TV>) this;
+            } else {
+                this.associatedName = "".equals(this.updateAnnotation.name()) ? this.name : this.updateAnnotation.name();
+                this.associatedReflector = (FieldReflector<S, T, SV, TV>) ClassReflector.ofClass(this.associatedClass)
+                                                                                        .getReflector(this.associatedName);
+            }
             //todo: check null and throw
         } else {
             // no update needed.
@@ -227,9 +232,7 @@ public final class FieldReflector<T, S, TV, SV, TVS extends TransferObject<TVS, 
             this.nullable = false;
             this.insertable = false;
             this.associatedName = null;
-            this.associatedType = null;
-            this.associatedGetter = null;
-            this.associatedSetter = null;
+            this.associatedReflector = null;
             this.renderer = null;
             this.value = false;
             this.collection = false;
@@ -257,7 +260,11 @@ public final class FieldReflector<T, S, TV, SV, TVS extends TransferObject<TVS, 
         return length;
     }
 
-    private void initialize() {
+    private <TOTV extends TransferObject<TOTV, SV>,
+            TO extends TransferObject<TO, EN>, EN,
+            TOPK extends TransferObject<TOPK, ENPK> & PrimaryKey<PK>,
+            ENPK extends PrimaryKey<PK>,
+            PK, K, V> void initialize() {
         if (!this.valid) {
             throw new IllegalArgumentException(" Invalid field marked for update " + this);
         }
@@ -265,12 +272,26 @@ public final class FieldReflector<T, S, TV, SV, TVS extends TransferObject<TVS, 
             this.value = false;
             this.map = false;
             this.collection = true;
-            if (Updatable.class.isAssignableFrom(this.firstParameter) && PrimaryKey.class.isAssignableFrom(this.firstParameter)) {
+            if (TransferObject.class.isAssignableFrom(this.firstParameter) && PrimaryKey.class.isAssignableFrom(this.firstParameter)) {
                 //collection of entities
-                this.renderer = new EntityCollectionUpdater<>((BiConsumer<T, Collection<UpdatablePrimaryKey>>) this.setter, (Function<T, Collection<UpdatablePrimaryKey>>) this.getter, this.dynamic, (Function<S, Collection<UpdatablePrimaryKey>>) this.associatedGetter, (Supplier<UpdatablePrimaryKey>) ReflectionUtils.supplierOf(this.firstParameter));
+                final FieldReflector<T, S, Collection<TOPK>, Collection<ENPK>> base = (FieldReflector<T, S, Collection<TOPK>, Collection<ENPK>>) this;
+                final FieldReflector<S, T, Collection<ENPK>, Collection<TOPK>> binding = (FieldReflector<S, T, Collection<ENPK>, Collection<TOPK>>) this.associatedReflector;
+                this.renderer = new EntityCollectionUpdater<>(base.getter,
+                                                              base.setter,
+                                                              (Supplier<TOPK>) ReflectionUtils.supplierOf(base.firstParameter),
+                                                              this.dynamic,
+                                                              binding.getter,
+                                                              binding.setter,
+                                                              (Supplier<ENPK>) ReflectionUtils.supplierOf(binding.firstParameter));
             } else {
                 //collection of simple objects
-                this.renderer = new CollectionUpdater<>((BiConsumer<T, Collection<Object>>) this.setter, (Function<T, Collection<Object>>) this.getter, this.dynamic, (Function<S, Collection<Object>>) this.associatedGetter);
+                final FieldReflector<T, S, Collection<V>, Collection<V>> base = (FieldReflector<T, S, Collection<V>, Collection<V>>) this;
+                final FieldReflector<S, T, Collection<V>, Collection<V>> binding = (FieldReflector<S, T, Collection<V>, Collection<V>>) this.associatedReflector;
+                this.renderer = new CollectionUpdater<>(base.getter,
+                                                        base.setter,
+                                                        this.dynamic,
+                                                        binding.getter,
+                                                        binding.setter);
             }
         } else if (ReflectionUtils.isClassMap(this.type) && this.firstParameter != null && this.secondParameter != null) {
             this.value = false;
@@ -278,31 +299,53 @@ public final class FieldReflector<T, S, TV, SV, TVS extends TransferObject<TVS, 
             this.collection = false;
             if (Updatable.class.isAssignableFrom(this.secondParameter)) {
                 //map of entities
-                this.renderer = new EntityMapUpdater<>((BiConsumer<T, Map<Object, Updatable>>) this.setter, (Function<T, Map<Object, Updatable>>) this.getter, this.dynamic, (Function<S, Map<Object, Updatable>>) this.associatedGetter, (Supplier<Updatable>) ReflectionUtils.supplierOf(this.secondParameter));
+                final FieldReflector<T, S, Map<K, TO>, Map<K, EN>> base = (FieldReflector<T, S, Map<K, TO>, Map<K, EN>>) this;
+                final FieldReflector<S, T, Map<K, EN>, Map<K, TO>> binding = (FieldReflector<S, T, Map<K, EN>, Map<K, TO>>) this.associatedReflector;
+                this.renderer = new EntityMapUpdater<>(base.getter,
+                                                       base.setter,
+                                                       (Supplier<TO>) ReflectionUtils.supplierOf(base.secondParameter),
+                                                       this.dynamic,
+                                                       binding.getter,
+                                                       binding.setter,
+                                                       (Supplier<EN>) ReflectionUtils.supplierOf(binding.secondParameter));
             } else {
                 //map of simple objects
-                this.renderer = new MapUpdater<>((BiConsumer<T, Map<Object, Object>>) this.setter, (Function<T, Map<Object, Object>>) this.getter, this.dynamic, (Function<S, Map<Object, Object>>) this.associatedGetter);
+                final FieldReflector<T, S, Map<K, V>, Map<K, V>> base = (FieldReflector<T, S, Map<K, V>, Map<K, V>>) this;
+                final FieldReflector<S, T, Map<K, V>, Map<K, V>> binding = (FieldReflector<S, T, Map<K, V>, Map<K, V>>) this.associatedReflector;
+                this.renderer = new MapUpdater<>(base.getter,
+                                                 base.setter,
+                                                 this.dynamic,
+                                                 binding.getter,
+                                                 binding.setter);
             }
         } else if (TransferObject.class.isAssignableFrom(this.type)) {
+            final FieldReflector<T, S, TOTV, SV> base = (FieldReflector<T, S, TOTV, SV>) this;
+            final FieldReflector<S, T, SV, TOTV> binding = (FieldReflector<S, T, SV, TOTV>) this.associatedReflector;
             this.value = false;
             this.map = false;
             this.collection = false;
             // entity
-            this.renderer = new EntityUpdater<>((Function<T, TVS>) this.getter,
-                                                (BiConsumer<T, TVS>) this.setter,
-                                                (Supplier<TVS>) ReflectionUtils.supplierOf(this.type),
+            this.renderer = new EntityUpdater<>(base.getter,
+                                                base.setter,
+                                                ReflectionUtils.supplierOf(base.type),
                                                 this.dynamic,
-                                                this.associatedGetter,
-                                                this.associatedSetter,
-                                                ReflectionUtils.supplierOf(this.associatedType));
+                                                binding.getter,
+                                                binding.setter,
+                                                ReflectionUtils.supplierOf(binding.type));
         } else {
-            if (this.type.equals(this.associatedType)) {
+            if (this.type.equals(this.associatedReflector.type)) {
+                final FieldReflector<S, T, TV, TV> binding = (FieldReflector<S, T, TV, TV>) this.associatedReflector;
                 // simple value
                 this.value = true;
                 this.map = false;
                 this.collection = false;
-                this.renderer = new ValueUpdater<>(this.getter, this.setter, this.dynamic, (Function<S, TV>) this.associatedGetter, (BiConsumer<S, TV>) this.associatedSetter);
+                this.renderer = new ValueUpdater<>(this.getter,
+                                                   this.setter,
+                                                   this.dynamic,
+                                                   binding.getter,
+                                                   binding.setter);
             } else {
+                //todo: improuve messages
                 throw new RuntimeException(" Different type for field " + this.name);
             }
         }

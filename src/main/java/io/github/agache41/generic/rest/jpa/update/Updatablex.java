@@ -17,38 +17,18 @@
 
 package io.github.agache41.generic.rest.jpa.update;
 
+
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import jakarta.persistence.Transient;
 
+
 /**
- * The interface Transfer object.
+ * The interface Updatable.
  *
- * @param <TO>     the transfer object type parameter
- * @param <ENTITY> the entity type parameter
+ * @param <ENTITY> the type parameter
+ * @author Alexandru.Agache.Extern @atruvia.de <pre> Generic Interface for updatable Database Entities It consists of one method to be implemented in the entity to coordinate the update process. The default implementation uses the ClassReflector mechanism to update the fields. </pre>
  */
-public interface TransferObject<TO extends TransferObject<TO, ENTITY>, ENTITY> {
-
-
-    /**
-     * Updates the entity fields with values from this object
-     * Is to be used in POST - create request
-     * The returned entity is to be inserted or merged in the db.
-     *
-     * @param entity the entity
-     * @return entity
-     */
-    @Transient
-    ENTITY create(ENTITY entity);
-
-
-    /**
-     * Updates the entity fields with values from this object
-     * Is to be used in PUT - update request
-     * The returned entity is to be updated or merged in the db.
-     *
-     * @param entity the entity
-     * @return entity
-     */
+public interface Updatablex<ENTITY extends Updatablex<ENTITY>> {
     /**
      * Updates the entity
      *
@@ -57,20 +37,9 @@ public interface TransferObject<TO extends TransferObject<TO, ENTITY>, ENTITY> {
      */
     @Transient
     default boolean update(final ENTITY source) {
-        return ClassReflector.ofObject(this, source)
+        return ClassReflector.ofObject(this)
                              .update(this, source);
     }
-
-
-    /**
-     * Updates the fields in TO from the entity.
-     * Is to be used in GET - reder request
-     *
-     * @param entity the entity
-     * @return to
-     */
-    @Transient
-    TO render(ENTITY entity);
 
     /**
      * Tells if the two objects are equal from the Update perspective.

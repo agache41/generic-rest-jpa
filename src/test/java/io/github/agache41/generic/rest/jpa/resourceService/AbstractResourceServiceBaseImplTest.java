@@ -50,7 +50,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
     protected final ClassReflector<T, T> classReflector;
 
     protected final Producer<T> producer;
-    protected final FieldReflector<T, S, String> fieldReflector;
+    protected final FieldReflector<T, S, String, String> fieldReflector;
     protected final String stringField;
     protected final ResourceService<T, K> client;
     protected final ResourceServiceConfig config = new ResourceServiceConfig() {

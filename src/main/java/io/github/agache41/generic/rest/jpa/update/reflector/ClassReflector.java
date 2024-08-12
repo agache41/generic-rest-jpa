@@ -75,13 +75,13 @@ public final class ClassReflector<T, S> {
      * The cache map of all available reflectors for fields, reachable by field name
      * </pre>
      */
-    private final Map<String, FieldReflector<T, S, Object>> reflectors;
+    private final Map<String, FieldReflector<T, S, ?, ?>> reflectors;
     /**
      * <pre>
      * The cache map of all available reflectors for fields marked for update, reachable by field name
      * </pre>
      */
-    private final Map<String, FieldReflector<T, S, Object>> updateReflectors;
+    private final Map<String, FieldReflector<T, S, ?, ?>> updateReflectors;
 
     /**
      * <pre>
@@ -155,10 +155,10 @@ public final class ClassReflector<T, S> {
                                                           .collect(Collectors.toList())
                                                           .toArray(new FieldReflector[this.updateReflectors.size()]);
 
-        final List<FieldReflector<T, S, Object>> valueReflectors = this.updateReflectors.values()
-                                                                                        .stream()
-                                                                                        .filter(FieldReflector::isValue)
-                                                                                        .collect(Collectors.toList());
+        final List<FieldReflector<T, S, ?, ?>> valueReflectors = this.updateReflectors.values()
+                                                                                      .stream()
+                                                                                      .filter(FieldReflector::isValue)
+                                                                                      .collect(Collectors.toList());
         this.valueReflectorsArray = valueReflectors.toArray(new FieldReflector[valueReflectors.size()]);
 
         this.description = this.description();
@@ -264,7 +264,7 @@ public final class ClassReflector<T, S> {
      * @return the destination
      */
     public boolean update(final T destination,
-                          final T source) {
+                          final S source) {
         boolean updated = false;
         for (final FieldReflector reflector : this.updateReflectorsArray) {
             updated |= reflector.update(destination, source);
@@ -326,8 +326,8 @@ public final class ClassReflector<T, S> {
      * @param fieldName the field name
      * @return the reflector
      */
-    public FieldReflector<T, S, Object> getReflector(final String fieldName) {
-        final FieldReflector<T, S, Object> fieldReflector = this.reflectors.get(fieldName);
+    public <TV, TS> FieldReflector<T, S, TV, TS> getReflector(final String fieldName) {
+        final FieldReflector<T, S, TV, TS> fieldReflector = (FieldReflector<T, S, TV, TS>) this.reflectors.get(fieldName);
         if (fieldReflector == null) {
             throw new UnexpectedException(" No such field " + fieldName + " in " + this.clazz.getSimpleName());
         }
@@ -344,9 +344,9 @@ public final class ClassReflector<T, S> {
      * @param fieldType the field type
      * @return the reflector
      */
-    public <V> FieldReflector<T, S, V> getReflector(final String fieldName,
-                                                    final Class<V> fieldType) {
-        final FieldReflector<T, S, V> fieldReflector = (FieldReflector<T, S, V>) this.reflectors.get(fieldName);
+    public <TV, TS> FieldReflector<T, S, TV, TS> getReflector(final String fieldName,
+                                                              final Class<TV> fieldType) {
+        final FieldReflector<T, S, TV, TS> fieldReflector = (FieldReflector<T, S, TV, TS>) this.reflectors.get(fieldName);
         if (fieldReflector == null) {
             throw new UnexpectedException(" No such field " + fieldName + " in " + this.clazz.getSimpleName());
         }
@@ -398,7 +398,7 @@ public final class ClassReflector<T, S> {
     public HashMap<String, Object> mapValues(final T source,
                                              final boolean nonTransient) {
         final HashMap<String, Object> result = new LinkedHashMap<>();
-        for (final FieldReflector<T, S, ?> fieldReflector : this.valueReflectorsArray) {
+        for (final FieldReflector<T, S, ?, ?> fieldReflector : this.valueReflectorsArray) {
             if (nonTransient && fieldReflector.isTransient()) {
                 continue;
             }
@@ -421,7 +421,7 @@ public final class ClassReflector<T, S> {
     public HashMap<String, List<Object>> mapValues(final List<T> sources,
                                                    final boolean nonTransient) {
         final HashMap<String, List<Object>> result = new LinkedHashMap<>();
-        for (final FieldReflector<T, S, ?> fieldReflector : this.valueReflectorsArray) {
+        for (final FieldReflector<T, S, ?, ?> fieldReflector : this.valueReflectorsArray) {
             if (nonTransient && fieldReflector.isTransient()) {
                 continue;
             }
@@ -455,7 +455,7 @@ public final class ClassReflector<T, S> {
      *
      * @return the reflectors
      */
-    public Map<String, FieldReflector<T, S, Object>> getReflectors() {
+    public Map<String, FieldReflector<T, S, ?, ?>> getReflectors() {
         return this.reflectors;
     }
 
@@ -464,7 +464,7 @@ public final class ClassReflector<T, S> {
      *
      * @return the update reflectors
      */
-    public Map<String, FieldReflector<T, S, Object>> getUpdateReflectors() {
+    public Map<String, FieldReflector<T, S, ?, ?>> getUpdateReflectors() {
         return this.updateReflectors;
     }
 
