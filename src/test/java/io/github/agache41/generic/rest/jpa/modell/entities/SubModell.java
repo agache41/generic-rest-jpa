@@ -17,7 +17,6 @@
 
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
@@ -43,9 +42,9 @@ public class SubModell extends BaseEntity implements PrimaryKey<Long>, Updatable
     @Column(name = "id", updatable = false, insertable = false)
     private Long id;
 
-    @JsonIgnore
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @OneToOne(fetch = FetchType.EAGER, mappedBy = "subModell")
-    private Modell modell;
+//    @JsonIgnore
+//    @ToString.Exclude
+//    @EqualsAndHashCode.Exclude
+//    @OneToOne(fetch = FetchType.EAGER, mappedBy = "subModell")
+//    private Modell modell;
 }
