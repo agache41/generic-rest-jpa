@@ -842,7 +842,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      */
     public ENTITY updateById(final ENTITY source) {
         final ENTITY persisted = this.findPersisted(source);
-        persisted.update(source);
+        source.update(persisted);
         return persisted;
     }
 
@@ -880,7 +880,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
                           final PK id = source.getId();
                           if (persistedMap.containsKey(id)) {
                               final ENTITY entity = persistedMap.get(id);
-                              entity.update(source);
+                              source.update(entity);
                               return entity;
                           } else if (allExpected) {
                               throw new UnexpectedException(this.name + ": Missing Entity in Update for PK=" + id.toString());

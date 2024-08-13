@@ -49,16 +49,10 @@ public interface TransferObject<TO extends TransferObject<TO, ENTITY>, ENTITY> {
      * @param entity the entity
      * @return entity
      */
-    /**
-     * Updates the entity
-     *
-     * @param source the source
-     * @return true if there were changes
-     */
     @Transient
-    default boolean update(final ENTITY source) {
-        return ClassReflector.ofObject(this, source)
-                             .update(this, source);
+    default boolean update(final ENTITY entity) {
+        return ClassReflector.ofObject(this, entity)
+                             .update(this, entity);
     }
 
 
@@ -83,4 +77,9 @@ public interface TransferObject<TO extends TransferObject<TO, ENTITY>, ENTITY> {
         return ClassReflector.ofObject(this)
                              .areEqual(this, source);
     }
+
+//    @Transient
+//    default TO clone() {
+//        return (TO) ClassReflector.clone(this);
+//    }
 }

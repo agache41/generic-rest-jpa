@@ -37,9 +37,9 @@ import java.util.stream.Collectors;
  * The class processes a given class and builds the necessary structure for implementing the update pattern.
  * It reflects the properties and methods of the given class and builds a dynamic class cache.
  * Typical usage :
- *      T source;
- *      T destination;
- *      destination = {@link ClassReflector#ofClass(Class)}.update(destination, source);
+ *      T transferObject;
+ *      S entity;
+ *      destination = {@link ClassReflector#ofClass(Class)}.update(transferObject, entity);
  * </pre>
  *
  * @param <T> the type parameter
@@ -55,18 +55,24 @@ public final class ClassReflector<T, S> {
      * </pre>
      */
     private static final Map<Class<?>, Map<Class<?>, ClassReflector<?, ?>>> concurrentClassReflectorCache = new ConcurrentHashMap<>();
+
     /**
      * <pre>
-     * The type of this ClassReflector
+     * The main type of ClassReflector (the type of the transfer Object)
      * </pre>
      */
     private final Class<T> clazz;
 
+    /**
+     * <pre>
+     * The type of the entity used
+     * </pre>
+     */
     private final Class<S> associatedClass;
 
     /**
      * <pre>
-     * The no arguments constructor associated for the type.
+     * The no arguments constructor associated for the transfer object type.
      * </pre>
      */
     private final Constructor<T> noArgsConstructor;
@@ -229,6 +235,21 @@ public final class ClassReflector<T, S> {
         return ofClass((Class<R>) transferObject.getClass(), (Class<U>) entity.getClass());
     }
 
+    /**
+     * Clone r.
+     *
+     * @param <R>            the type parameter
+     * @param transferObject the transfer object
+     * @return the r
+     */
+    public static <R> R clone(final R transferObject) {
+        final Class<R> toClass = (Class<R>) transferObject.getClass();
+        final ClassReflector<R, R> classReflector = ClassReflector.ofClass(toClass);
+        final R result = classReflector.newInstance();
+        classReflector.update(transferObject, result);
+        return result;
+    }
+
 
     private String description() {
         final StringBuilder stringBuilder = new StringBuilder();
@@ -323,6 +344,8 @@ public final class ClassReflector<T, S> {
      * Reflector for the fieldName.
      * </pre>
      *
+     * @param <TV>      the type parameter
+     * @param <TS>      the type parameter
      * @param fieldName the field name
      * @return the reflector
      */
@@ -339,7 +362,8 @@ public final class ClassReflector<T, S> {
      * Reflector for the fieldName.
      * </pre>
      *
-     * @param <V>       the type parameter
+     * @param <TV>      the type parameter
+     * @param <TS>      the type parameter
      * @param fieldName the field name
      * @param fieldType the field type
      * @return the reflector

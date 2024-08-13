@@ -19,8 +19,14 @@ package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import io.github.agache41.generic.rest.jpa.update.Update;
 import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.math.BigInteger;
 
 @Data
 @MappedSuperclass
@@ -39,77 +45,77 @@ public class BaseEntity {
     @Update(order = 4, dynamic = false)
     private String stringValNotNull;
 
-//    @Basic
-//    @Update(order = 5)
-//    private Boolean booleanVal;
-//
-//    @Basic
-//    @Update
-//    private Boolean isBoolean;
-//
-//    @Basic
-//    @Update(dynamic = false)
-//    private boolean booVal;
-//
-//    @Basic
-//    @Update(dynamic = false)
-//    private boolean isBool;
-//
-//    @Basic
-//    @Update
-//    private Integer integerVal;
-//
-//    @Basic
-//    @Update(dynamic = false)
-//    private int intVal;
-//
-//    @Basic
-//    @Update
-//    private Long longVal;
-//
-//    @Basic
-//    @Update(dynamic = false)
-//    private long longpVal;
-//
-//    // todo: fixparse
-//    //
-//    //    @Basic
-//    //    @Update
-//    //    private BigDecimal bigDecimalVal;
-//    @Basic
-//    @Update
-//    private BigInteger bigIntegerVal;
-//
-//    @Basic
-//    @Column(name = "keyA", length = 4, updatable = false)
-//    private String keyA;
-//
-//    @Basic
-//    @Column(name = "keyB", length = 4, updatable = false)
-//    private String keyB;
-//
-//    @Basic
-//    @Column(name = "keyC", length = 4, updatable = false)
-//    private String keyC;
-//
-//    @Update.excluded
-//    @Getter(value = AccessLevel.NONE)
-//    @Setter(value = AccessLevel.NONE)
-//    private String notUpdatable;
-//
-//    @Update.excluded
-//    @Getter(value = AccessLevel.NONE)
-//    @Setter(value = AccessLevel.NONE)
-//    @Column(name = "vStringVal", length = 2, nullable = false)
-//    private String vStringVal;
-//
-//    @Update(length = 2, nullable = false)
-//    public String getVirtualStringVal() {
-//        return this.vStringVal;
-//    }
-//
-//    @Update(length = 2, nullable = false)
-//    public void setVirtualStringVal(final String virtualStringVal) {
-//        this.vStringVal = virtualStringVal;
-//    }
+    @Basic
+    @Update(order = 5)
+    private Boolean booleanVal;
+
+    @Basic
+    @Update
+    private Boolean isBoolean;
+
+    @Basic
+    @Update(dynamic = false)
+    private boolean booVal;
+
+    @Basic
+    @Update(dynamic = false)
+    private boolean isBool;
+
+    @Basic
+    @Update
+    private Integer integerVal;
+
+    @Basic
+    @Update(dynamic = false)
+    private int intVal;
+
+    @Basic
+    @Update
+    private Long longVal;
+
+    @Basic
+    @Update(dynamic = false)
+    private long longpVal;
+
+    // todo: fixparse
+    //
+    //    @Basic
+    //    @Update
+    //    private BigDecimal bigDecimalVal;
+    @Basic
+    @Update
+    private BigInteger bigIntegerVal;
+
+    @Basic
+    @Column(name = "keyA", length = 4, updatable = false)
+    private String keyA;
+
+    @Basic
+    @Column(name = "keyB", length = 4, updatable = false)
+    private String keyB;
+
+    @Basic
+    @Column(name = "keyC", length = 4, updatable = false)
+    private String keyC;
+
+    @Update.excluded
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
+    private String notUpdatable;
+
+    @Update.excluded
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
+    @Column(name = "vStringVal", length = 2, nullable = false)
+    private String vStringVal;
+
+    @Update(length = 2, nullable = false)
+    public String getVirtualStringVal() {
+        return this.vStringVal;
+    }
+
+    @Update(length = 2, nullable = false)
+    public void setVirtualStringVal(final String virtualStringVal) {
+        this.vStringVal = virtualStringVal;
+    }
 }
