@@ -60,8 +60,7 @@ public class EntityUpdater<TO, ENTITY, TOVALUE extends TransferObject<TOVALUE, E
                          final boolean dynamic,
                          final Function<ENTITY, ENVALUE> entityGetter,
                          final BiConsumer<ENTITY, ENVALUE> entitySetter,
-                         final Supplier<ENVALUE> enValueConstructor
-    ) {
+                         final Supplier<ENVALUE> enValueConstructor) {
         super(toGetter, toSetter, dynamic, entityGetter, entitySetter);
         this.toValueConstructor = toValueConstructor;
         this.enValueConstructor = enValueConstructor;
@@ -107,8 +106,7 @@ public class EntityUpdater<TO, ENTITY, TOVALUE extends TransferObject<TOVALUE, E
      */
     @Override
     public boolean update(final TO transferObject,
-                          final ENTITY entity
-    ) {
+                          final ENTITY entity) {
         // the toValue to be updated
         final TOVALUE toValue = this.toGetter.apply(transferObject);
         // nulls
@@ -134,5 +132,29 @@ public class EntityUpdater<TO, ENTITY, TOVALUE extends TransferObject<TOVALUE, E
             this.entitySetter.accept(entity, entityValue);
         }
         return updated;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void render(final TO transferObject,
+                       final ENTITY entity) {
+        // the enValue to be rendered
+        final ENVALUE envalue = this.entityGetter.apply(entity);
+        if (envalue == null) {
+            // no data no fun
+            return;
+        }
+        // the toValue to be updated
+        TOVALUE toValue = this.toGetter.apply(transferObject);
+        // nulls
+        if (toValue == null) {
+            //todo: maybe warning here
+            toValue = this.toValueConstructor.get();
+        }
+        //the value renders self
+        toValue.render(envalue);
+        this.toSetter.accept(transferObject, toValue);
     }
 }

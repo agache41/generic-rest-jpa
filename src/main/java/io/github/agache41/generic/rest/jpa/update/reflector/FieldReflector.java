@@ -79,7 +79,7 @@ public final class FieldReflector<T, S, TV, SV> {
     private final boolean insertable;
     private final int order;
 
-    private Updater<T, S> renderer;
+    private Updater<T, S> updater;
     private boolean map;
     private boolean collection;
     private boolean value;
@@ -92,9 +92,9 @@ public final class FieldReflector<T, S, TV, SV> {
      * @param enclosingClass the enclosing class
      * @param field          the field
      */
-    FieldReflector(final Class<T> enclosingClass,
-                   final Class<S> associatedClass,
-                   final Field field) {
+    public FieldReflector(final Class<T> enclosingClass,
+                          final Class<S> associatedClass,
+                          final Field field) {
         this.enclosingClass = enclosingClass;
         this.associatedClass = associatedClass;
         this.field = field;
@@ -157,7 +157,7 @@ public final class FieldReflector<T, S, TV, SV> {
             this.insertable = false;
             this.associatedName = null;
             this.associatedReflector = null;
-            this.renderer = null;
+            this.updater = null;
             this.value = false;
             this.collection = false;
             this.map = false;
@@ -178,9 +178,9 @@ public final class FieldReflector<T, S, TV, SV> {
      * @param enclosingClass the enclosing class
      * @param method         the method
      */
-    FieldReflector(final Class<T> enclosingClass,
-                   final Class<S> associatedClass,
-                   final Method method) {
+    public FieldReflector(final Class<T> enclosingClass,
+                          final Class<S> associatedClass,
+                          final Method method) {
         this.enclosingClass = enclosingClass;
         this.associatedClass = associatedClass;
         this.field = null;
@@ -233,7 +233,7 @@ public final class FieldReflector<T, S, TV, SV> {
             this.insertable = false;
             this.associatedName = null;
             this.associatedReflector = null;
-            this.renderer = null;
+            this.updater = null;
             this.value = false;
             this.collection = false;
             this.map = false;
@@ -276,22 +276,22 @@ public final class FieldReflector<T, S, TV, SV> {
                 //collection of entities
                 final FieldReflector<T, S, Collection<TOPK>, Collection<ENPK>> base = (FieldReflector<T, S, Collection<TOPK>, Collection<ENPK>>) this;
                 final FieldReflector<S, T, Collection<ENPK>, Collection<TOPK>> binding = (FieldReflector<S, T, Collection<ENPK>, Collection<TOPK>>) this.associatedReflector;
-                this.renderer = new EntityCollectionUpdater<>(base.getter,
-                                                              base.setter,
-                                                              (Supplier<TOPK>) ReflectionUtils.supplierOf(base.firstParameter),
-                                                              this.dynamic,
-                                                              binding.getter,
-                                                              binding.setter,
-                                                              (Supplier<ENPK>) ReflectionUtils.supplierOf(binding.firstParameter));
+                this.updater = new EntityCollectionUpdater<>(base.getter,
+                                                             base.setter,
+                                                             (Supplier<TOPK>) ReflectionUtils.supplierOf(base.firstParameter),
+                                                             this.dynamic,
+                                                             binding.getter,
+                                                             binding.setter,
+                                                             (Supplier<ENPK>) ReflectionUtils.supplierOf(binding.firstParameter));
             } else {
                 //collection of simple objects
                 final FieldReflector<T, S, Collection<V>, Collection<V>> base = (FieldReflector<T, S, Collection<V>, Collection<V>>) this;
                 final FieldReflector<S, T, Collection<V>, Collection<V>> binding = (FieldReflector<S, T, Collection<V>, Collection<V>>) this.associatedReflector;
-                this.renderer = new CollectionUpdater<>(base.getter,
-                                                        base.setter,
-                                                        this.dynamic,
-                                                        binding.getter,
-                                                        binding.setter);
+                this.updater = new CollectionUpdater<>(base.getter,
+                                                       base.setter,
+                                                       this.dynamic,
+                                                       binding.getter,
+                                                       binding.setter);
             }
         } else if (ReflectionUtils.isClassMap(this.type) && this.firstParameter != null && this.secondParameter != null) {
             this.value = false;
@@ -301,22 +301,22 @@ public final class FieldReflector<T, S, TV, SV> {
                 //map of entities
                 final FieldReflector<T, S, Map<K, TO>, Map<K, EN>> base = (FieldReflector<T, S, Map<K, TO>, Map<K, EN>>) this;
                 final FieldReflector<S, T, Map<K, EN>, Map<K, TO>> binding = (FieldReflector<S, T, Map<K, EN>, Map<K, TO>>) this.associatedReflector;
-                this.renderer = new EntityMapUpdater<>(base.getter,
-                                                       base.setter,
-                                                       (Supplier<TO>) ReflectionUtils.supplierOf(base.secondParameter),
-                                                       this.dynamic,
-                                                       binding.getter,
-                                                       binding.setter,
-                                                       (Supplier<EN>) ReflectionUtils.supplierOf(binding.secondParameter));
+                this.updater = new EntityMapUpdater<>(base.getter,
+                                                      base.setter,
+                                                      (Supplier<TO>) ReflectionUtils.supplierOf(base.secondParameter),
+                                                      this.dynamic,
+                                                      binding.getter,
+                                                      binding.setter,
+                                                      (Supplier<EN>) ReflectionUtils.supplierOf(binding.secondParameter));
             } else {
                 //map of simple objects
                 final FieldReflector<T, S, Map<K, V>, Map<K, V>> base = (FieldReflector<T, S, Map<K, V>, Map<K, V>>) this;
                 final FieldReflector<S, T, Map<K, V>, Map<K, V>> binding = (FieldReflector<S, T, Map<K, V>, Map<K, V>>) this.associatedReflector;
-                this.renderer = new MapUpdater<>(base.getter,
-                                                 base.setter,
-                                                 this.dynamic,
-                                                 binding.getter,
-                                                 binding.setter);
+                this.updater = new MapUpdater<>(base.getter,
+                                                base.setter,
+                                                this.dynamic,
+                                                binding.getter,
+                                                binding.setter);
             }
         } else if (TransferObject.class.isAssignableFrom(this.type)) {
             final FieldReflector<T, S, TOTV, SV> base = (FieldReflector<T, S, TOTV, SV>) this;
@@ -325,13 +325,13 @@ public final class FieldReflector<T, S, TV, SV> {
             this.map = false;
             this.collection = false;
             // entity
-            this.renderer = new EntityUpdater<>(base.getter,
-                                                base.setter,
-                                                ReflectionUtils.supplierOf(base.type),
-                                                this.dynamic,
-                                                binding.getter,
-                                                binding.setter,
-                                                ReflectionUtils.supplierOf(binding.type));
+            this.updater = new EntityUpdater<>(base.getter,
+                                               base.setter,
+                                               ReflectionUtils.supplierOf(base.type),
+                                               this.dynamic,
+                                               binding.getter,
+                                               binding.setter,
+                                               ReflectionUtils.supplierOf(binding.type));
         } else {
             if (this.type.equals(this.associatedReflector.type)) {
                 final FieldReflector<S, T, TV, TV> binding = (FieldReflector<S, T, TV, TV>) this.associatedReflector;
@@ -339,13 +339,13 @@ public final class FieldReflector<T, S, TV, SV> {
                 this.value = true;
                 this.map = false;
                 this.collection = false;
-                this.renderer = new ValueUpdater<>(this.getter,
-                                                   this.setter,
-                                                   this.dynamic,
-                                                   binding.getter,
-                                                   binding.setter);
+                this.updater = new ValueUpdater<>(this.getter,
+                                                  this.setter,
+                                                  this.dynamic,
+                                                  binding.getter,
+                                                  binding.setter);
             } else {
-                //todo: improuve messages
+                //todo: improve messages
                 throw new RuntimeException(" Different type for field " + this.name);
             }
         }
@@ -362,7 +362,7 @@ public final class FieldReflector<T, S, TV, SV> {
      */
     public boolean update(final T transferObject,
                           final S entity) {
-        return this.renderer.update(transferObject, entity);
+        return this.updater.update(transferObject, entity);
     }
 
     /**
@@ -523,8 +523,8 @@ public final class FieldReflector<T, S, TV, SV> {
      *
      * @return the updater
      */
-    public Updater<T, S> getRenderer() {
-        return this.renderer;
+    public Updater<T, S> getUpdater() {
+        return this.updater;
     }
 
     /**

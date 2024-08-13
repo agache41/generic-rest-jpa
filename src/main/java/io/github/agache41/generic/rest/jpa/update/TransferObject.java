@@ -38,7 +38,10 @@ public interface TransferObject<TO extends TransferObject<TO, ENTITY>, ENTITY> {
      * @return entity
      */
     @Transient
-    ENTITY create(ENTITY entity);
+    default ENTITY create(final ENTITY entity) {
+        this.update(entity);
+        return entity;
+    }
 
 
     /**
@@ -77,9 +80,4 @@ public interface TransferObject<TO extends TransferObject<TO, ENTITY>, ENTITY> {
         return ClassReflector.ofObject(this)
                              .areEqual(this, source);
     }
-
-//    @Transient
-//    default TO clone() {
-//        return (TO) ClassReflector.clone(this);
-//    }
 }

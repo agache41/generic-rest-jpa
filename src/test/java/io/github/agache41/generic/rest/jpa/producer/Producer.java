@@ -318,12 +318,6 @@ public class Producer<T> {
             return this.produce();
         }
         T result = ClassReflector.clone(source);
-//        if (Updatable.class.isAssignableFrom(this.clazz)) {
-//            result = ClassReflector.ofClass(this.clazz)
-//                                   .newInstance();
-//            final Updatable updatableResult = (Updatable) result;
-//            updatableResult.update((Updatable) source);
-//        }
         result = this.produceUpdatableFields(result, true);
         if (this.postChange != null) {
             this.postChange.accept(result);

@@ -78,11 +78,7 @@ public class ValueUpdater<TO, ENTITY, VALUE> extends BaseUpdater<TO, ENTITY, VAL
 
 
     /**
-     * The method updates the field in entity based on the field the transfer object
-     *
-     * @param entity         the entity
-     * @param transferObject the transfer object
-     * @return true if the target changed
+     * {@inheritDoc}
      */
     @Override
     public boolean update(final TO transferObject,
@@ -106,5 +102,14 @@ public class ValueUpdater<TO, ENTITY, VALUE> extends BaseUpdater<TO, ENTITY, VAL
             return true;
         } // otherwise no update
         return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void render(final TO transferObject,
+                       final ENTITY entity) {
+        this.toSetter.accept(transferObject, this.entityGetter.apply(entity));
     }
 }

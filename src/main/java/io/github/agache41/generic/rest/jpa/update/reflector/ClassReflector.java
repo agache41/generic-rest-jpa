@@ -18,7 +18,7 @@
 package io.github.agache41.generic.rest.jpa.update.reflector;
 
 import io.github.agache41.generic.rest.jpa.exceptions.UnexpectedException;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
+import io.github.agache41.generic.rest.jpa.update.TransferObject;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 import org.jboss.logging.Logger;
@@ -243,8 +243,7 @@ public final class ClassReflector<T, S> {
      * @return the r
      */
     public static <R> R clone(final R transferObject) {
-        final Class<R> toClass = (Class<R>) transferObject.getClass();
-        final ClassReflector<R, R> classReflector = ClassReflector.ofClass(toClass);
+        final ClassReflector<R, R> classReflector = ClassReflector.ofObject(transferObject);
         final R result = classReflector.newInstance();
         classReflector.update(transferObject, result);
         return result;
@@ -324,8 +323,8 @@ public final class ClassReflector<T, S> {
             } else if (valueR == null) {
                 log.debugf("Found un-equal field %s.%s left=%s right=null", this.clazz.getSimpleName(), reflector.getName(), valueL.toString());
                 result = false;
-            } else if (Updatable.class.isAssignableFrom(valueR.getClass())) {
-                if (!((Updatable) valueL).updateEquals(valueR)) {
+            } else if (TransferObject.class.isAssignableFrom(valueR.getClass())) {
+                if (!((TransferObject<?, ?>) valueL).updateEquals(valueR)) {
                     log.debugf("Found un-equal field %s.%s left=%s right=%s", this.clazz.getSimpleName(), reflector.getName(), valueL.toString(), valueR.toString());
                     result = false;
                 }

@@ -30,7 +30,7 @@ public interface Updater<TO, ENTITY> {
      *
      * @param transferObject the transfer object
      * @param entity         the entity
-     * @return if the update introduced changes in the target
+     * @return true if the method introduced changes in the target
      */
     boolean update(TO transferObject,
                    ENTITY entity);
@@ -41,8 +41,7 @@ public interface Updater<TO, ENTITY> {
      *
      * @param transferObject the transfer object
      * @param entity         the entity
-     * @return the boolean
      */
-//    boolean render(TO transferObject,
-//                   ENTITY entity);
+    void render(TO transferObject,
+                ENTITY entity);
 }
