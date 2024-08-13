@@ -214,19 +214,19 @@ public final class ClassReflector<T, S> {
 
     /**
      * <pre>
-     * Given an object of a class, it returns the associated ClassReflector.
+     * Given an transferObject of a class, it returns the associated ClassReflector.
      * There will be just one class descriptor per class (Singleton)
      * </pre>
      *
-     * @param <R>              the type parameter
-     * @param <U>              the associated type parameter
-     * @param object           the object
-     * @param associatedObject the associated object
+     * @param <R>            the type parameter
+     * @param <U>            the associated type parameter
+     * @param transferObject the transferObject
+     * @param entity         the associated transferObject
      * @return the class reflector
      */
-    public static <R, U> ClassReflector<R, U> ofObject(final R object,
-                                                       final U associatedObject) {
-        return ofClass((Class<R>) object.getClass(), (Class<U>) associatedObject.getClass());
+    public static <R, U> ClassReflector<R, U> ofObject(final R transferObject,
+                                                       final U entity) {
+        return ofClass((Class<R>) transferObject.getClass(), (Class<U>) entity.getClass());
     }
 
 
@@ -255,19 +255,19 @@ public final class ClassReflector<T, S> {
 
     /**
      * <pre>
-     * Given a source and a destination,
+     * Given a entity and a transferObject,
      * it will update all corresponding fields annotated with the @ {@link Update} annotation.
      * </pre>
      *
-     * @param destination the destination
-     * @param source      the source
-     * @return the destination
+     * @param transferObject the transferObject
+     * @param entity         the entity
+     * @return the transferObject
      */
-    public boolean update(final T destination,
-                          final S source) {
+    public boolean update(final T transferObject,
+                          final S entity) {
         boolean updated = false;
         for (final FieldReflector reflector : this.updateReflectorsArray) {
-            updated |= reflector.update(destination, source);
+            updated |= reflector.update(transferObject, entity);
         }
         return updated;
     }

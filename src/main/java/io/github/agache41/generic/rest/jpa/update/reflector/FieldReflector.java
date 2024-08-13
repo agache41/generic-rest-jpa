@@ -353,16 +353,16 @@ public final class FieldReflector<T, S, TV, SV> {
 
     /**
      * <pre>
-     * Given the source and destination objects, does the update for the associated field.
+     * Given the entity and transferObject objects, does the update for the associated field.
      * </pre>
      *
-     * @param destination the destination
-     * @param source      the source
+     * @param transferObject the transferObject
+     * @param entity         the entity
      * @return object boolean
      */
-    public boolean update(final T destination,
-                          final S source) {
-        return this.renderer.update(destination, source);
+    public boolean update(final T transferObject,
+                          final S entity) {
+        return this.renderer.update(transferObject, entity);
     }
 
     /**

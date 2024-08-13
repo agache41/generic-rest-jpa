@@ -1240,7 +1240,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
     public ENTITY newInstance(final ENTITY source) {
         try {
             final ENTITY entity = this.noArgsConstructor.newInstance();
-            entity.update(source);
+            source.update(entity);
             return entity;
         } catch (final InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
