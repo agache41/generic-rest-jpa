@@ -18,11 +18,9 @@
 package io.github.agache41.generic.rest.jpa.update.updater;
 
 import io.github.agache41.generic.rest.jpa.update.TransferObject;
+import org.jboss.logging.Logger;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -38,6 +36,12 @@ import java.util.stream.Collectors;
  * @param <ENVALUE> the type parameter
  */
 public abstract class BaseUpdater<TO, ENTITY, TOVALUE, ENVALUE> implements Updater<TO, ENTITY> {
+
+    /**
+     * The constant log.
+     */
+    protected static final Logger log = Logger.getLogger(BaseUpdater.class);
+
     /**
      * The transfer object getter.
      */
@@ -104,9 +108,7 @@ public abstract class BaseUpdater<TO, ENTITY, TOVALUE, ENVALUE> implements Updat
 
         final Set<KEY> enKeys = enMap.keySet();
         // make a copy to not change the input
-        final Set<KEY> toKeys = toMap.keySet()
-                                     .stream()
-                                     .collect(Collectors.toCollection(LinkedHashSet::new));
+        final Set<KEY> toKeys = new LinkedHashSet<>(toMap.keySet());
         //remove all that are now longer available
         boolean updated = enKeys.retainAll(toKeys);
         //update all that remained in the intersection
@@ -135,20 +137,80 @@ public abstract class BaseUpdater<TO, ENTITY, TOVALUE, ENVALUE> implements Updat
      * Internal update method for lists.
      *
      * @param <TVALUE>           the type parameter
-     * @param <ENVALUE>          the type parameter
+     * @param <EVALUE>           the type parameter
      * @param toList             the to list
      * @param enValueConstructor the enValueConstructor
      * @return true if the target list has changes
      */
-    protected static <TVALUE extends TransferObject<TVALUE, ENVALUE>, ENVALUE> List<ENVALUE> updateList(final List<TVALUE> toList,
-                                                                                                        final Supplier<ENVALUE> enValueConstructor) {
+    protected static <TVALUE extends TransferObject<TVALUE, EVALUE>, EVALUE> List<EVALUE> updateList(final List<TVALUE> toList,
+                                                                                                     final Supplier<EVALUE> enValueConstructor) {
         return toList.stream()
-                     .map(source -> {
-                         final ENVALUE newValue = enValueConstructor.get();
-                         source.update(newValue);
-                         return newValue;
+                     .map(toValue -> {
+                         final EVALUE enValue = enValueConstructor.get();
+                         toValue.update(enValue);
+                         return enValue;
                      })
                      .collect(Collectors.toList());
     }
 
+    /**
+     * Internal render method for collections.
+     *
+     * @param <TVALUE>           the type parameter
+     * @param <EVALUE>           the type parameter
+     * @param enValueCollection  the en value collection
+     * @param toValueConstructor the to value constructor
+     * @return the collection
+     */
+    protected static <TVALUE extends TransferObject<TVALUE, EVALUE>, EVALUE> Collection<TVALUE> renderCollection(final Collection<EVALUE> enValueCollection,
+                                                                                                                 final Supplier<TVALUE> toValueConstructor) {
+        return enValueCollection.stream()
+                                .map(envalue -> toValueConstructor.get()
+                                                                  .render(envalue))
+                                .collect(Collectors.toList());
+    }
+
+    /**
+     * Warn null map.
+     *
+     * @param object the object
+     */
+    protected void warnNullMap(final Object object) {
+        BaseUpdater.log.warnf("WARNING: Found uninitialized map in class %s.", object.getClass()
+                                                                                     .getSimpleName());
+    }
+
+    /**
+     * Warn null collection.
+     *
+     * @param object the object
+     */
+    protected void warnNullCollection(final Object object) {
+        BaseUpdater.log.warnf("WARNING: Found uninitialized collection in class %s.", object.getClass()
+                                                                                            .getSimpleName());
+    }
+
+    /**
+     * Throw null map.
+     *
+     * @param object the object
+     */
+    protected void throwNullMap(final Object object) {
+        BaseUpdater.log.errorf("ERROR: Found uninitialized map in class %s.", object.getClass()
+                                                                                    .getSimpleName());
+        throw new RuntimeException("ERROR: Found uninitialized map in class %s." + object.getClass()
+                                                                                         .getSimpleName());
+    }
+
+    /**
+     * Throw null collection.
+     *
+     * @param object the object
+     */
+    protected void throwNullCollection(final Object object) {
+        BaseUpdater.log.errorf("ERROR: Found uninitialized collection in class %s.", object.getClass()
+                                                                                           .getSimpleName());
+        throw new RuntimeException("ERROR: Found uninitialized collection in class %s." + object.getClass()
+                                                                                                .getSimpleName());
+    }
 }

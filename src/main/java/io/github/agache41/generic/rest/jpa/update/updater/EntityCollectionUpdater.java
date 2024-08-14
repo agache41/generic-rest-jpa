@@ -109,11 +109,7 @@ public class EntityCollectionUpdater<TO, ENTITY, TOCOLLECTION extends Collection
     }
 
     /**
-     * The method updates the field in target based on the field the source
-     *
-     * @param transferObject the target
-     * @param entity         the source
-     * @return true if the target changed
+     * {@inheritDoc}
      */
     @Override
     public boolean update(final TO transferObject,
@@ -126,18 +122,16 @@ public class EntityCollectionUpdater<TO, ENTITY, TOCOLLECTION extends Collection
             {
                 return false;
             } else {
+                this.warnNullCollection(transferObject);
                 this.entitySetter.accept(entity, null);
-                // todo: rise warning on collection set. this can causes trouble in  Hibernate.
-                System.out.println("Warning : Setting collection to null in Class " + transferObject.getClass()
-                                                                                                    .getSimpleName());
                 return true;
             }
         }
         final ENCOLLECTION enCollection = this.entityGetter.apply(entity);
         // collection not initialized
         if (enCollection == null) {
-            throw new RuntimeException("Found not initialized (null) collection in Class " + entity.getClass()
-                                                                                                   .getSimpleName());
+            this.throwNullCollection(entity);
+            return false;
         }
         // empty
         if (toCollection.isEmpty()) {
@@ -185,6 +179,35 @@ public class EntityCollectionUpdater<TO, ENTITY, TOCOLLECTION extends Collection
             this.entitySetter.accept(entity, enCollection);
             return true;
         }
-        return updated;
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void render(final TO transferObject,
+                       final ENTITY entity) {
+        final ENCOLLECTION enCollectionValue = this.entityGetter.apply(entity);
+        // no data
+        if (enCollectionValue == null) {
+            // no data no fun
+            this.warnNullCollection(entity);
+            return;
+        }
+        // the sourceValue to be updated
+        final TOCOLLECTION toCollectionValue = this.toGetter.apply(transferObject);
+        // nulls
+        if (toCollectionValue == null) {
+            this.throwNullCollection(transferObject);
+            return;
+        }
+        if (enCollectionValue.isEmpty()) {
+            return;
+        }
+        enCollectionValue.stream()
+                         .map(envalue -> this.toValueConstructor.get()
+                                                                .render(envalue))
+                         .forEach(toCollectionValue::add);
     }
 }

@@ -98,11 +98,7 @@ public class EntityUpdater<TO, ENTITY, TOVALUE extends TransferObject<TOVALUE, E
     }
 
     /**
-     * The method updates the fields in entity based on the fields from to
-     *
-     * @param entity         the target
-     * @param transferObject the source
-     * @return true if the target changed
+     * {@inheritDoc}
      */
     @Override
     public boolean update(final TO transferObject,
@@ -150,7 +146,6 @@ public class EntityUpdater<TO, ENTITY, TOVALUE extends TransferObject<TOVALUE, E
         TOVALUE toValue = this.toGetter.apply(transferObject);
         // nulls
         if (toValue == null) {
-            //todo: maybe warning here
             toValue = this.toValueConstructor.get();
         }
         //the value renders self

@@ -93,17 +93,15 @@ public class EntityMapUpdater<TO, ENTITY, TOMAP extends Map<KEY, TOVALUE>, ENMAP
      * @param source             the source
      * @return true if the target changed
      */
-    public static <T, E, CTV extends Map<K, TV>, CEV extends Map<K, EV>, TV extends TransferObject<TV, EV>, EV, K>
-    boolean updateEntityMap(
-            final Function<T, CTV> toGetter,
-            final BiConsumer<T, CTV> toSetter,
-            final Supplier<TV> toValueConstructor,
-            final boolean dynamic,
-            final Function<E, CEV> entityGetter,
-            final BiConsumer<E, CEV> entitySetter,
-            final Supplier<EV> enValueConstructor,
-            final T target,
-            final E source) {
+    public static <T, E, CTV extends Map<K, TV>, CEV extends Map<K, EV>, TV extends TransferObject<TV, EV>, EV, K> boolean updateEntityMap(final Function<T, CTV> toGetter,
+                                                                                                                                           final BiConsumer<T, CTV> toSetter,
+                                                                                                                                           final Supplier<TV> toValueConstructor,
+                                                                                                                                           final boolean dynamic,
+                                                                                                                                           final Function<E, CEV> entityGetter,
+                                                                                                                                           final BiConsumer<E, CEV> entitySetter,
+                                                                                                                                           final Supplier<EV> enValueConstructor,
+                                                                                                                                           final T target,
+                                                                                                                                           final E source) {
         return new EntityMapUpdater<>(toGetter, toSetter, toValueConstructor, dynamic, entityGetter, entitySetter, enValueConstructor).update(target, source);
     }
 
@@ -125,10 +123,8 @@ public class EntityMapUpdater<TO, ENTITY, TOMAP extends Map<KEY, TOVALUE>, ENMAP
             {
                 return false;
             } else {
+                this.warnNullMap(transferObject);
                 this.entitySetter.accept(entity, null);
-                // todo: rise warning on map set. this can causes trouble in  Hibernate.
-                System.out.println("Warning : Setting map to null in Class " + entity.getClass()
-                                                                                     .getSimpleName());
                 return true;
             }
         }
@@ -136,8 +132,8 @@ public class EntityMapUpdater<TO, ENTITY, TOMAP extends Map<KEY, TOVALUE>, ENMAP
         final ENMAP enMap = this.entityGetter.apply(entity);
         // map not initialized
         if (enMap == null) {
-            throw new RuntimeException("Warning : Found not initialized (null) map in Class " + entity.getClass()
-                                                                                                      .getSimpleName());
+            this.throwNullMap(entity);
+            return false;
         }
 
         // empty
@@ -155,5 +151,32 @@ public class EntityMapUpdater<TO, ENTITY, TOMAP extends Map<KEY, TOVALUE>, ENMAP
             this.entitySetter.accept(entity, enMap);
         }
         return updated;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void render(final TO transferObject,
+                       final ENTITY entity) {
+        final ENMAP enMapValue = this.entityGetter.apply(entity);
+        // no data
+        if (enMapValue == null) {
+            // no data no fun
+            this.warnNullMap(entity);
+            return;
+        }
+        // the sourceValue to be updated
+        final TOMAP toMapValue = this.toGetter.apply(transferObject);
+        // nulls
+        if (toMapValue == null) {
+            this.throwNullMap(transferObject);
+            return;
+        }
+        if (enMapValue.isEmpty()) {
+            return;
+        }
+        enMapValue.forEach((key, value) -> toMapValue.put(key, this.toValueConstructor.get()
+                                                                                      .render(value)));
     }
 }

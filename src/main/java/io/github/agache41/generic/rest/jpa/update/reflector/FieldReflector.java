@@ -41,12 +41,14 @@ import static io.github.agache41.generic.rest.jpa.update.Update.defaultOrder;
 
 /**
  * <pre>
- * The type Fieldreflector.
+ * The type FieldReflector.
  * The class processes a single field and builds the necessary structure for the update pattern.
  * </pre>
  *
  * @param <T>  the type parameter
+ * @param <S>  the type parameter
  * @param <TV> the type parameter
+ * @param <SV> the type parameter
  */
 public final class FieldReflector<T, S, TV, SV> {
 
@@ -89,8 +91,9 @@ public final class FieldReflector<T, S, TV, SV> {
      * Instantiates a new Field reflector.
      * </pre>
      *
-     * @param enclosingClass the enclosing class
-     * @param field          the field
+     * @param enclosingClass  the enclosing class
+     * @param associatedClass the associated class
+     * @param field           the field
      */
     public FieldReflector(final Class<T> enclosingClass,
                           final Class<S> associatedClass,
@@ -175,8 +178,9 @@ public final class FieldReflector<T, S, TV, SV> {
      * Instantiates a new Field reflector.
      * </pre>
      *
-     * @param enclosingClass the enclosing class
-     * @param method         the method
+     * @param enclosingClass  the enclosing class
+     * @param associatedClass the associated class
+     * @param method          the method
      */
     public FieldReflector(final Class<T> enclosingClass,
                           final Class<S> associatedClass,

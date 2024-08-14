@@ -40,13 +40,11 @@ public class CollectionUpdater<TO, ENTITY, VALUE> extends ValueUpdater<TO, ENTIT
      * @param entityGetter the source toGetter
      * @param entitySetter the entity setter
      */
-    public CollectionUpdater(
-            final Function<TO, Collection<VALUE>> toGetter,
-            final BiConsumer<TO, Collection<VALUE>> toSetter,
-            final boolean dynamic,
-            final Function<ENTITY, Collection<VALUE>> entityGetter,
-            final BiConsumer<ENTITY, Collection<VALUE>> entitySetter
-    ) {
+    public CollectionUpdater(final Function<TO, Collection<VALUE>> toGetter,
+                             final BiConsumer<TO, Collection<VALUE>> toSetter,
+                             final boolean dynamic,
+                             final Function<ENTITY, Collection<VALUE>> entityGetter,
+                             final BiConsumer<ENTITY, Collection<VALUE>> entitySetter) {
         super(toGetter, toSetter, dynamic, entityGetter, entitySetter);
     }
 
@@ -66,23 +64,18 @@ public class CollectionUpdater<TO, ENTITY, VALUE> extends ValueUpdater<TO, ENTIT
      * @param source       the source
      * @return true if the target changed
      */
-    public static <T, S, V> boolean updateCollection(
-            final Function<T, Collection<V>> toGetter,
-            final BiConsumer<T, Collection<V>> toSetter,
-            final boolean dynamic,
-            final Function<S, Collection<V>> entityGetter,
-            final BiConsumer<S, Collection<V>> entitySetter,
-            final T target,
-            final S source) {
+    public static <T, S, V> boolean updateCollection(final Function<T, Collection<V>> toGetter,
+                                                     final BiConsumer<T, Collection<V>> toSetter,
+                                                     final boolean dynamic,
+                                                     final Function<S, Collection<V>> entityGetter,
+                                                     final BiConsumer<S, Collection<V>> entitySetter,
+                                                     final T target,
+                                                     final S source) {
         return new CollectionUpdater<>(toGetter, toSetter, dynamic, entityGetter, entitySetter).update(target, source);
     }
 
     /**
-     * The method updates the field in target based on the field the source
-     *
-     * @param transferObject the target
-     * @param entity         the source
-     * @return true if the target changed
+     * {@inheritDoc}
      */
     @Override
     public boolean update(final TO transferObject,
@@ -95,6 +88,7 @@ public class CollectionUpdater<TO, ENTITY, VALUE> extends ValueUpdater<TO, ENTIT
             {
                 return false;
             } else {
+                this.warnNullCollection(transferObject);
                 this.entitySetter.accept(entity, null);
                 return true;
             }
@@ -102,6 +96,7 @@ public class CollectionUpdater<TO, ENTITY, VALUE> extends ValueUpdater<TO, ENTIT
         final Collection<VALUE> enValue = this.entityGetter.apply(entity);
         // collection not initialized
         if (enValue == null) {
+            this.warnNullCollection(entity);
             this.entitySetter.accept(entity, toValue);
             return true;
         }
@@ -122,5 +117,32 @@ public class CollectionUpdater<TO, ENTITY, VALUE> extends ValueUpdater<TO, ENTIT
         // re-set it
         this.entitySetter.accept(entity, enValue);
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void render(final TO transferObject,
+                       final ENTITY entity) {
+        final Collection<VALUE> enValue = this.entityGetter.apply(entity);
+        // no data
+        if (enValue == null) {
+            // no data no fun
+            this.warnNullCollection(entity);
+            return;
+        }
+        // the sourceValue to be updated
+        final Collection<VALUE> toValue = this.toGetter.apply(transferObject);
+        // nulls
+        if (toValue == null) {
+            this.warnNullCollection(transferObject);
+            this.toSetter.accept(transferObject, enValue);
+            return;
+        }
+        if (enValue.isEmpty()) {
+            return;
+        }
+        toValue.addAll(enValue);
     }
 }

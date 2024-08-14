@@ -17,12 +17,12 @@
 
 package io.github.agache41.generic.rest.jpa.update.updater;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * The updater for map with simple value types (String, Integer).
@@ -81,12 +81,9 @@ public class MapUpdater<TO, ENTITY, VALUE, KEY> extends ValueUpdater<TO, ENTITY,
         return new MapUpdater<>(toGetter, toSetter, dynamic, enGetter, enSetter).update(target, source);
     }
 
+
     /**
-     * The method updates the field in target based on the field the source
-     *
-     * @param entity         the target
-     * @param transferObject the source
-     * @return true if the target changed
+     * {@inheritDoc}
      */
     @Override
     public boolean update(final TO transferObject,
@@ -98,6 +95,7 @@ public class MapUpdater<TO, ENTITY, VALUE, KEY> extends ValueUpdater<TO, ENTITY,
             if (this.dynamic || this.entityGetter.apply(entity) == null) {
                 return false;
             } else {
+                this.warnNullMap(transferObject);
                 this.entitySetter.accept(entity, null);
                 return true;
             }
@@ -105,6 +103,7 @@ public class MapUpdater<TO, ENTITY, VALUE, KEY> extends ValueUpdater<TO, ENTITY,
         final Map<KEY, VALUE> enMap = this.entityGetter.apply(entity);
         // map not initialized
         if (enMap == null) {
+            this.warnNullMap(entity);
             this.entitySetter.accept(entity, toMap);
             return true;
         }
@@ -119,9 +118,7 @@ public class MapUpdater<TO, ENTITY, VALUE, KEY> extends ValueUpdater<TO, ENTITY,
         // map work
         final Set<KEY> enKeys = enMap.keySet();
         // make a copy to not change the input
-        final Set<KEY> toKeys = toMap.keySet()
-                                     .stream()
-                                     .collect(Collectors.toSet());
+        final Set<KEY> toKeys = new HashSet<>(toMap.keySet());
         //remove all that are now longer available
         boolean updated = enKeys.retainAll(toKeys);
         //update all that remained in the intersection
@@ -134,8 +131,7 @@ public class MapUpdater<TO, ENTITY, VALUE, KEY> extends ValueUpdater<TO, ENTITY,
         toKeys.removeAll(enKeys);
         //insert all new (that remained)
         if (!toKeys.isEmpty()) {
-            toKeys.stream()
-                  .forEach(key -> enMap.put(key, toMap.get(key)));
+            toKeys.forEach(key -> enMap.put(key, toMap.get(key)));
             updated = true;
         }
         //set it again
@@ -143,5 +139,32 @@ public class MapUpdater<TO, ENTITY, VALUE, KEY> extends ValueUpdater<TO, ENTITY,
             this.entitySetter.accept(entity, enMap);
         }
         return updated;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void render(final TO transferObject,
+                       final ENTITY entity) {
+        final Map<KEY, VALUE> enValue = this.entityGetter.apply(entity);
+        // no data
+        if (enValue == null) {
+            // no data no fun
+            this.warnNullMap(entity);
+            return;
+        }
+        // the sourceValue to be updated
+        final Map<KEY, VALUE> toValue = this.toGetter.apply(transferObject);
+        // nulls
+        if (toValue == null) {
+            this.warnNullMap(transferObject);
+            this.toSetter.accept(transferObject, enValue);
+            return;
+        }
+        if (enValue.isEmpty()) {
+            return;
+        }
+        toValue.putAll(enValue);
     }
 }
