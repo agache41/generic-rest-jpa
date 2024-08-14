@@ -369,6 +369,11 @@ public final class FieldReflector<T, S, TV, SV> {
         return this.updater.update(transferObject, entity);
     }
 
+    public void render(final T transferObject,
+                       final S entity) {
+        this.updater.render(transferObject, entity);
+    }
+
     /**
      * <pre>
      * Object Getter.
@@ -778,6 +783,7 @@ public final class FieldReflector<T, S, TV, SV> {
         }
         return result;
     }
+
 
     private interface UpdatablePrimaryKey<T extends Updatable<T>, PK> extends Updatable<T>, PrimaryKey<PK> {
     }

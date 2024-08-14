@@ -292,6 +292,15 @@ public final class ClassReflector<T, S> {
         return updated;
     }
 
+    public T render(final T transferObject,
+                    final S entity) {
+        final boolean updated = false;
+        for (final FieldReflector reflector : this.updateReflectorsArray) {
+            reflector.render(transferObject, entity);
+        }
+        return transferObject;
+    }
+
     /**
      * Tells if the two objects are equal from the Update perspective.
      *
@@ -522,4 +531,6 @@ public final class ClassReflector<T, S> {
     public String toString() {
         return this.description;
     }
+
+
 }

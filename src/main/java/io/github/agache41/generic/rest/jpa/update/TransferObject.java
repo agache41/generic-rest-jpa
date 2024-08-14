@@ -67,7 +67,11 @@ public interface TransferObject<TO extends TransferObject<TO, ENTITY>, ENTITY> {
      * @return to
      */
     @Transient
-    TO render(ENTITY entity);
+    default TO render(final ENTITY entity) {
+        ClassReflector.ofObject(this, entity)
+                      .render(this, entity);
+        return (TO) this;
+    }
 
     /**
      * Tells if the two objects are equal from the Update perspective.
