@@ -276,7 +276,7 @@ public final class ClassReflector<T, S> {
     /**
      * <pre>
      * Given a entity and a transferObject,
-     * it will update all corresponding fields annotated with the @ {@link Update} annotation.
+     * it will update all corresponding fields in the entity based on the fields annotated with the @ {@link Update} annotation in the transfer object.
      * </pre>
      *
      * @param transferObject the transferObject
@@ -292,6 +292,16 @@ public final class ClassReflector<T, S> {
         return updated;
     }
 
+    /**
+     * <pre>
+     * Given a entity and a transferObject,
+     * it will update all corresponding fields in the transfer object annotated with the @ {@link Update} annotation based on the corresponding fields in the entity.
+     * </pre>
+     *
+     * @param transferObject the transferObject
+     * @param entity         the entity
+     * @return the transferObject
+     */
     public T render(final T transferObject,
                     final S entity) {
         final boolean updated = false;
