@@ -32,6 +32,7 @@ public class SubModellBFks implements PrimaryKey<Long>, SelfTransferObject<SubMo
 
     private static final long serialVersionUID = 4145235006835414021L;
     @Id
+    @Update
     @EqualsAndHashCode.Exclude
     @SequenceGenerator(name = "idSubModellFks", sequenceName = "sequenceidSubModellFks")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idSubModellFks")

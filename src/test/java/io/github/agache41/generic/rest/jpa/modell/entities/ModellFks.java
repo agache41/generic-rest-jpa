@@ -41,7 +41,6 @@ public class ModellFks implements PrimaryKey<Long>, SelfTransferObject<ModellFks
     @EqualsAndHashCode.Exclude
     @SequenceGenerator(name = "idModellFks", sequenceName = "sequenceidModellFks")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idModellFks")
-    @Update.excluded
     @Column(name = "id", updatable = false, insertable = false)
     private Long id;
 

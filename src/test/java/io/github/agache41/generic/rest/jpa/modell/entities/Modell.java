@@ -46,7 +46,7 @@ public class Modell extends BaseEntity implements PrimaryKey<Long>, SelfTransfer
     @EqualsAndHashCode.Exclude
     @SequenceGenerator(name = "idSequence", sequenceName = "idSequence")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idSequence")
-    @Update.excluded
+    //@Update.excluded
     @Column(name = "id", updatable = false, insertable = false)
     private Long id;
 

@@ -26,6 +26,7 @@ import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.*;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -44,6 +45,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
     protected static final Logger LOG = Logger.getLogger(AbstractResourceServiceBaseImplTest.class);
     protected final Class<T> clazz;
     protected final List<T> insertData;
+    protected final List<T> insertedData;
     protected final List<T> updateData;
     protected final ClassReflector<T, T> classReflector;
 
@@ -73,6 +75,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
         this.client = client;
         assertEquals(insertData.size(), updateData.size(), " Please use two data lists of equal size!");
         this.insertData = insertData;
+        this.insertedData = new LinkedList<>();
         this.updateData = updateData;
         this.classReflector = ClassReflector.ofClass(clazz);
         this.producer = producer;
@@ -129,7 +132,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertNotNull(id, "Post response must have a not null id.");
             //req.setId(id);
             assertEquals(req, res, "Post response body ist not equal to the post request body.");
-            this.insertData.set(index, res);
+            //this.insertData.set(index, res);
+            this.insertedData.add(res);
             final T upd = this.updateData.get(index);
             assertNotNull(upd);
             upd.setId(id);
@@ -138,7 +142,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
 
 
     public void testGet() {
-        for (final T req : this.insertData) {
+        for (final T req : this.insertedData) {
 
             //given
             assertNotNull(req, "Provided object instance must not be null. Please check insertData.");
@@ -158,7 +162,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
 
 
     public void testPostById() {
-        for (final T req : this.insertData) {
+        for (final T req : this.insertedData) {
 
             //given
             assertNotNull(req, "Provided object instance must not be null. Please check insertData.");
@@ -183,16 +187,16 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
 
         //then
         assertNotNull(res, "Get response must be not null.");
-        assertEquals(this.insertData.size(), res.size(), " Get all returned a different number of results");
-        assertThat(this.insertData).hasSameElementsAs(res);
+        assertEquals(this.insertedData.size(), res.size(), " Get all returned a different number of results");
+        assertThat(this.insertedData).hasSameElementsAs(res);
     }
 
 
     public void testGetByIdsAsList() {
         //given
-        final List<K> ids = this.insertData.stream()
-                                           .map(PrimaryKey::getId)
-                                           .collect(Collectors.toList());
+        final List<K> ids = this.insertedData.stream()
+                                             .map(PrimaryKey::getId)
+                                             .collect(Collectors.toList());
 
         //when
         final List<T> res = this.getClient()
@@ -201,16 +205,16 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
 
         //then
         assertNotNull(res, "Get response must be not null.");
-        assertEquals(this.insertData.size(), res.size(), " GetByIdsAsList returned a different number of results");
-        assertThat(this.insertData).hasSameElementsAs(res);
+        assertEquals(this.insertedData.size(), res.size(), " GetByIdsAsList returned a different number of results");
+        assertThat(this.insertedData).hasSameElementsAs(res);
     }
 
 
     public void testPostByIdsAsList() {
         //given
-        final List<K> ids = this.insertData.stream()
-                                           .map(PrimaryKey::getId)
-                                           .collect(Collectors.toList());
+        final List<K> ids = this.insertedData.stream()
+                                             .map(PrimaryKey::getId)
+                                             .collect(Collectors.toList());
 
         //when
         final List<T> res = this.getClient()
@@ -218,8 +222,8 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
 
         //then
         assertNotNull(res, "PostByIds response must be not null.");
-        assertEquals(this.insertData.size(), res.size(), "PostByIdsAsList returned a different number of results");
-        assertThat(this.insertData).hasSameElementsAs(res);
+        assertEquals(this.insertedData.size(), res.size(), "PostByIdsAsList returned a different number of results");
+        assertThat(this.insertedData).hasSameElementsAs(res);
     }
 
 
@@ -461,15 +465,14 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
         //then
         assertNotNull(res);
         assertEquals(this.insertData.size(), res.size());
+        this.insertedData.clear();
         for (int index = 0; index < this.updateData.size(); index++) {
-            this.insertData.get(index)
-                           .setId(res.get(index)
-                                     .getId());
+            this.insertedData.add(res.get(index));
             this.updateData.get(index)
                            .setId(res.get(index)
                                      .getId());
         }
-        assertThat(this.insertData).hasSameElementsAs(res);
+        assertThat(this.insertedData).hasSameElementsAs(res);
         assertThat(this.insertData).hasSameElementsAs(this.getAll());
     }
 
