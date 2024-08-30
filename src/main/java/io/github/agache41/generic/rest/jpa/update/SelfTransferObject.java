@@ -17,6 +17,8 @@
 
 package io.github.agache41.generic.rest.jpa.update;
 
+import jakarta.persistence.Transient;
+
 /**
  * The interface Self transfer object.
  *
@@ -30,9 +32,9 @@ public interface SelfTransferObject<ENTITY extends TransferObject<ENTITY, ENTITY
 //        return (ENTITY) this;
 //    }
 
-//    @Override
-//    @Transient
-//    default ENTITY render(final ENTITY entity) {
-//        return entity;
-//    }
+    @Override
+    @Transient
+    default ENTITY render(final ENTITY entity) {
+        return entity;
+    }
 }
