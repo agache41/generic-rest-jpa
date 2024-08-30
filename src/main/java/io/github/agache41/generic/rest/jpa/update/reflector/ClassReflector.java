@@ -318,6 +318,7 @@ public final class ClassReflector<T, S> {
      * @param source      the source
      * @return the boolean
      */
+    @Deprecated
     public boolean areEqual(final T destination,
                             final Object source) {
         if (destination == null) {

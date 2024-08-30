@@ -18,7 +18,7 @@
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
+import io.github.agache41.generic.rest.jpa.update.SelfTransferObject;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,7 +28,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class SubModellBFks implements PrimaryKey<Long>, Updatable<SubModellBFks> {
+public class SubModellBFks implements PrimaryKey<Long>, SelfTransferObject<SubModellBFks> {
 
     private static final long serialVersionUID = 4145235006835414021L;
     @Id

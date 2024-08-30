@@ -18,8 +18,8 @@
 package io.github.agache41.generic.rest.jpa.update.reflector;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
+import io.github.agache41.generic.rest.jpa.update.SelfTransferObject;
 import io.github.agache41.generic.rest.jpa.update.TransferObject;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import io.github.agache41.generic.rest.jpa.update.updater.*;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
@@ -287,7 +287,7 @@ public final class FieldReflector<T, S, TV, SV> {
             this.value = false;
             this.map = true;
             this.collection = false;
-            if (Updatable.class.isAssignableFrom(this.secondParameter)) {
+            if (SelfTransferObject.class.isAssignableFrom(this.secondParameter)) {
                 //map of entities
                 final FieldReflector<T, S, Map<K, TO>, Map<K, EN>> base = (FieldReflector<T, S, Map<K, TO>, Map<K, EN>>) this;
                 final FieldReflector<S, T, Map<K, EN>, Map<K, TO>> binding = (FieldReflector<S, T, Map<K, EN>, Map<K, TO>>) this.associatedReflector;
@@ -760,9 +760,5 @@ public final class FieldReflector<T, S, TV, SV> {
         }
         return result;
     }
-
-
-    private interface UpdatablePrimaryKey<T extends Updatable<T>, PK> extends Updatable<T>, PrimaryKey<PK> {
-    }
-
+    
 }

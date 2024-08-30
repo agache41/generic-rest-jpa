@@ -18,7 +18,7 @@
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
+import io.github.agache41.generic.rest.jpa.update.SelfTransferObject;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,7 +38,7 @@ import java.util.*;
 @NamedQuery(name = "Modell.findById", query = "SELECT modell from Modell modell where modell.id = :id")
 @NamedQuery(name = "Modell.deleteById", query = "DELETE from Modell modell where modell.id = :id")
 @NamedQuery(name = "Modell.listAll", query = "SELECT modell from Modell modell")
-public class Modell extends BaseEntity implements PrimaryKey<Long>, Updatable<Modell> {
+public class Modell extends BaseEntity implements PrimaryKey<Long>, SelfTransferObject<Modell> {
 
     private static final long serialVersionUID = 4981653210124872352L;
 

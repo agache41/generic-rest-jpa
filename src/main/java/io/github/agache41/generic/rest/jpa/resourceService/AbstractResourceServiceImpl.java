@@ -33,6 +33,7 @@ import jakarta.ws.rs.core.UriInfo;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -270,9 +271,9 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public TO post(final TO to) {
-        return this.getDataBinder()
-                   .persist(to);
-        //return this.doVerify(inserted);
+        final TO persisted = this.getDataBinder()
+                                 .persist(to);
+        return this.doVerify(persisted);
     }
 
     /**
@@ -284,8 +285,9 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list/asList")
     public List<TO> postListAsList(final List<TO> toList) {
-        return this.getDataBinder()
-                   .persist(toList);
+        final List<TO> persisted = this.getDataBinder()
+                                       .persist(toList);
+        return this.doVerify(persisted);
     }
 
     /**
@@ -296,45 +298,44 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public TO put(final TO to) {
-        return this.getDataBinder()
-                   .updateById(to);
-        //return this.doVerify(updated);
+        final TO updated = this.getDataBinder()
+                               .updateById(to);
+        return this.doVerify(updated);
     }
 
-//    /**
-//     * Verifies that the updated Entity has the same content in the database.
-//     *
-//     * @param updated the updated
-//     * @return the t
-//     */
-//    protected TO doVerify(final TO updated) {
-//        if (!this.getConfig()
-//                 .getVerify()) {
-//            return updated;
-//        }
-//        final PK id = updated.getId();
-//        if (id == null) {
-//            throw new RuntimeException(" Verify fail " + updated + " has null id! ");
-//        }
-//        final TO actual = this.getDataAccess()
-//                              .findById(id);
-//        if (!updated.equals(actual)) {
-//            throw new RuntimeException(" Verify fail " + updated + " <> " + actual);
-//        }
-//        return actual;
-//    }
-//
-//    /**
-//     * Does verify methode on a list.
-//     *
-//     * @param updated the updated
-//     * @return the list
-//     */
-//    protected List<TO> doVerify(final List<TO> updated) {
-//        return updated.stream()
-//                      .map(this::doVerify)
-//                      .collect(Collectors.toList());
-//    }
+    /**
+     * Verifies that the updated Entity has the same content in the database.
+     *
+     * @param updated the updated
+     * @return the t
+     */
+    protected TO doVerify(final TO updated) {
+        if (!this.getConfig()
+                 .getVerify()) {
+            return updated;
+        }
+        final PK id = updated.getId();
+        if (id == null) {
+            throw new RuntimeException(" Verify fail " + updated + " has null id! ");
+        }
+        final TO actual = this.get(id);
+        if (!updated.equals(actual)) {
+            throw new RuntimeException(" Verify fail " + updated + " <> " + actual);
+        }
+        return actual;
+    }
+
+    /**
+     * Does verify methode on a list.
+     *
+     * @param updated the updated
+     * @return the list
+     */
+    protected List<TO> doVerify(final List<TO> updated) {
+        return updated.stream()
+                      .map(this::doVerify)
+                      .collect(Collectors.toList());
+    }
 
     /**
      * {@inheritDoc}

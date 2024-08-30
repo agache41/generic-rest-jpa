@@ -18,7 +18,7 @@
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
 
-import io.github.agache41.generic.rest.jpa.update.Updatable;
+import io.github.agache41.generic.rest.jpa.update.SelfTransferObject;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -33,7 +33,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Update
 @Embeddable
-public class EmbeddedKeys implements Updatable<EmbeddedKeys> {
+public class EmbeddedKeys implements SelfTransferObject<EmbeddedKeys> {
 
     @Column(name = "key1")
     private String key1;

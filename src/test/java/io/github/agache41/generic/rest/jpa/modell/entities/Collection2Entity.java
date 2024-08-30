@@ -18,7 +18,7 @@
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
+import io.github.agache41.generic.rest.jpa.update.SelfTransferObject;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -33,7 +33,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Collection2Entity implements PrimaryKey<Long>, Updatable<Collection2Entity>/*, Comparable<CollectionEntity>*/ {
+public class Collection2Entity implements PrimaryKey<Long>, SelfTransferObject<Collection2Entity>/*, Comparable<CollectionEntity>*/ {
     private static final long serialVersionUID = 8745762771533098273L;
     @Id
     @EqualsAndHashCode.Exclude

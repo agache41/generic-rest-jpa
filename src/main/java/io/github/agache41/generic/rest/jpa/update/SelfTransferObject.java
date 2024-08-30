@@ -24,8 +24,8 @@ import jakarta.persistence.Transient;
  *
  * @param <ENTITY> the type parameter
  */
-public interface Updatable<ENTITY extends TransferObject<ENTITY, ENTITY>> extends TransferObject<ENTITY, ENTITY> {
-
+public interface SelfTransferObject<ENTITY extends TransferObject<ENTITY, ENTITY>> extends TransferObject<ENTITY, ENTITY> {
+// todo: clarify why it fails
 //    @Override
 //    @Transient
 //    default ENTITY create(final ENTITY entity) {

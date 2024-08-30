@@ -17,10 +17,10 @@
 
 package io.github.agache41.generic.rest.jpa.dataAccess;
 
-import io.github.agache41.generic.rest.jpa.update.Updatable;
+import io.github.agache41.generic.rest.jpa.update.SelfTransferObject;
 
 
-public class AbstractLocalH2DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> extends DataAccess<ENTITY, PK> {
+public class AbstractLocalH2DataAccess<ENTITY extends PrimaryKey<PK> & SelfTransferObject<ENTITY>, PK> extends DataAccess<ENTITY, PK> {
 
     public AbstractLocalH2DataAccess(final Class<ENTITY> type,
                                      final Class<PK> keyType) {

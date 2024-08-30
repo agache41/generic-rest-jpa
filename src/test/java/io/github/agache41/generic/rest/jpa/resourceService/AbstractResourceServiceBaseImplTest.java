@@ -53,7 +53,6 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
     protected final ResourceService<T, K> client;
     protected final ResourceServiceConfig config = new ResourceServiceConfig() {
     };
-    protected boolean useUpdateEquals = false;
 
     public AbstractResourceServiceBaseImplTest(final Class<T> clazz,
                                                final String path,
@@ -99,17 +98,6 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
         return this.producer;
     }
 
-    protected void assertUpdateEquals(final T left,
-                                      final T right,
-                                      final String message) {
-        assertEquals(left, right, message);
-//        if (!this.useUpdateEquals) {
-//            assertEquals(left, right, message);
-//        } else {
-//            assertTrue(left.updateEquals(right), message);
-//        }
-    }
-
     @BeforeEach
     public void beforeEach(final TestInfo testInfo) {
         final String testName = testInfo.getDisplayName();
@@ -140,7 +128,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             final K id = res.getId();
             assertNotNull(id, "Post response must have a not null id.");
             //req.setId(id);
-            this.assertUpdateEquals(req, res, "Post response body ist not equal to the post request body.");
+            assertEquals(req, res, "Post response body ist not equal to the post request body.");
             this.insertData.set(index, res);
             final T upd = this.updateData.get(index);
             assertNotNull(upd);
@@ -164,7 +152,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertNotNull(res, "Get response must be not null.");
             assertNotNull(res.getId(), "Get response id must be not null.");
             assertEquals(req.getId(), res.getId(), "Get response id must be equal to response id.\"");
-            this.assertUpdateEquals(req, res, "Get result is different than request!");
+            assertEquals(req, res, "Get result is different than request!");
         }
     }
 
@@ -184,7 +172,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertNotNull(res, "PostById response must be not null.");
             assertNotNull(res.getId(), "PostById response id must be not null.");
             assertEquals(req.getId(), res.getId(), "PostById response id must be equal to response id.\"");
-            this.assertUpdateEquals(req, res, "PostById (get) result is different than expected!");
+            assertEquals(req, res, "PostById (get) result is different than expected!");
         }
     }
 
@@ -250,7 +238,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertNotNull(res);
             assertNotNull(res.getId());
             assertEquals(id, res.getId());
-            this.assertUpdateEquals(req, res, "Put returned a different response then request.");
+            assertEquals(req, res, "Put returned a different response then request.");
 
             final T getres = this.getClient()
                                  .get(id);
@@ -258,7 +246,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
             assertNotNull(getres);
             assertNotNull(getres.getId());
             assertEquals(id, getres.getId());
-            this.assertUpdateEquals(req, getres, "Get after Put returned a different response then request.");
+            assertEquals(req, getres, "Get after Put returned a different response then request.");
         }
     }
 
