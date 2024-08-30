@@ -15,16 +15,24 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.modell.resources;
+package io.github.agache41.generic.rest.jpa.modell.dataBinder;
 
-
-import io.github.agache41.generic.rest.jpa.modell.dataBinder.EmbeddedIdModellDataBinder;
+import io.github.agache41.generic.rest.jpa.dataAccess.DataBinder;
+import io.github.agache41.generic.rest.jpa.modell.dataaccess.EmbeddedIdModellDataAccess;
 import io.github.agache41.generic.rest.jpa.modell.entities.EmbeddedIdModell;
 import io.github.agache41.generic.rest.jpa.modell.entities.EmbeddedKeys;
-import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImpl;
-import lombok.Getter;
 
-@Getter
-public class EmbeddedIdModellResourceService extends AbstractResourceServiceImpl<EmbeddedIdModell, EmbeddedIdModell, EmbeddedKeys> {
-    protected EmbeddedIdModellDataBinder dataBinder = new EmbeddedIdModellDataBinder();
+
+public class EmbeddedIdModellDataBinder extends DataBinder<EmbeddedIdModell, EmbeddedIdModell, EmbeddedKeys> {
+
+    protected EmbeddedIdModellDataAccess dataAccess = new EmbeddedIdModellDataAccess();
+
+    public EmbeddedIdModellDataBinder() {
+        super(EmbeddedIdModell.class, EmbeddedIdModell.class, EmbeddedKeys.class);
+    }
+
+    @Override
+    public EmbeddedIdModellDataAccess getDataAccess() {
+        return this.dataAccess;
+    }
 }

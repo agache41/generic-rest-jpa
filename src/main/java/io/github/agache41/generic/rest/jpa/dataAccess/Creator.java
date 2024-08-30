@@ -25,10 +25,15 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 
+/**
+ * The Creator class is used to create instances of a class. It is meant to be injected in template classes, providing access to the underlining type.
+ *
+ * @param <T> the type parameter
+ */
 public class Creator<T> {
     /**
      * <pre>
-     * The type of the TO Object
+     * The type of the Object
      * </pre>
      */
     protected final Class<T> type;
@@ -39,16 +44,31 @@ public class Creator<T> {
      */
     protected final Constructor<T> noArgsConstructor;
 
+    /**
+     * Instantiates a new Creator.
+     *
+     * @param ip the ip
+     */
     @Inject
     public Creator(final InjectionPoint ip) {
         this(((Class<T>) (((ParameterizedType) ip.getType()).getActualTypeArguments()[0])));//
     }
 
+    /**
+     * Instantiates a new Creator.
+     *
+     * @param type the type
+     */
     public Creator(final Class<T> type) {
         this.type = type;
         this.noArgsConstructor = ReflectionUtils.getNoArgsConstructor(type);
     }
 
+    /**
+     * Create t.
+     *
+     * @return the t
+     */
     public T create() {
         try {
             return this.noArgsConstructor.newInstance();

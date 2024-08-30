@@ -20,7 +20,6 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.producer.Producer;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
 import org.junit.jupiter.api.*;
 
 import java.util.List;
@@ -30,14 +29,14 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 @TestInstance(PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & Updatable<T>, K> extends AbstractResourceServiceBaseImplTest<T, K, T> {
+public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K> extends AbstractResourceServiceBaseImplTest<T, K> {
     public AbstractResourceServiceImplTest(final Class<T> clazz,
                                            final String path,
                                            final List<T> insertData,
                                            final List<T> updateData,
                                            final String stringField,
                                            final Producer<T> producer) {
-        super(clazz, clazz, path, insertData, updateData, stringField, producer);
+        super(clazz, path, insertData, updateData, stringField, producer);
     }
 
     public AbstractResourceServiceImplTest(final ResourceService<T, K> client,
@@ -46,7 +45,7 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
                                            final List<T> updateData,
                                            final String stringField,
                                            final Producer<T> producer) {
-        super(client, clazz, clazz, insertData, updateData, stringField, producer);
+        super(client, clazz, insertData, updateData, stringField, producer);
     }
 
 

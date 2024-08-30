@@ -17,13 +17,12 @@
 
 package io.github.agache41.generic.rest.jpa.resourceService;
 
-import io.github.agache41.generic.rest.jpa.dataAccess.Creator;
 import io.github.agache41.generic.rest.jpa.dataAccess.DataAccess;
+import io.github.agache41.generic.rest.jpa.dataAccess.DataBinder;
 import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.TransferObject;
 import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -32,7 +31,6 @@ import jakarta.ws.rs.core.UriInfo;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
 /**
@@ -41,26 +39,19 @@ import java.util.stream.Collectors;
  * The class implements methods for basic REST operations on the underlying Class
  * </pre>
  *
- * @param <TO> the type parameter
- * @param <PK> the type parameter
+ * @param <TO>     the type parameter
+ * @param <ENTITY> the type parameter
+ * @param <PK>     the type parameter
  */
 public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, ENTITY extends PrimaryKey<PK>, PK> implements ResourceService<TO, PK> {
 
 
     /**
-     * <pre>
-     * Default data access layer , used for communicating with the database.
-     * </pre>
+     * The data binder handling the binding between TO and ENTITY
      */
     @Inject
-    @Named("base")
-    protected DataAccess<ENTITY, PK> dataAccess;
+    protected DataBinder<TO, ENTITY, PK> dataBinder;
 
-    @Inject
-    protected Creator<TO> toCreator;
-
-    @Inject
-    protected Creator<ENTITY> entityCreator;
 
     /**
      * {@inheritDoc}
@@ -70,9 +61,8 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
     public TO get(@PathParam("id") final PK id) {
-        final ENTITY entity = this.getDataAccess()
-                                  .findById(id);
-        return this.render(entity);
+        return this.getDataBinder()
+                   .findById(id);
     }
 
 
@@ -98,10 +88,10 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     public List<TO> getAllAsList(@QueryParam("firstResult") final Integer firstResult,
                                  @QueryParam("maxResults") final Integer maxResults,
                                  @Context final UriInfo uriInfo) {
-        return this.render(this.getDataAccess()
-                               .listAll(this.getConfig()
-                                            .getFirstResult(firstResult), this.getConfig()
-                                                                              .getMaxResults(maxResults), uriInfo));
+        return this.getDataBinder()
+                   .listAll(this.getConfig()
+                                .getFirstResult(firstResult), this.getConfig()
+                                                                  .getMaxResults(maxResults), uriInfo);
     }
 
 
@@ -113,8 +103,8 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/byIds/{ids}/asList")
     public List<TO> getByIdsAsList(@PathParam("ids") final List<PK> ids) {
-        return this.render(this.getDataAccess()
-                               .listByIds(ids));
+        return this.getDataBinder()
+                   .listByIds(ids);
     }
 
     /**
@@ -140,10 +130,10 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
                                                           @PathParam("value") final String value,
                                                           @QueryParam("firstResult") final Integer firstResult,
                                                           @QueryParam("maxResults") final Integer maxResults) {
-        return this.render(this.getDataAccess()
-                               .listByColumnEqualsValue(stringField, value, this.getConfig()
-                                                                                .getFirstResult(firstResult), this.getConfig()
-                                                                                                                  .getMaxResults(maxResults)));
+        return this.getDataBinder()
+                   .listByColumnEqualsValue(stringField, value, this.getConfig()
+                                                                    .getFirstResult(firstResult), this.getConfig()
+                                                                                                      .getMaxResults(maxResults));
     }
 
     /**
@@ -157,10 +147,10 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
                                                         @PathParam("value") final String value,
                                                         @QueryParam("firstResult") final Integer firstResult,
                                                         @QueryParam("maxResults") final Integer maxResults) {
-        return this.render(this.getDataAccess()
-                               .listByColumnLikeValue(stringField, value, this.getConfig()
-                                                                              .getFirstResult(firstResult), this.getConfig()
-                                                                                                                .getMaxResults(maxResults)));
+        return this.getDataBinder()
+                   .listByColumnLikeValue(stringField, value, this.getConfig()
+                                                                  .getFirstResult(firstResult), this.getConfig()
+                                                                                                    .getMaxResults(maxResults));
     }
 
     /**
@@ -174,10 +164,10 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
                                                        @PathParam("values") final List<String> values,
                                                        @QueryParam("firstResult") final Integer firstResult,
                                                        @QueryParam("maxResults") final Integer maxResults) {
-        return this.render(this.getDataAccess()
-                               .listByColumnInValues(stringField, values, this.getConfig()
-                                                                              .getFirstResult(firstResult), this.getConfig()
-                                                                                                                .getMaxResults(maxResults)));
+        return this.getDataBinder()
+                   .listByColumnInValues(stringField, values, this.getConfig()
+                                                                  .getFirstResult(firstResult), this.getConfig()
+                                                                                                    .getMaxResults(maxResults));
     }
 
     /**
@@ -232,10 +222,10 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     public List<TO> postFilterContentEqualsAsList(final Map<String, Object> value,
                                                   @QueryParam("firstResult") final Integer firstResult,
                                                   @QueryParam("maxResults") final Integer maxResults) {
-        return this.render(this.getDataAccess()
-                               .listByContentEquals(value, this.getConfig()
-                                                               .getFirstResult(firstResult), this.getConfig()
-                                                                                                 .getMaxResults(maxResults)));
+        return this.getDataBinder()
+                   .listByContentEquals(value, this.getConfig()
+                                                   .getFirstResult(firstResult), this.getConfig()
+                                                                                     .getMaxResults(maxResults));
     }
 
     /**
@@ -248,10 +238,10 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     public List<TO> postFilterContentInAsList(final Map<String, List<Object>> values,
                                               @QueryParam("firstResult") final Integer firstResult,
                                               @QueryParam("maxResults") final Integer maxResults) {
-        return this.render(this.getDataAccess()
-                               .listByContentInValues(values, this.getConfig()
-                                                                  .getFirstResult(firstResult), this.getConfig()
-                                                                                                    .getMaxResults(maxResults)));
+        return this.getDataBinder()
+                   .listByContentInValues(values, this.getConfig()
+                                                      .getFirstResult(firstResult), this.getConfig()
+                                                                                        .getMaxResults(maxResults));
     }
 
     /**
@@ -262,11 +252,8 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public TO post(final TO to) {
-        final ENTITY entity = this.entityCreator.create();
-        to.update(entity);
-        final ENTITY inserted = this.getDataAccess()
-                                    .persist(entity);
-        return this.render(inserted);
+        return this.getDataBinder()
+                   .persist(to);
         //return this.doVerify(inserted);
     }
 
@@ -278,10 +265,9 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list/asList")
-    public List<TO> postListAsList(final List<TO> sources) {
-        return sources.stream()
-                      .map(this::post)
-                      .collect(Collectors.toList());
+    public List<TO> postListAsList(final List<TO> toList) {
+        return this.getDataBinder()
+                   .persist(toList);
     }
 
     /**
@@ -292,49 +278,45 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public TO put(final TO to) {
-        final ENTITY persisted = this.getDataAccess()
-                                     .findPersisted(source);
-        to
-        final TO updated = this.getDataAccess()
-                               .updateById(source);
-        return this.doVerify(updated);
-
+        return this.getDataBinder()
+                   .updateById(to);
+        //return this.doVerify(updated);
     }
 
-    /**
-     * Verifies that the updated Entity has the same content in the database.
-     *
-     * @param updated the updated
-     * @return the t
-     */
-    protected TO doVerify(final TO updated) {
-        if (!this.getConfig()
-                 .getVerify()) {
-            return updated;
-        }
-        final PK id = updated.getId();
-        if (id == null) {
-            throw new RuntimeException(" Verify fail " + updated + " has null id! ");
-        }
-        final TO actual = this.getDataAccess()
-                              .findById(id);
-        if (!updated.equals(actual)) {
-            throw new RuntimeException(" Verify fail " + updated + " <> " + actual);
-        }
-        return actual;
-    }
-
-    /**
-     * Does verify methode on a list.
-     *
-     * @param updated the updated
-     * @return the list
-     */
-    protected List<TO> doVerify(final List<TO> updated) {
-        return updated.stream()
-                      .map(this::doVerify)
-                      .collect(Collectors.toList());
-    }
+//    /**
+//     * Verifies that the updated Entity has the same content in the database.
+//     *
+//     * @param updated the updated
+//     * @return the t
+//     */
+//    protected TO doVerify(final TO updated) {
+//        if (!this.getConfig()
+//                 .getVerify()) {
+//            return updated;
+//        }
+//        final PK id = updated.getId();
+//        if (id == null) {
+//            throw new RuntimeException(" Verify fail " + updated + " has null id! ");
+//        }
+//        final TO actual = this.getDataAccess()
+//                              .findById(id);
+//        if (!updated.equals(actual)) {
+//            throw new RuntimeException(" Verify fail " + updated + " <> " + actual);
+//        }
+//        return actual;
+//    }
+//
+//    /**
+//     * Does verify methode on a list.
+//     *
+//     * @param updated the updated
+//     * @return the list
+//     */
+//    protected List<TO> doVerify(final List<TO> updated) {
+//        return updated.stream()
+//                      .map(this::doVerify)
+//                      .collect(Collectors.toList());
+//    }
 
     /**
      * {@inheritDoc}
@@ -344,10 +326,10 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list/asList")
-    public List<TO> putListAsList(final List<TO> sources) {
-        final List<TO> updated = this.getDataAccess()
-                                     .updateByIds(sources);
-        return this.doVerify(updated);
+    public List<TO> putListAsList(final List<TO> toList) {
+        return this.getDataBinder()
+                   .updateByIds(toList, true);
+        //return this.doVerify(updated);
     }
 
     /**
@@ -385,24 +367,21 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     }
 
     /**
-     * <pre>
-     * Getter for the data access layer.
-     * </pre>
+     * The data binder getter
      *
-     * @return the data access
+     * @return the data binder
+     */
+    public DataBinder<TO, ENTITY, PK> getDataBinder() {
+        return this.dataBinder;
+    }
+
+    /**
+     * The data access getter
+     *
+     * @return the data binder
      */
     public DataAccess<ENTITY, PK> getDataAccess() {
-        return this.dataAccess;
-    }
-
-    protected TO render(final ENTITY entity) {
-        return this.toCreator.create()
-                             .render(entity);
-    }
-
-    private List<TO> render(final List<ENTITY> entities) {
-        return entities.stream()
-                       .map(this::render)
-                       .collect(Collectors.toList());
+        return this.getDataBinder()
+                   .getDataAccess();
     }
 }

@@ -15,15 +15,23 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.modell.resources;
+package io.github.agache41.generic.rest.jpa.modell.dataBinder;
 
-import io.github.agache41.generic.rest.jpa.modell.dataBinder.SubModellAFksDataBinder;
+import io.github.agache41.generic.rest.jpa.dataAccess.DataBinder;
+import io.github.agache41.generic.rest.jpa.modell.dataaccess.SubModellAFksDataAccess;
 import io.github.agache41.generic.rest.jpa.modell.entities.SubModellAFks;
-import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImpl;
-import lombok.Getter;
 
-@Getter
-public class SubModellAFksResourceService extends AbstractResourceServiceImpl<SubModellAFks, SubModellAFks, Long> {
-    protected SubModellAFksDataBinder dataBinder = new SubModellAFksDataBinder();
 
+public class SubModellAFksDataBinder extends DataBinder<SubModellAFks, SubModellAFks, Long> {
+
+    protected SubModellAFksDataAccess dataAccess = new SubModellAFksDataAccess();
+
+    public SubModellAFksDataBinder() {
+        super(SubModellAFks.class, SubModellAFks.class, Long.class);
+    }
+
+    @Override
+    public SubModellAFksDataAccess getDataAccess() {
+        return this.dataAccess;
+    }
 }

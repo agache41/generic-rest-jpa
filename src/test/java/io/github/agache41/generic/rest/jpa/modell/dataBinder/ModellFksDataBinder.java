@@ -15,26 +15,23 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.update;
+package io.github.agache41.generic.rest.jpa.modell.dataBinder;
 
-import jakarta.persistence.Transient;
+import io.github.agache41.generic.rest.jpa.dataAccess.DataBinder;
+import io.github.agache41.generic.rest.jpa.modell.dataaccess.ModellFksDataAccess;
+import io.github.agache41.generic.rest.jpa.modell.entities.ModellFks;
 
-/**
- * The interface Self transfer object.
- *
- * @param <ENTITY> the type parameter
- */
-public interface Updatable<ENTITY extends TransferObject<ENTITY, ENTITY>> extends TransferObject<ENTITY, ENTITY> {
 
-//    @Override
-//    @Transient
-//    default ENTITY create(final ENTITY entity) {
-//        return (ENTITY) this;
-//    }
+public class ModellFksDataBinder extends DataBinder<ModellFks, ModellFks, Long> {
+
+    protected ModellFksDataAccess dataAccess = new ModellFksDataAccess();
+
+    public ModellFksDataBinder() {
+        super(ModellFks.class, ModellFks.class, Long.class);
+    }
 
     @Override
-    @Transient
-    default ENTITY render(final ENTITY entity) {
-        return entity;
+    public ModellFksDataAccess getDataAccess() {
+        return this.dataAccess;
     }
 }

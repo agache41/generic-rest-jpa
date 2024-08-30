@@ -21,7 +21,6 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.producer.Producer;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
 import org.jboss.logging.Logger;
@@ -39,18 +38,18 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 @TestInstance(PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K> & Updatable<T>, K, S> {
+public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K>, K> {
 
 
     protected static final Logger LOG = Logger.getLogger(AbstractResourceServiceBaseImplTest.class);
     protected final Class<T> clazz;
-    protected final Class<S> associatedClass;
+    //protected final Class<S> associatedClass;
     protected final List<T> insertData;
     protected final List<T> updateData;
     protected final ClassReflector<T, T> classReflector;
 
     protected final Producer<T> producer;
-    protected final FieldReflector<T, S, String, String> fieldReflector;
+    protected final FieldReflector<T, T, String, String> fieldReflector;
     protected final String stringField;
     protected final ResourceService<T, K> client;
     protected final ResourceServiceConfig config = new ResourceServiceConfig() {
@@ -58,24 +57,24 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
     protected boolean useUpdateEquals = false;
 
     public AbstractResourceServiceBaseImplTest(final Class<T> clazz,
-                                               final Class<S> associatedClass,
+                                               //final Class<S> associatedClass,
                                                final String path,
                                                final List<T> insertData,
                                                final List<T> updateData,
                                                final String stringField,
                                                final Producer<T> producer) {
-        this(new ResourceServiceTestClient<>(clazz, path), clazz, associatedClass, insertData, updateData, stringField, producer);
+        this(new ResourceServiceTestClient<>(clazz, path), clazz, insertData, updateData, stringField, producer);
     }
 
     public AbstractResourceServiceBaseImplTest(final ResourceService<T, K> client,
                                                final Class<T> clazz,
-                                               final Class<S> associatedClass,
+                                               //final Class<S> associatedClass,
                                                final List<T> insertData,
                                                final List<T> updateData,
                                                final String stringField,
                                                final Producer<T> producer) {
         this.clazz = clazz;
-        this.associatedClass = associatedClass;
+        //this.associatedClass = associatedClass;
         this.client = client;
         assertEquals(insertData.size(), updateData.size(), " Please use two data lists of equal size!");
         this.insertData = insertData;
@@ -83,7 +82,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
         this.classReflector = ClassReflector.ofClass(clazz);
         this.producer = producer;
         if (stringField != null) {
-            this.fieldReflector = ClassReflector.ofClass(clazz, associatedClass)
+            this.fieldReflector = ClassReflector.ofClass(clazz)
                                                 .getReflector(stringField, String.class);
             this.stringField = stringField;
         } else {
@@ -107,11 +106,12 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
     protected void assertUpdateEquals(final T left,
                                       final T right,
                                       final String message) {
-        if (!this.useUpdateEquals) {
-            assertEquals(left, right, message);
-        } else {
-            assertTrue(left.updateEquals(right), message);
-        }
+        assertEquals(left, right, message);
+//        if (!this.useUpdateEquals) {
+//            assertEquals(left, right, message);
+//        } else {
+//            assertTrue(left.updateEquals(right), message);
+//        }
     }
 
     @BeforeEach
