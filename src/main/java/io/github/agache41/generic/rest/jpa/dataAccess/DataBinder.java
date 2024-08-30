@@ -23,7 +23,6 @@ import io.github.agache41.generic.rest.jpa.update.Update;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.spi.InjectionPoint;
 import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.UriInfo;
 
@@ -60,6 +59,7 @@ public class DataBinder<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, 
      * </pre>
      */
     protected final Class<ENTITY> entityClass;
+
     /**
      * <pre>
      * The type of the PK Object
@@ -73,21 +73,22 @@ public class DataBinder<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, 
      * </pre>
      */
     protected final String name;
+
     /**
      * The To creator.
      */
     protected final Creator<TO> toCreator;
+
     /**
      * The Entity creator.
      */
     protected final Creator<ENTITY> entityCreator;
+
     /**
      * <pre>
      * Default data access layer , used for communicating with the database.
      * </pre>
      */
-    @Inject
-    @Named("base")
     protected DataAccess<ENTITY, PK> dataAccess;
 
     /**
@@ -315,6 +316,26 @@ public class DataBinder<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, 
     }
 
     /**
+     * Remove by id.
+     *
+     * @param id the id
+     */
+    public void removeById(final PK id) {
+        this.getDataAccess()
+            .removeById(id);
+    }
+
+    /**
+     * Remove by ids.
+     *
+     * @param ids the ids
+     */
+    public void removeByIds(final List<PK> ids) {
+        this.getDataAccess()
+            .removeByIds(ids);
+    }
+
+    /**
      * Render to.
      *
      * @param entity the entity
@@ -340,5 +361,14 @@ public class DataBinder<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, 
      */
     public DataAccess<ENTITY, PK> getDataAccess() {
         return this.dataAccess;
+    }
+
+    /**
+     * Sets data access.
+     *
+     * @param dataAccess the data access
+     */
+    public void setDataAccess(final DataAccess<ENTITY, PK> dataAccess) {
+        this.dataAccess = dataAccess;
     }
 }

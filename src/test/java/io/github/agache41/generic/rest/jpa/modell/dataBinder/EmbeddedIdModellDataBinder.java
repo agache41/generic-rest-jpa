@@ -18,21 +18,12 @@
 package io.github.agache41.generic.rest.jpa.modell.dataBinder;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.DataBinder;
-import io.github.agache41.generic.rest.jpa.modell.dataaccess.EmbeddedIdModellDataAccess;
 import io.github.agache41.generic.rest.jpa.modell.entities.EmbeddedIdModell;
 import io.github.agache41.generic.rest.jpa.modell.entities.EmbeddedKeys;
 
 
 public class EmbeddedIdModellDataBinder extends DataBinder<EmbeddedIdModell, EmbeddedIdModell, EmbeddedKeys> {
-
-    protected EmbeddedIdModellDataAccess dataAccess = new EmbeddedIdModellDataAccess();
-
     public EmbeddedIdModellDataBinder() {
         super(EmbeddedIdModell.class, EmbeddedIdModell.class, EmbeddedKeys.class);
-    }
-
-    @Override
-    public EmbeddedIdModellDataAccess getDataAccess() {
-        return this.dataAccess;
     }
 }

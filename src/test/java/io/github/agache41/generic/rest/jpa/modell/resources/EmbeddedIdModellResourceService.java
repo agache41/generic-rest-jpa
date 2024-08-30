@@ -19,6 +19,7 @@ package io.github.agache41.generic.rest.jpa.modell.resources;
 
 
 import io.github.agache41.generic.rest.jpa.modell.dataBinder.EmbeddedIdModellDataBinder;
+import io.github.agache41.generic.rest.jpa.modell.dataaccess.EmbeddedIdModellDataAccess;
 import io.github.agache41.generic.rest.jpa.modell.entities.EmbeddedIdModell;
 import io.github.agache41.generic.rest.jpa.modell.entities.EmbeddedKeys;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImpl;
@@ -27,4 +28,9 @@ import lombok.Getter;
 @Getter
 public class EmbeddedIdModellResourceService extends AbstractResourceServiceImpl<EmbeddedIdModell, EmbeddedIdModell, EmbeddedKeys> {
     protected EmbeddedIdModellDataBinder dataBinder = new EmbeddedIdModellDataBinder();
+    protected EmbeddedIdModellDataAccess dataAccess = new EmbeddedIdModellDataAccess();
+
+    public EmbeddedIdModellResourceService() {
+        this.postConstruct();
+    }
 }

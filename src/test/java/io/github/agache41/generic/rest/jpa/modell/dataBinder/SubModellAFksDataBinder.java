@@ -18,20 +18,11 @@
 package io.github.agache41.generic.rest.jpa.modell.dataBinder;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.DataBinder;
-import io.github.agache41.generic.rest.jpa.modell.dataaccess.SubModellAFksDataAccess;
 import io.github.agache41.generic.rest.jpa.modell.entities.SubModellAFks;
 
 
 public class SubModellAFksDataBinder extends DataBinder<SubModellAFks, SubModellAFks, Long> {
-
-    protected SubModellAFksDataAccess dataAccess = new SubModellAFksDataAccess();
-
     public SubModellAFksDataBinder() {
         super(SubModellAFks.class, SubModellAFks.class, Long.class);
-    }
-
-    @Override
-    public SubModellAFksDataAccess getDataAccess() {
-        return this.dataAccess;
     }
 }

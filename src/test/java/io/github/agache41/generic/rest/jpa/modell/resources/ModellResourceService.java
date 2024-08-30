@@ -19,6 +19,7 @@ package io.github.agache41.generic.rest.jpa.modell.resources;
 
 
 import io.github.agache41.generic.rest.jpa.modell.dataBinder.ModellDataBinder;
+import io.github.agache41.generic.rest.jpa.modell.dataaccess.ModellDataAccess;
 import io.github.agache41.generic.rest.jpa.modell.entities.Modell;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImpl;
 import lombok.Getter;
@@ -26,4 +27,9 @@ import lombok.Getter;
 @Getter
 public class ModellResourceService extends AbstractResourceServiceImpl<Modell, Modell, Long> {
     protected ModellDataBinder dataBinder = new ModellDataBinder();
+    protected ModellDataAccess dataAccess = new ModellDataAccess();
+
+    public ModellResourceService() {
+        this.postConstruct();
+    }
 }

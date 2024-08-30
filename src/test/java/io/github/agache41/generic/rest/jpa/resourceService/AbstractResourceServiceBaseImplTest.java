@@ -43,7 +43,6 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
 
     protected static final Logger LOG = Logger.getLogger(AbstractResourceServiceBaseImplTest.class);
     protected final Class<T> clazz;
-    //protected final Class<S> associatedClass;
     protected final List<T> insertData;
     protected final List<T> updateData;
     protected final ClassReflector<T, T> classReflector;
@@ -57,7 +56,6 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
     protected boolean useUpdateEquals = false;
 
     public AbstractResourceServiceBaseImplTest(final Class<T> clazz,
-                                               //final Class<S> associatedClass,
                                                final String path,
                                                final List<T> insertData,
                                                final List<T> updateData,
@@ -68,13 +66,11 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
 
     public AbstractResourceServiceBaseImplTest(final ResourceService<T, K> client,
                                                final Class<T> clazz,
-                                               //final Class<S> associatedClass,
                                                final List<T> insertData,
                                                final List<T> updateData,
                                                final String stringField,
                                                final Producer<T> producer) {
         this.clazz = clazz;
-        //this.associatedClass = associatedClass;
         this.client = client;
         assertEquals(insertData.size(), updateData.size(), " Please use two data lists of equal size!");
         this.insertData = insertData;

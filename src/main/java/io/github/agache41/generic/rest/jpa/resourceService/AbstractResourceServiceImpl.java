@@ -22,7 +22,9 @@ import io.github.agache41.generic.rest.jpa.dataAccess.DataBinder;
 import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.update.TransferObject;
+import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -44,7 +46,14 @@ import java.util.Map;
  * @param <PK>     the type parameter
  */
 public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, ENTITY extends PrimaryKey<PK>, PK> implements ResourceService<TO, PK> {
-
+    /**
+     * <pre>
+     * Default data access layer , used for communicating with the database.
+     * </pre>
+     */
+    @Inject
+    @Named("base")
+    protected DataAccess<ENTITY, PK> dataAccess;
 
     /**
      * The data binder handling the binding between TO and ENTITY
@@ -52,6 +61,15 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @Inject
     protected DataBinder<TO, ENTITY, PK> dataBinder;
 
+
+    /**
+     * Post construct is called to assure correct init
+     */
+    @PostConstruct
+    public void postConstruct() {
+        this.getDataBinder()
+            .setDataAccess(this.getDataAccess());
+    }
 
     /**
      * {@inheritDoc}
@@ -339,7 +357,7 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @DELETE
     @Path("/{id}")
     public void delete(@PathParam("id") final PK id) {
-        this.getDataAccess()
+        this.getDataBinder()
             .removeById(id);
     }
 
@@ -350,7 +368,7 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @DELETE
     @Path("/byIds")
     public void deleteByIds(final List<PK> ids) {
-        this.getDataAccess()
+        this.getDataBinder()
             .removeByIds(ids);
     }
 
@@ -362,7 +380,7 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @DELETE
     @Path("/byIds/{ids}")
     public void deleteByIdsInPath(@PathParam("ids") final List<PK> ids) {
-        this.getDataAccess()
+        this.getDataBinder()
             .removeByIds(ids);
     }
 
@@ -381,7 +399,6 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
      * @return the data binder
      */
     public DataAccess<ENTITY, PK> getDataAccess() {
-        return this.getDataBinder()
-                   .getDataAccess();
+        return this.dataAccess;
     }
 }
