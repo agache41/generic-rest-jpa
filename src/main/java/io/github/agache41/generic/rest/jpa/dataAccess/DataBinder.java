@@ -23,6 +23,7 @@ import io.github.agache41.generic.rest.jpa.update.Update;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.spi.InjectionPoint;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.UriInfo;
 
@@ -43,6 +44,7 @@ import static java.util.stream.Collectors.toList;
  * @param <PK>     the type parameter
  */
 @Dependent
+@Named("DataBinder")
 @Transactional(REQUIRED)
 public class DataBinder<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, ENTITY extends PrimaryKey<PK>, PK> {
 
@@ -262,6 +264,31 @@ public class DataBinder<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, 
     public List<TO> persist(final List<TO> toList) {
         return toList.stream()
                      .map(this::persist)
+                     .collect(Collectors.toList());
+    }
+
+    /**
+     * Merge to.
+     *
+     * @param to the to
+     * @return the to
+     */
+    public TO merge(final TO to) {
+        final ENTITY entity = to.create(this.entityCreator.create());
+        final ENTITY merged = this.getDataAccess()
+                                  .merge(entity);
+        return this.render(merged);
+    }
+
+    /**
+     * Merge list.
+     *
+     * @param toList the to list
+     * @return the list
+     */
+    public List<TO> merge(final List<TO> toList) {
+        return toList.stream()
+                     .map(this::merge)
                      .collect(Collectors.toList());
     }
 

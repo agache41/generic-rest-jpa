@@ -27,6 +27,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.UriInfo;
 
 import java.lang.reflect.Constructor;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey.ID;
+import static jakarta.transaction.Transactional.TxType.REQUIRED;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 
@@ -57,7 +59,8 @@ import static java.util.stream.Collectors.toList;
  * @param <PK>     the type parameter
  */
 @Dependent
-@Named("base")
+@Named("DataAccess")
+@Transactional(REQUIRED)
 public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
 
     /**

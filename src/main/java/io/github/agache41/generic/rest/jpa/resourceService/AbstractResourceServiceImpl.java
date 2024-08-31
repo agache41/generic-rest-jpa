@@ -53,13 +53,14 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
      * </pre>
      */
     @Inject
-    @Named("base")
+    @Named("DataAccess")
     protected DataAccess<ENTITY, PK> dataAccess;
 
     /**
      * The data binder handling the binding between TO and ENTITY
      */
     @Inject
+    @Named("DataBinder")
     protected DataBinder<TO, ENTITY, PK> dataBinder;
 
 
