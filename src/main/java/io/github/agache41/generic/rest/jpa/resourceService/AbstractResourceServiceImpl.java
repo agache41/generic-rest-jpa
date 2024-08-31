@@ -305,40 +305,6 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     }
 
     /**
-     * Verifies that the updated Entity has the same content in the database.
-     *
-     * @param updated the updated
-     * @return the t
-     */
-    protected TO doVerify(final TO updated) {
-        if (!this.getConfig()
-                 .getVerify()) {
-            return updated;
-        }
-        final PK id = updated.getId();
-        if (id == null) {
-            throw new RuntimeException(" Verify fail " + updated + " has null id! ");
-        }
-        final TO actual = this.get(id);
-        if (!updated.equals(actual)) {
-            throw new RuntimeException(" Verify fail " + updated + " <> " + actual);
-        }
-        return actual;
-    }
-
-    /**
-     * Does verify methode on a list.
-     *
-     * @param updated the updated
-     * @return the list
-     */
-    protected List<TO> doVerify(final List<TO> updated) {
-        return updated.stream()
-                      .map(this::doVerify)
-                      .collect(Collectors.toList());
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -347,9 +313,9 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list/asList")
     public List<TO> putListAsList(final List<TO> toList) {
-        return this.getDataBinder()
-                   .updateByIds(toList, true);
-        //return this.doVerify(updated);
+        final List<TO> updated = this.getDataBinder()
+                                     .updateByIds(toList, true);
+        return this.doVerify(updated);
     }
 
     /**
@@ -384,6 +350,40 @@ public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & Tr
     public void deleteByIdsInPath(@PathParam("ids") final List<PK> ids) {
         this.getDataBinder()
             .removeByIds(ids);
+    }
+
+    /**
+     * Verifies that the updated Entity has the same content in the database.
+     *
+     * @param updated the updated
+     * @return the t
+     */
+    protected TO doVerify(final TO updated) {
+        if (!this.getConfig()
+                 .getVerify()) {
+            return updated;
+        }
+        final PK id = updated.getId();
+        if (id == null) {
+            throw new RuntimeException(" Verify fail " + updated + " has null id! ");
+        }
+        final TO actual = this.get(id);
+        if (!updated.equals(actual)) {
+            throw new RuntimeException(" Verify fail " + updated + " <> " + actual);
+        }
+        return actual;
+    }
+
+    /**
+     * Does verify methode on a list.
+     *
+     * @param updated the updated
+     * @return the list
+     */
+    protected List<TO> doVerify(final List<TO> updated) {
+        return updated.stream()
+                      .map(this::doVerify)
+                      .collect(Collectors.toList());
     }
 
     /**

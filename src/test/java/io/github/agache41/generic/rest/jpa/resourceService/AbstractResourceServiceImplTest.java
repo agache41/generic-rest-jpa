@@ -205,8 +205,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K
     @Override
     @Test
     @Order(140)
-    public void postFilterContentInAsList() {
-        super.postFilterContentInAsList();
+    public void testPostFilterContentInAsList() {
+        super.testPostFilterContentInAsList();
     }
 
 }

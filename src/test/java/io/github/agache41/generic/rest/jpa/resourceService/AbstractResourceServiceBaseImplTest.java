@@ -709,7 +709,7 @@ public abstract class AbstractResourceServiceBaseImplTest<T extends PrimaryKey<K
     }
 
 
-    public void postFilterContentInAsList() {
+    public void testPostFilterContentInAsList() {
         //given
         final List<T> insertedData = this.getClient()
                                          .postListAsList(this.insertData);
