@@ -28,10 +28,10 @@ import java.util.Map;
 /**
  * The interface Resource service defines the REST Methods to be used on the Entity Domain Model
  *
- * @param <T> the type parameter
- * @param <K> the type parameter
+ * @param <TO> the type parameter
+ * @param <K>  the type parameter
  */
-public interface ResourceService<T extends PrimaryKey<K>, K> {
+public interface ResourceService<TO extends PrimaryKey<K>, K> {
 
     /**
      * <pre>
@@ -43,7 +43,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param id the id
      * @return the corresponding entity at the provided id. If no entity is found, an Expected will be thrown.
      */
-    T get(@PathParam("id") K id);
+    TO get(@PathParam("id") K id);
 
     /**
      * <pre>
@@ -55,7 +55,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param id the id
      * @return the corresponding entity at the provided id. If no entity is found, an Expected will be thrown.
      */
-    T postById(K id);
+    TO postById(K id);
 
     /**
      * <pre>
@@ -67,9 +67,9 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param uriInfo     the uri info
      * @return the list of entities
      */
-    List<T> getAllAsList(final Integer firstResult,
-                         final Integer maxResults,
-                         final UriInfo uriInfo);
+    List<TO> getAllAsList(final Integer firstResult,
+                          final Integer maxResults,
+                          final UriInfo uriInfo);
 
     /**
      * <pre>
@@ -80,7 +80,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param ids the list of ids
      * @return the list of entities
      */
-    List<T> getByIdsAsList(@PathParam("ids") List<K> ids);
+    List<TO> getByIdsAsList(@PathParam("ids") List<K> ids);
 
     /**
      * <pre>
@@ -90,7 +90,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param ids the list of ids
      * @return the list of entities
      */
-    List<T> postByIdsAsList(List<K> ids);
+    List<TO> postByIdsAsList(List<K> ids);
 
     /**
      * <pre>
@@ -106,10 +106,10 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param maxResults  the max results
      * @return the list of entities matching
      */
-    List<T> getFilterStringFieldEqualsValueAsList(String stringField,
-                                                  String value,
-                                                  Integer firstResult,
-                                                  Integer maxResults);
+    List<TO> getFilterStringFieldEqualsValueAsList(String stringField,
+                                                   String value,
+                                                   Integer firstResult,
+                                                   Integer maxResults);
 
     /**
      * <pre>
@@ -126,10 +126,10 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param maxResults  the max results
      * @return the list of entities matching
      */
-    List<T> getFilterStringFieldLikeValueAsList(String stringField,
-                                                String value,
-                                                Integer firstResult,
-                                                Integer maxResults);
+    List<TO> getFilterStringFieldLikeValueAsList(String stringField,
+                                                 String value,
+                                                 Integer firstResult,
+                                                 Integer maxResults);
 
     /**
      * <pre>
@@ -146,10 +146,10 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param maxResults  the max results
      * @return the list of entities matching
      */
-    List<T> getFilterStringFieldInValuesAsList(String stringField,
-                                               List<String> values,
-                                               Integer firstResult,
-                                               Integer maxResults);
+    List<TO> getFilterStringFieldInValuesAsList(String stringField,
+                                                List<String> values,
+                                                Integer firstResult,
+                                                Integer maxResults);
 
     /**
      * <pre>
@@ -215,9 +215,9 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param maxResults  the max results
      * @return the list of entities matching
      */
-    List<T> postFilterContentEqualsAsList(Map<String, Object> mapValues,
-                                          Integer firstResult,
-                                          Integer maxResults);
+    List<TO> postFilterContentEqualsAsList(Map<String, Object> mapValues,
+                                           Integer firstResult,
+                                           Integer maxResults);
 
 
     /**
@@ -238,9 +238,9 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param maxResults  the max results
      * @return the list of entities matching
      */
-    List<T> postFilterContentInAsList(final Map<String, List<Object>> values,
-                                      Integer firstResult,
-                                      Integer maxResults);
+    List<TO> postFilterContentInAsList(final Map<String, List<Object>> values,
+                                       Integer firstResult,
+                                       Integer maxResults);
 
     /**
      * <pre>
@@ -250,7 +250,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param source the source
      * @return the inserted entity
      */
-    T post(T source);
+    TO post(TO source);
 
     /**
      * <pre>
@@ -260,7 +260,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param sources the list of new data
      * @return the inserted entities
      */
-    List<T> postListAsList(List<T> sources);
+    List<TO> postListAsList(List<TO> sources);
 
     /**
      * <pre>
@@ -271,7 +271,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param source the source
      * @return the updated entity
      */
-    T put(T source);
+    TO put(TO source);
 
     /**
      * <pre>
@@ -282,7 +282,7 @@ public interface ResourceService<T extends PrimaryKey<K>, K> {
      * @param sources the source
      * @return the updated entities
      */
-    List<T> putListAsList(List<T> sources);
+    List<TO> putListAsList(List<TO> sources);
 
     /**
      * <pre>

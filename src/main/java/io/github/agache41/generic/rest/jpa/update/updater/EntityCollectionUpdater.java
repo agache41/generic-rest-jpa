@@ -18,7 +18,7 @@
 package io.github.agache41.generic.rest.jpa.update.updater;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
+import io.github.agache41.generic.rest.jpa.update.TransferObject;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -29,106 +29,116 @@ import java.util.function.Supplier;
  * The updater for collection of entity types (implementing PrimaryKey and Updatable).
  * It updates the field value in the target based on the value of the field value in the source.
  *
- * @param <TARGET>     the type parameter
- * @param <SOURCE>     the type parameter
- * @param <COLLECTION> the type parameter
- * @param <VALUE>      the type parameter
- * @param <PK>         the type parameter
+ * @param <TO>           the type parameter
+ * @param <ENTITY>       the type parameter
+ * @param <TOCOLLECTION> the type parameter
+ * @param <ENCOLLECTION> the type parameter
+ * @param <TOVALUE>      the type parameter
+ * @param <ENVALUE>      the type parameter
+ * @param <PK>           the type parameter
  */
-public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collection<VALUE>, VALUE extends Updatable<VALUE> & PrimaryKey<PK>, PK> extends ValueUpdater<TARGET, SOURCE, COLLECTION> {
+public class EntityCollectionUpdater<TO, ENTITY, TOCOLLECTION extends Collection<TOVALUE>, ENCOLLECTION extends Collection<ENVALUE>, TOVALUE extends TransferObject<TOVALUE, ENVALUE> & PrimaryKey<PK>, ENVALUE extends PrimaryKey<PK>, PK> extends BaseUpdater<TO, ENTITY, TOCOLLECTION, ENCOLLECTION> {
 
     /**
      * The Constructor.
      */
-    protected final Supplier<VALUE> constructor;
+    protected final Supplier<TOVALUE> toValueConstructor;
+
+    /**
+     * The Constructor.
+     */
+    protected final Supplier<ENVALUE> enValueConstructor;
 
     /**
      * Instantiates a new Entity collection updater.
      *
-     * @param setter       the target setter
-     * @param getter       the target getter
-     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
-     * @param sourceGetter the source getter
-     * @param constructor  the entity constructor
+     * @param toGeter            the target toGeter
+     * @param toSetter           the target toSetter
+     * @param toValueConstructor the to value constructor
+     * @param dynamic            if the update should be dynamic processed and nulls will be ignored
+     * @param entityGetter       the source toGeter
+     * @param entitySetter       the entity setter
+     * @param enValueConstructor the entity enValueConstructor
      */
-    public EntityCollectionUpdater(final BiConsumer<TARGET, COLLECTION> setter,
-                                   final Function<TARGET, COLLECTION> getter,
+    public EntityCollectionUpdater(final Function<TO, TOCOLLECTION> toGeter,
+                                   final BiConsumer<TO, TOCOLLECTION> toSetter,
+                                   final Supplier<TOVALUE> toValueConstructor,
                                    final boolean dynamic,
-                                   final Function<SOURCE, COLLECTION> sourceGetter,
-                                   final Supplier<VALUE> constructor) {
-        super(setter, getter, dynamic, sourceGetter);
-        this.constructor = constructor;
+                                   final Function<ENTITY, ENCOLLECTION> entityGetter,
+                                   final BiConsumer<ENTITY, ENCOLLECTION> entitySetter,
+                                   final Supplier<ENVALUE> enValueConstructor) {
+        super(toGeter, toSetter, dynamic, entityGetter, entitySetter);
+        this.toValueConstructor = toValueConstructor;
+        this.enValueConstructor = enValueConstructor;
     }
 
     /**
      * Convenient static method.
      * It updates the field value in the target based on the value of the field value in the source.
      *
-     * @param <T>          the type parameter of the target object
-     * @param <S>          the type parameter of the source object
-     * @param <C>          the Collection type
-     * @param <E>          the type parameter of the collection values (the entity)
-     * @param <K>          the type parameter of the primary key of the entity
-     * @param setter       the target setter
-     * @param getter       the target getter
-     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
-     * @param sourceGetter the source getter
-     * @param constructor  the constructor for collection values
-     * @param target       the target
-     * @param source       the source
+     * @param <T>                the type parameter of the target object
+     * @param <E>                the type parameter of the source object
+     * @param <CTV>              the Collection type
+     * @param <CEV>              the type parameter
+     * @param <TV>               the type parameter of the collection values (the entity)
+     * @param <EV>               the type parameter
+     * @param <K>                the type parameter of the primary key of the entity
+     * @param toGetter           the target toGetter
+     * @param toSetter           the target toSetter
+     * @param toValueConstructor the to value constructor
+     * @param dynamic            if the update should be dynamic processed and nulls will be ignored
+     * @param entityGetter       the source toGetter
+     * @param entitySetter       the entity setter
+     * @param enValueConstructor the en value constructor
+     * @param target             the target
+     * @param source             the source
      * @return true if the target changed
      */
-    public static <T, S, C extends Collection<E>, E extends Updatable<E> & PrimaryKey<K>, K> boolean updateEntityCollection(
-            final BiConsumer<T, C> setter,
-            final Function<T, C> getter,
+    public static <T, E, CTV extends Collection<TV>, CEV extends Collection<EV>, TV extends TransferObject<TV, EV> & PrimaryKey<K>, EV extends PrimaryKey<K>, K>
+    boolean updateEntityCollection(
+            final Function<T, CTV> toGetter,
+            final BiConsumer<T, CTV> toSetter,
+            final Supplier<TV> toValueConstructor,
             final boolean dynamic,
-            final Function<S, C> sourceGetter,
-            final Supplier<E> constructor,
+            final Function<E, CEV> entityGetter,
+            final BiConsumer<E, CEV> entitySetter,
+            final Supplier<EV> enValueConstructor,
             final T target,
-            final S source) {
-        return new EntityCollectionUpdater<>(setter, getter, dynamic, sourceGetter, constructor).update(target, source);
+            final E source) {
+        return new EntityCollectionUpdater<>(toGetter, toSetter, toValueConstructor, dynamic, entityGetter, entitySetter, enValueConstructor).update(target, source);
     }
 
     /**
-     * The method updates the field in target based on the field the source
-     *
-     * @param target the target
-     * @param source the source
-     * @return true if the target changed
+     * {@inheritDoc}
      */
     @Override
-    public boolean update(final TARGET target,
-                          final SOURCE source) {
-        // the sourceValue to be updated
-        final COLLECTION sourceValue = this.sourceGetter.apply(source);
+    public boolean update(final TO transferObject,
+                          final ENTITY entity) {
+        // the toCollection to be updated
+        final TOCOLLECTION toCollection = this.toGetter.apply(transferObject);
         // nulls
-        if (sourceValue == null) {
-            if (this.dynamic || this.getter.apply(target) == null) // null ignore
+        if (toCollection == null) {
+            if (this.dynamic || this.entityGetter.apply(entity) == null) // null ignore
             {
                 return false;
             } else {
-                this.setter.accept(target, null);
-                // todo: rise warning on collection set. this can causes trouble in  Hibernate.
-                System.out.println("Warning : Setting collection to null in Class " + target.getClass()
-                                                                                            .getSimpleName());
+                this.warnNullCollection(transferObject);
+                this.entitySetter.accept(entity, null);
                 return true;
             }
         }
-        final Collection<VALUE> targetValue = this.getter.apply(target);
+        final ENCOLLECTION enCollection = this.entityGetter.apply(entity);
         // collection not initialized
-        if (targetValue == null) {
-            // todo: rise warning on collection set. this can causes trouble in  Hibernate.
-            System.out.println("Warning : Found not initialized (null) collection in Class " + target.getClass()
-                                                                                                     .getSimpleName());
-            this.setter.accept(target, sourceValue);
-            return true;
+        if (enCollection == null) {
+            this.throwNullCollection(entity);
+            return false;
         }
         // empty
-        if (sourceValue.isEmpty()) {
-            if (targetValue.isEmpty()) {
+        if (toCollection.isEmpty()) {
+            if (enCollection.isEmpty()) {
                 return false;
             }
-            targetValue.clear();
+            enCollection.clear();
             return true;
         }
         // empty
@@ -136,39 +146,68 @@ public class EntityCollectionUpdater<TARGET, SOURCE, COLLECTION extends Collecti
         // collection work
 
         // create maps with entities that have pk.
-        final Map<PK, VALUE> sourceValueMap = new LinkedHashMap<>();
-        final List<VALUE> sourceValueList = new ArrayList<>(sourceValue.size());
-        for (final VALUE val : sourceValue) {
+        final Map<PK, TOVALUE> toMap = new LinkedHashMap<>();
+        final List<TOVALUE> toList = new ArrayList<>(toCollection.size());
+        for (final TOVALUE val : toCollection) {
             final PK PK = val.getId();
             if (PK == null) {
-                sourceValueList.add(val);
+                toList.add(val);
             } else {
-                sourceValueMap.put(PK, val);
+                toMap.put(PK, val);
             }
         }
 
-        final Map<PK, VALUE> targetValueMap = new LinkedHashMap<>();
-        for (final VALUE val : targetValue) {
+        final Map<PK, ENVALUE> enMap = new LinkedHashMap<>();
+        for (final ENVALUE val : enCollection) {
             final PK PK = val.getId();
             if (PK != null) {
-                targetValueMap.put(PK, val);
+                enMap.put(PK, val);
             }
         }
 
-        final boolean updated = ValueUpdater.updateMap(targetValueMap, sourceValueMap, this.constructor);
-        final List<VALUE> targetValueList = ValueUpdater.updateList(sourceValueList, this.constructor);
+        final boolean updated = ValueUpdater.updateMap(toMap, enMap, this.enValueConstructor);
+        final List<ENVALUE> targetValueList = ValueUpdater.updateList(toList, this.enValueConstructor);
 
         if (!targetValueList.isEmpty() || updated) {
-            targetValue.clear();
+            enCollection.clear();
             // add the updated entities
-            targetValue.addAll(targetValueMap.values());
+            enCollection.addAll(enMap.values());
             // add the new ones
-            targetValue.addAll(targetValueList);
+            enCollection.addAll(targetValueList);
             // collection work
             // re set it
-            this.setter.accept(target, (COLLECTION) targetValue);
+            this.entitySetter.accept(entity, enCollection);
             return true;
         }
-        return updated;
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void render(final TO transferObject,
+                       final ENTITY entity) {
+        final ENCOLLECTION enCollectionValue = this.entityGetter.apply(entity);
+        // no data
+        if (enCollectionValue == null) {
+            // no data no fun
+            this.warnNullCollection(entity);
+            return;
+        }
+        // the sourceValue to be updated
+        final TOCOLLECTION toCollectionValue = this.toGetter.apply(transferObject);
+        // nulls
+        if (toCollectionValue == null) {
+            this.throwNullCollection(transferObject);
+            return;
+        }
+        if (enCollectionValue.isEmpty()) {
+            return;
+        }
+        enCollectionValue.stream()
+                         .map(envalue -> this.toValueConstructor.get()
+                                                                .render(envalue))
+                         .forEach(toCollectionValue::add);
     }
 }

@@ -18,7 +18,7 @@
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
+import io.github.agache41.generic.rest.jpa.update.SelfTransferObject;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import jakarta.persistence.*;
 import lombok.*;
@@ -41,7 +41,7 @@ import java.util.List;
 @Entity
 @DynamicUpdate
 @DynamicInsert
-public class EmbeddedIdModell extends BaseEntity implements PrimaryKey<EmbeddedKeys>, Updatable<EmbeddedIdModell> {
+public class EmbeddedIdModell extends BaseEntity implements PrimaryKey<EmbeddedKeys>, SelfTransferObject<EmbeddedIdModell> {
 
     private static final long serialVersionUID = 4981653210124872352L;
 

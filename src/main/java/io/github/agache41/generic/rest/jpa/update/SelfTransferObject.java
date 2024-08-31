@@ -15,18 +15,26 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.dataAccess;
+package io.github.agache41.generic.rest.jpa.update;
 
-import io.github.agache41.generic.rest.jpa.update.SelfTransferObject;
+import jakarta.persistence.Transient;
 
+/**
+ * The interface Self transfer object.
+ *
+ * @param <ENTITY> the type parameter
+ */
+public interface SelfTransferObject<ENTITY extends TransferObject<ENTITY, ENTITY>> extends TransferObject<ENTITY, ENTITY> {
+// todo: clarify why it fails
+//    @Override
+//    @Transient
+//    default ENTITY create(final ENTITY entity) {
+//        return (ENTITY) this;
+//    }
 
-public class AbstractLocalH2DataAccess<ENTITY extends PrimaryKey<PK> & SelfTransferObject<ENTITY>, PK> extends DataAccess<ENTITY, PK> {
-
-    public AbstractLocalH2DataAccess(final Class<ENTITY> type,
-                                     final Class<PK> keyType) {
-        super(type, keyType);
-        this.em = H2HEntityManagerFactory.getInstance()
-                                         .getEntityManagerFactory()
-                                         .createEntityManager();
+    @Override
+    @Transient
+    default ENTITY render(final ENTITY entity) {
+        return entity;
     }
 }

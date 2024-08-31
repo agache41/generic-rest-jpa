@@ -49,6 +49,19 @@ public @interface Update {
 
     /**
      * <pre>
+     * The overwritten name of the field.
+     * Used for special bindings.
+     * The name of the Reflector defaults to the field name or the virtual name for the getter / setter pair.
+     * If provided, it will cause the actual field to bind to the new name in the associated class.
+     * Default is ""
+     * </pre>
+     *
+     * @return the string
+     */
+    String name() default "";
+
+    /**
+     * <pre>
      * A dynamic update process happens when only the fields that are present in the source object are being updated.
      * The ones that are not set, and are null in the transfer object will be ignored.
      * Only non null values will be updated.

@@ -17,38 +17,40 @@
 
 package io.github.agache41.generic.rest.jpa.update.updater;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * The updater for map with simple value types (String, Integer).
  * It updates the field value in the target based on the value of the field value in the source.
  *
- * @param <TARGET> the type parameter of the target object
- * @param <SOURCE> the type parameter of the source object
+ * @param <TO>     the type parameter of the source object
+ * @param <ENTITY> the type parameter of the target object
  * @param <VALUE>  the type parameter of the map value
  * @param <KEY>    the type parameter of the map key
  */
-public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET, SOURCE, Map<KEY, VALUE>> {
+public class MapUpdater<TO, ENTITY, VALUE, KEY> extends ValueUpdater<TO, ENTITY, Map<KEY, VALUE>> {
 
 
     /**
      * Instantiates a new Map updater.
      *
-     * @param setter       the target setter
-     * @param getter       the target getter
-     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
-     * @param sourceGetter the source getter
+     * @param toGetter the to getter
+     * @param toSetter the to setter
+     * @param dynamic  if the update should be dynamic processed and nulls will be ignored
+     * @param enGetter the en getter
+     * @param enSetter the en setter
      */
-    public MapUpdater(final BiConsumer<TARGET, Map<KEY, VALUE>> setter,
-                      final Function<TARGET, Map<KEY, VALUE>> getter,
+    public MapUpdater(final Function<TO, Map<KEY, VALUE>> toGetter,
+                      final BiConsumer<TO, Map<KEY, VALUE>> toSetter,
                       final boolean dynamic,
-                      final Function<SOURCE, Map<KEY, VALUE>> sourceGetter) {
-        super(setter, getter, dynamic, sourceGetter);
+                      final Function<ENTITY, Map<KEY, VALUE>> enGetter,
+                      final BiConsumer<ENTITY, Map<KEY, VALUE>> enSetter) {
+        super(toGetter, toSetter, dynamic, enGetter, enSetter);
     }
 
 
@@ -56,89 +58,113 @@ public class MapUpdater<TARGET, SOURCE, VALUE, KEY> extends ValueUpdater<TARGET,
      * Convenient static method.
      * It updates the field value in the target based on the value of the field value in the source.
      *
-     * @param <T>          the type parameter of the target object
-     * @param <S>          the type parameter of the source object
-     * @param <V>          the type parameter of the map value
-     * @param <K>          the type parameter of the map key
-     * @param setter       the target setter
-     * @param getter       the target getter
-     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
-     * @param sourceGetter the source getter
-     * @param target       the target
-     * @param source       the source
+     * @param <T>      the type parameter of the target object
+     * @param <S>      the type parameter of the source object
+     * @param <V>      the type parameter of the map value
+     * @param <K>      the type parameter of the map key
+     * @param toGetter the target toGetter
+     * @param toSetter the target toSetter
+     * @param dynamic  if the update should be dynamic processed and nulls will be ignored
+     * @param enGetter the source toGetter
+     * @param enSetter the en setter
+     * @param target   the target
+     * @param source   the source
      * @return true if the target changed
      */
-    public static <T, S, V, K> boolean updateMap(
-            final BiConsumer<T, Map<K, V>> setter,
-            final Function<T, Map<K, V>> getter,
-            final boolean dynamic,
-            final Function<S, Map<K, V>> sourceGetter,
-            final T target,
-            final S source) {
-        return new MapUpdater<>(setter, getter, dynamic, sourceGetter).update(target, source);
+    public static <T, S, V, K> boolean updateMap(final Function<T, Map<K, V>> toGetter,
+                                                 final BiConsumer<T, Map<K, V>> toSetter,
+                                                 final boolean dynamic,
+                                                 final Function<S, Map<K, V>> enGetter,
+                                                 final BiConsumer<S, Map<K, V>> enSetter,
+                                                 final T target,
+                                                 final S source) {
+        return new MapUpdater<>(toGetter, toSetter, dynamic, enGetter, enSetter).update(target, source);
     }
 
+
     /**
-     * The method updates the field in target based on the field the source
-     *
-     * @param target the target
-     * @param source the source
-     * @return true if the target changed
+     * {@inheritDoc}
      */
     @Override
-    public boolean update(final TARGET target,
-                          final SOURCE source) {
-        // the sourceValue to be updated
-        final Map<KEY, VALUE> sourceValue = this.sourceGetter.apply(source);
+    public boolean update(final TO transferObject,
+                          final ENTITY entity) {
+        // the toMap to be updated
+        final Map<KEY, VALUE> toMap = this.toGetter.apply(transferObject);
         // nulls
-        if (sourceValue == null) {
-            if (this.dynamic || this.getter.apply(target) == null) {
+        if (toMap == null) {
+            if (this.dynamic || this.entityGetter.apply(entity) == null) {
                 return false;
             } else {
-                this.setter.accept(target, null);
+                this.warnNullMap(transferObject);
+                this.entitySetter.accept(entity, null);
                 return true;
             }
         }
-        final Map<KEY, VALUE> targetValue = this.getter.apply(target);
+        final Map<KEY, VALUE> enMap = this.entityGetter.apply(entity);
         // map not initialized
-        if (targetValue == null) {
-            this.setter.accept(target, sourceValue);
+        if (enMap == null) {
+            this.warnNullMap(entity);
+            this.entitySetter.accept(entity, toMap);
             return true;
         }
         // empty
-        if (sourceValue.isEmpty()) {
-            if (targetValue.isEmpty()) {
+        if (toMap.isEmpty()) {
+            if (enMap.isEmpty()) {
                 return false;
             }
-            targetValue.clear();
+            enMap.clear();
             return true;
         }
         // map work
-        final Set<KEY> targetKeys = targetValue.keySet();
+        final Set<KEY> enKeys = enMap.keySet();
         // make a copy to not change the input
-        final Set<KEY> valueKeys = sourceValue.keySet()
-                                              .stream()
-                                              .collect(Collectors.toSet());
+        final Set<KEY> toKeys = new HashSet<>(toMap.keySet());
         //remove all that are now longer available
-        boolean updated = targetKeys.retainAll(valueKeys);
+        boolean updated = enKeys.retainAll(toKeys);
         //update all that remained in the intersection
-        updated |= targetKeys.stream() // process only the ones that are not equal
-                             .filter(key -> !Objects.equals(targetValue.get(key), sourceValue.get(key)))
-                             // take those from the input in the old map
-                             .map(key -> targetValue.put(key, sourceValue.get(key)))
-                             .count() > 0;
+        updated |= enKeys.stream() // process only the ones that are not equal
+                         .filter(key -> !Objects.equals(enMap.get(key), toMap.get(key)))
+                         // take those from the input in the old map
+                         .map(key -> enMap.put(key, toMap.get(key)))
+                         .count() > 0;
         //remove those that are updated
-        valueKeys.removeAll(targetKeys);
+        toKeys.removeAll(enKeys);
         //insert all new (that remained)
-        if (!valueKeys.isEmpty()) {
-            valueKeys.stream()
-                     .forEach(key -> targetValue.put(key, sourceValue.get(key)));
+        if (!toKeys.isEmpty()) {
+            toKeys.forEach(key -> enMap.put(key, toMap.get(key)));
             updated = true;
         }
         //set it again
         if (updated) {
-            this.setter.accept(target, targetValue);
+            this.entitySetter.accept(entity, enMap);
         }
         return updated;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void render(final TO transferObject,
+                       final ENTITY entity) {
+        final Map<KEY, VALUE> enValue = this.entityGetter.apply(entity);
+        // no data
+        if (enValue == null) {
+            // no data no fun
+            this.warnNullMap(entity);
+            return;
+        }
+        // the sourceValue to be updated
+        final Map<KEY, VALUE> toValue = this.toGetter.apply(transferObject);
+        // nulls
+        if (toValue == null) {
+            this.warnNullMap(transferObject);
+            this.toSetter.accept(transferObject, enValue);
+            return;
+        }
+        if (enValue.isEmpty()) {
+            return;
+        }
+        toValue.putAll(enValue);
     }
 }

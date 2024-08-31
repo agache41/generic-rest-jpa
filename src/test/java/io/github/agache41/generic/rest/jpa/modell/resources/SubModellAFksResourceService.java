@@ -17,13 +17,18 @@
 
 package io.github.agache41.generic.rest.jpa.modell.resources;
 
+import io.github.agache41.generic.rest.jpa.modell.dataBinder.SubModellAFksDataBinder;
 import io.github.agache41.generic.rest.jpa.modell.dataaccess.SubModellAFksDataAccess;
 import io.github.agache41.generic.rest.jpa.modell.entities.SubModellAFks;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImpl;
 import lombok.Getter;
 
 @Getter
-public class SubModellAFksResourceService extends AbstractResourceServiceImpl<SubModellAFks, Long> {
+public class SubModellAFksResourceService extends AbstractResourceServiceImpl<SubModellAFks, SubModellAFks, Long> {
+    protected SubModellAFksDataBinder dataBinder = new SubModellAFksDataBinder();
     protected SubModellAFksDataAccess dataAccess = new SubModellAFksDataAccess();
 
+    public SubModellAFksResourceService() {
+        this.postConstruct();
+    }
 }

@@ -84,7 +84,8 @@ public class EmbeddedIdModellResourceServiceTest extends AbstractResourceService
         super(new EmbeddedIdModellResourceService(), EmbeddedIdModell.class, //
               insertData,   //
               updateData,   //
-              stringField); //
+              stringField,
+              producer); //
     }
 
     @BeforeEach

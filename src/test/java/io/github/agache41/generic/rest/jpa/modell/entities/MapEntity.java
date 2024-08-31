@@ -18,7 +18,7 @@
 package io.github.agache41.generic.rest.jpa.modell.entities;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
+import io.github.agache41.generic.rest.jpa.update.SelfTransferObject;
 import io.github.agache41.generic.rest.jpa.update.Update;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,7 +31,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class MapEntity implements PrimaryKey<Long>, Updatable<MapEntity> {
+public class MapEntity implements PrimaryKey<Long>, SelfTransferObject<MapEntity> {
     private static final long serialVersionUID = 1765318847603660384L;
     @Id
     @EqualsAndHashCode.Exclude

@@ -18,9 +18,11 @@
 package io.github.agache41.generic.rest.jpa.resourceService;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.DataAccess;
+import io.github.agache41.generic.rest.jpa.dataAccess.DataBinder;
 import io.github.agache41.generic.rest.jpa.dataAccess.IdGroup;
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
+import io.github.agache41.generic.rest.jpa.update.TransferObject;
+import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.*;
@@ -40,31 +42,35 @@ import java.util.stream.Collectors;
  * The class implements methods for basic REST operations on the underlying Class
  * </pre>
  *
- * @param <T> the type parameter
- * @param <K> the type parameter
+ * @param <TO>     the type parameter
+ * @param <ENTITY> the type parameter
+ * @param <PK>     the type parameter
  */
-public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Updatable<T>, K> implements ResourceService<T, K> {
-
-
+public abstract class AbstractResourceServiceImpl<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, ENTITY extends PrimaryKey<PK>, PK> implements ResourceService<TO, PK> {
     /**
      * <pre>
      * Default data access layer , used for communicating with the database.
      * </pre>
      */
     @Inject
-    @Named("base")
-    protected DataAccess<T, K> dataAccess;
+    @Named("DataAccess")
+    protected DataAccess<ENTITY, PK> dataAccess;
+
+    /**
+     * The data binder handling the binding between TO and ENTITY
+     */
+    @Inject
+    @Named("DataBinder")
+    protected DataBinder<TO, ENTITY, PK> dataBinder;
 
 
     /**
-     * <pre>
-     * Getter for the data access layer.
-     * </pre>
-     *
-     * @return the data access
+     * Post construct is called to assure correct init
      */
-    public DataAccess<T, K> getDataAccess() {
-        return this.dataAccess;
+    @PostConstruct
+    public void postConstruct() {
+        this.getDataBinder()
+            .setDataAccess(this.getDataAccess());
     }
 
     /**
@@ -74,10 +80,11 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
-    public T get(@PathParam("id") final K id) {
-        return this.getDataAccess()
+    public TO get(@PathParam("id") final PK id) {
+        return this.getDataBinder()
                    .findById(id);
     }
+
 
     /**
      * {@inheritDoc}
@@ -87,9 +94,8 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/byId")
-    public T postById(final K id) {
-        return this.getDataAccess()
-                   .findById(id);
+    public TO postById(final PK id) {
+        return this.get(id);
     }
 
     /**
@@ -99,14 +105,15 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/all/asList")
-    public List<T> getAllAsList(@QueryParam("firstResult") final Integer firstResult,
-                                @QueryParam("maxResults") final Integer maxResults,
-                                @Context final UriInfo uriInfo) {
-        return this.getDataAccess()
+    public List<TO> getAllAsList(@QueryParam("firstResult") final Integer firstResult,
+                                 @QueryParam("maxResults") final Integer maxResults,
+                                 @Context final UriInfo uriInfo) {
+        return this.getDataBinder()
                    .listAll(this.getConfig()
                                 .getFirstResult(firstResult), this.getConfig()
                                                                   .getMaxResults(maxResults), uriInfo);
     }
+
 
     /**
      * {@inheritDoc}
@@ -115,8 +122,8 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/byIds/{ids}/asList")
-    public List<T> getByIdsAsList(@PathParam("ids") final List<K> ids) {
-        return this.getDataAccess()
+    public List<TO> getByIdsAsList(@PathParam("ids") final List<PK> ids) {
+        return this.getDataBinder()
                    .listByIds(ids);
     }
 
@@ -128,10 +135,8 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/byIds/asList")
-    public List<T> postByIdsAsList(final List<K> ids) {
-        final List<T> inserted = this.getDataAccess()
-                                     .listByIds(ids);
-        return this.doVerify(inserted);
+    public List<TO> postByIdsAsList(final List<PK> ids) {
+        return this.getByIdsAsList(ids);
     }
 
     /**
@@ -141,11 +146,11 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/equals/{value}/asList")
-    public List<T> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") final String stringField,
-                                                         @PathParam("value") final String value,
-                                                         @QueryParam("firstResult") final Integer firstResult,
-                                                         @QueryParam("maxResults") final Integer maxResults) {
-        return this.getDataAccess()
+    public List<TO> getFilterStringFieldEqualsValueAsList(@PathParam("stringField") final String stringField,
+                                                          @PathParam("value") final String value,
+                                                          @QueryParam("firstResult") final Integer firstResult,
+                                                          @QueryParam("maxResults") final Integer maxResults) {
+        return this.getDataBinder()
                    .listByColumnEqualsValue(stringField, value, this.getConfig()
                                                                     .getFirstResult(firstResult), this.getConfig()
                                                                                                       .getMaxResults(maxResults));
@@ -158,11 +163,11 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/like/{value}/asList")
-    public List<T> getFilterStringFieldLikeValueAsList(@PathParam("stringField") final String stringField,
-                                                       @PathParam("value") final String value,
-                                                       @QueryParam("firstResult") final Integer firstResult,
-                                                       @QueryParam("maxResults") final Integer maxResults) {
-        return this.getDataAccess()
+    public List<TO> getFilterStringFieldLikeValueAsList(@PathParam("stringField") final String stringField,
+                                                        @PathParam("value") final String value,
+                                                        @QueryParam("firstResult") final Integer firstResult,
+                                                        @QueryParam("maxResults") final Integer maxResults) {
+        return this.getDataBinder()
                    .listByColumnLikeValue(stringField, value, this.getConfig()
                                                                   .getFirstResult(firstResult), this.getConfig()
                                                                                                     .getMaxResults(maxResults));
@@ -175,11 +180,11 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/{stringField}/in/{values}/asList")
-    public List<T> getFilterStringFieldInValuesAsList(@PathParam("stringField") final String stringField,
-                                                      @PathParam("values") final List<String> values,
-                                                      @QueryParam("firstResult") final Integer firstResult,
-                                                      @QueryParam("maxResults") final Integer maxResults) {
-        return this.getDataAccess()
+    public List<TO> getFilterStringFieldInValuesAsList(@PathParam("stringField") final String stringField,
+                                                       @PathParam("values") final List<String> values,
+                                                       @QueryParam("firstResult") final Integer firstResult,
+                                                       @QueryParam("maxResults") final Integer maxResults) {
+        return this.getDataBinder()
                    .listByColumnInValues(stringField, values, this.getConfig()
                                                                   .getFirstResult(firstResult), this.getConfig()
                                                                                                     .getMaxResults(maxResults));
@@ -213,11 +218,11 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("autocompleteIds/{stringField}/like/{value}/asList")
-    public List<IdGroup<K>> getAutocompleteIdsStringFieldLikeValueAsList(@PathParam("stringField") final String stringField,
-                                                                         @PathParam("value") final String value,
-                                                                         @QueryParam("cut") final Integer cut,
-                                                                         @QueryParam("maxResults") final Integer maxResults,
-                                                                         @Context final UriInfo uriInfo) {
+    public List<IdGroup<PK>> getAutocompleteIdsStringFieldLikeValueAsList(@PathParam("stringField") final String stringField,
+                                                                          @PathParam("value") final String value,
+                                                                          @QueryParam("cut") final Integer cut,
+                                                                          @QueryParam("maxResults") final Integer maxResults,
+                                                                          @Context final UriInfo uriInfo) {
         if (value == null || value.length() < this.getConfig()
                                                   .getAutocompleteCut(cut)) {
             return Collections.emptyList();
@@ -234,10 +239,10 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/content/equals/value/asList")
-    public List<T> postFilterContentEqualsAsList(final Map<String, Object> value,
-                                                 @QueryParam("firstResult") final Integer firstResult,
-                                                 @QueryParam("maxResults") final Integer maxResults) {
-        return this.getDataAccess()
+    public List<TO> postFilterContentEqualsAsList(final Map<String, Object> value,
+                                                  @QueryParam("firstResult") final Integer firstResult,
+                                                  @QueryParam("maxResults") final Integer maxResults) {
+        return this.getDataBinder()
                    .listByContentEquals(value, this.getConfig()
                                                    .getFirstResult(firstResult), this.getConfig()
                                                                                      .getMaxResults(maxResults));
@@ -250,10 +255,10 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter/content/in/values/asList")
-    public List<T> postFilterContentInAsList(final Map<String, List<Object>> values,
-                                             @QueryParam("firstResult") final Integer firstResult,
-                                             @QueryParam("maxResults") final Integer maxResults) {
-        return this.getDataAccess()
+    public List<TO> postFilterContentInAsList(final Map<String, List<Object>> values,
+                                              @QueryParam("firstResult") final Integer firstResult,
+                                              @QueryParam("maxResults") final Integer maxResults) {
+        return this.getDataBinder()
                    .listByContentInValues(values, this.getConfig()
                                                       .getFirstResult(firstResult), this.getConfig()
                                                                                         .getMaxResults(maxResults));
@@ -266,10 +271,10 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public T post(final T source) {
-        final T inserted = this.getDataAccess()
-                               .persist(source);
-        return this.doVerify(inserted);
+    public TO post(final TO to) {
+        final TO persisted = this.getDataBinder()
+                                 .persist(to);
+        return this.doVerify(persisted);
     }
 
     /**
@@ -280,9 +285,10 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list/asList")
-    public List<T> postListAsList(final List<T> sources) {
-        return this.getDataAccess()
-                   .persistAll(sources);
+    public List<TO> postListAsList(final List<TO> toList) {
+        final List<TO> persisted = this.getDataBinder()
+                                       .persist(toList);
+        return this.doVerify(persisted);
     }
 
     /**
@@ -292,11 +298,58 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public T put(final T source) {
-        final T updated = this.getDataAccess()
-                              .updateById(source);
+    public TO put(final TO to) {
+        final TO updated = this.getDataBinder()
+                               .updateById(to);
         return this.doVerify(updated);
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/list/asList")
+    public List<TO> putListAsList(final List<TO> toList) {
+        final List<TO> updated = this.getDataBinder()
+                                     .updateByIds(toList, true);
+        return this.doVerify(updated);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @DELETE
+    @Path("/{id}")
+    public void delete(@PathParam("id") final PK id) {
+        this.getDataBinder()
+            .removeById(id);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @DELETE
+    @Path("/byIds")
+    public void deleteByIds(final List<PK> ids) {
+        this.getDataBinder()
+            .removeByIds(ids);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @DELETE
+    @Path("/byIds/{ids}")
+    public void deleteByIdsInPath(@PathParam("ids") final List<PK> ids) {
+        this.getDataBinder()
+            .removeByIds(ids);
     }
 
     /**
@@ -305,17 +358,16 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
      * @param updated the updated
      * @return the t
      */
-    protected T doVerify(final T updated) {
+    protected TO doVerify(final TO updated) {
         if (!this.getConfig()
                  .getVerify()) {
             return updated;
         }
-        final K id = updated.getId();
+        final PK id = updated.getId();
         if (id == null) {
             throw new RuntimeException(" Verify fail " + updated + " has null id! ");
         }
-        final T actual = this.getDataAccess()
-                             .findById(id);
+        final TO actual = this.get(id);
         if (!updated.equals(actual)) {
             throw new RuntimeException(" Verify fail " + updated + " <> " + actual);
         }
@@ -328,57 +380,27 @@ public abstract class AbstractResourceServiceImpl<T extends PrimaryKey<K> & Upda
      * @param updated the updated
      * @return the list
      */
-    protected List<T> doVerify(final List<T> updated) {
+    protected List<TO> doVerify(final List<TO> updated) {
         return updated.stream()
                       .map(this::doVerify)
                       .collect(Collectors.toList());
     }
 
     /**
-     * {@inheritDoc}
+     * The data binder getter
+     *
+     * @return the data binder
      */
-    @Override
-    @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/list/asList")
-    public List<T> putListAsList(final List<T> sources) {
-        final List<T> updated = this.getDataAccess()
-                                    .updateByIds(sources);
-        return this.doVerify(updated);
+    public DataBinder<TO, ENTITY, PK> getDataBinder() {
+        return this.dataBinder;
     }
 
     /**
-     * {@inheritDoc}
+     * The data access getter
+     *
+     * @return the data binder
      */
-    @Override
-    @DELETE
-    @Path("/{id}")
-    public void delete(@PathParam("id") final K id) {
-        this.getDataAccess()
-            .removeById(id);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @DELETE
-    @Path("/byIds")
-    public void deleteByIds(final List<K> ids) {
-        this.getDataAccess()
-            .removeByIds(ids);
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @DELETE
-    @Path("/byIds/{ids}")
-    public void deleteByIdsInPath(@PathParam("ids") final List<K> ids) {
-        this.getDataAccess()
-            .removeByIds(ids);
+    public DataAccess<ENTITY, PK> getDataAccess() {
+        return this.dataAccess;
     }
 }

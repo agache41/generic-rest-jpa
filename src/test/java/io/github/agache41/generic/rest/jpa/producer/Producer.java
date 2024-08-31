@@ -17,7 +17,6 @@
 
 package io.github.agache41.generic.rest.jpa.producer;
 
-import io.github.agache41.generic.rest.jpa.update.Updatable;
 import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
 import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
 import jakarta.validation.constraints.NotNull;
@@ -318,13 +317,7 @@ public class Producer<T> {
         if (source == null) {
             return this.produce();
         }
-        T result = source;
-        if (Updatable.class.isAssignableFrom(this.clazz)) {
-            result = ClassReflector.ofClass(this.clazz)
-                                   .newInstance();
-            final Updatable updatableResult = (Updatable) result;
-            updatableResult.update((Updatable) source);
-        }
+        T result = ClassReflector.clone(source);
         result = this.produceUpdatableFields(result, true);
         if (this.postChange != null) {
             this.postChange.accept(result);

@@ -15,18 +15,14 @@
  *    limitations under the License.
  */
 
-package io.github.agache41.generic.rest.jpa.dataAccess;
+package io.github.agache41.generic.rest.jpa.modell.dataBinder;
 
-import io.github.agache41.generic.rest.jpa.update.SelfTransferObject;
+import io.github.agache41.generic.rest.jpa.dataAccess.DataBinder;
+import io.github.agache41.generic.rest.jpa.modell.entities.ModellFks;
 
 
-public class AbstractLocalH2DataAccess<ENTITY extends PrimaryKey<PK> & SelfTransferObject<ENTITY>, PK> extends DataAccess<ENTITY, PK> {
-
-    public AbstractLocalH2DataAccess(final Class<ENTITY> type,
-                                     final Class<PK> keyType) {
-        super(type, keyType);
-        this.em = H2HEntityManagerFactory.getInstance()
-                                         .getEntityManagerFactory()
-                                         .createEntityManager();
+public class ModellFksDataBinder extends DataBinder<ModellFks, ModellFks, Long> {
+    public ModellFksDataBinder() {
+        super(ModellFks.class, ModellFks.class, Long.class);
     }
 }

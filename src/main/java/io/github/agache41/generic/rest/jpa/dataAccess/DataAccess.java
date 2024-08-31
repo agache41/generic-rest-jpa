@@ -20,10 +20,6 @@ package io.github.agache41.generic.rest.jpa.dataAccess;
 
 import io.github.agache41.generic.rest.jpa.exceptions.ExpectedException;
 import io.github.agache41.generic.rest.jpa.exceptions.UnexpectedException;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
-import io.github.agache41.generic.rest.jpa.update.Update;
-import io.github.agache41.generic.rest.jpa.update.reflector.ClassReflector;
-import io.github.agache41.generic.rest.jpa.update.reflector.FieldReflector;
 import io.github.agache41.generic.rest.jpa.utils.ReflectionUtils;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.spi.InjectionPoint;
@@ -35,7 +31,6 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.UriInfo;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.function.Function;
@@ -64,9 +59,9 @@ import static java.util.stream.Collectors.toList;
  * @param <PK>     the type parameter
  */
 @Dependent
-@Named("base")
+@Named("DataAccess")
 @Transactional(REQUIRED)
-public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
+public class DataAccess<ENTITY extends PrimaryKey<PK>, PK> {
 
     /**
      * The constant findById must be used as a suffix for Named Queries. Syntax is ClassName.findById
@@ -101,12 +96,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * </pre>
      */
     protected final Constructor<ENTITY> noArgsConstructor;
-    /**
-     * <pre>
-     * The ClassReflector of the persisted Object
-     * </pre>
-     */
-    protected final ClassReflector<ENTITY> classReflector;
+
     /**
      * <pre>
      * The type of the persisted Object Primary Key
@@ -119,12 +109,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * </pre>
      */
     protected final String name;
-    /**
-     * <pre>
-     * List with fields that are to be eager fetched.
-     * </pre>
-     */
-    protected final List<String> eagerFields;
+
     /**
      * The Persisted field names.
      */
@@ -183,13 +168,6 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
         this.noArgsConstructor = ReflectionUtils.getNoArgsConstructor(type);
         this.keyType = keyType;
         this.name = DataAccess.class.getSimpleName() + "<" + this.type.getSimpleName() + "," + this.keyType.getSimpleName() + ">";
-        this.classReflector = ClassReflector.ofClass(this.type);
-        this.eagerFields = this.classReflector.getReflectors()
-                                              .values()
-                                              .stream()
-                                              .filter(FieldReflector::isEager)
-                                              .map(FieldReflector::getName)
-                                              .collect(Collectors.toList());
         this.notReservedNames = entry -> !reserved.contains(entry.getKey());
         this.namedQueries = this.findEntityNamedQueries();
         this.findByIdNamedQuery = this.type.getSimpleName() + "." + findById;
@@ -218,7 +196,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * @param id       the primary key to use, must be not null
      * @param expected if a persisted entity must exist
      * @return the entity for the primary key or null if not found. If no entity is found and expected is set to true ExpectedException is thrown.
-     * @see jakarta.persistence.EntityManager#find(Class, Object) jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)
+     * @see jakarta.persistence.EntityManager#find(Class, Object) jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)jakarta.persistence.EntityManager#find(Class, Object)
      */
     public ENTITY findById(final PK id,
                            final boolean expected) {
@@ -763,7 +741,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * </pre>
      *
      * @param entity the given entity
-     * @see jakarta.persistence.EntityManager#remove(Object) jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)
+     * @see jakarta.persistence.EntityManager#remove(Object) jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)jakarta.persistence.EntityManager#remove(Object)
      */
     public void remove(final ENTITY entity) {
         if (this.namedQueries.contains(this.deleteByIdNamedQuery)) {
@@ -833,74 +811,12 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
 
     /**
      * <pre>
-     * Updates an entity.
-     * The code locates the corresponding persisted entity based on the provided primary key.
-     * The Entity with the given id must exist in the Database or a UnexpectedException is thrown.
-     * The persisted entity is then updated from the source entity using only the fields marked with @ {@link Update } annotation
-     * </pre>
-     *
-     * @param source the object that contains the id and is the source for update
-     * @return the persisted entity.
-     */
-    public ENTITY updateById(final ENTITY source) {
-        final ENTITY persisted = this.findPersisted(source);
-        persisted.update(source);
-        return persisted;
-    }
-
-    /**
-     * <pre>
-     * Updates multiple entities.
-     * The code locates the corresponding persisted entities based on the provided primary keys.
-     * All the Entities with the given id must exist in the Database or a UnexpectedException is thrown.
-     * The persisted entities are then updated from the source entities using only the fields marked with @ {@link Update } annotation
-     * </pre>
-     *
-     * @param sources the Collection of objects that contains the ids and is the source for update
-     * @return the persisted entities in a Stream&#x3C;ENTITY&#x3E;
-     */
-    public List<ENTITY> updateByIds(final Collection<ENTITY> sources) {
-        return this.updateByIds(sources, true);
-    }
-
-    /**
-     * <pre>
-     * Updates multiple entities.
-     * The code locates the corresponding persisted entities based on the provided primary keys.
-     * The persisted entities are then updated from the source entities using only the fields marked with @ {@link Update } annotation
-     * </pre>
-     *
-     * @param sources     the Collection of objects that contains the ids and is the source for update
-     * @param allExpected is set to true, all the Entities with the given id must exist in the Database or a UnexpectedException is thrown.
-     * @return the persisted entities in a Stream&#x3C;ENTITY&#x3E;
-     */
-    public List<ENTITY> updateByIds(final Collection<ENTITY> sources,
-                                    final boolean allExpected) {
-        final Map<PK, ENTITY> persistedMap = this.mapPersisted(sources);
-        return sources.stream()
-                      .map(source -> {
-                          final PK id = source.getId();
-                          if (persistedMap.containsKey(id)) {
-                              final ENTITY entity = persistedMap.get(id);
-                              entity.update(source);
-                              return entity;
-                          } else if (allExpected) {
-                              throw new UnexpectedException(this.name + ": Missing Entity in Update for PK=" + id.toString());
-                          } else {
-                              return source;
-                          }
-                      })
-                      .collect(toList());
-    }
-
-    /**
-     * <pre>
      * Merges the entity
      * </pre>
      *
      * @param entity the entity
      * @return the merged entity
-     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)
+     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)
      */
     public ENTITY merge(final ENTITY entity) {
         return this.em()
@@ -914,7 +830,7 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      *
      * @param sources the sources
      * @return the merged entities in a Stream&#x3C;ENTITY&#x3E;
-     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)
+     * @see jakarta.persistence.EntityManager#merge(Object) jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)jakarta.persistence.EntityManager#merge(Object)
      */
     public List<ENTITY> mergeAll(final Collection<ENTITY> sources) {
         return sources.stream()
@@ -927,30 +843,14 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
      * Persists an entity
      * </pre>
      *
-     * @param source the source
+     * @param newEntity the source
      * @return the persisted entity
-     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)
+     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)
      */
-    public ENTITY persist(final ENTITY source) {
-        final ENTITY newEntity = this.newInstance(this.assertNotNull(source));
+    public ENTITY persist(final ENTITY newEntity) {
         this.em()
             .persist(newEntity);
         return newEntity;
-    }
-
-    /**
-     * <pre>
-     * Persists all the entities in the list, returning the results in a stream.
-     * </pre>
-     *
-     * @param sources the sources
-     * @return the persisted entities in a Stream&#x3C;ENTITY&#x3E;
-     * @see jakarta.persistence.EntityManager#persist(Object) jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)jakarta.persistence.EntityManager#persist(Object)
-     */
-    public List<ENTITY> persistAll(final Collection<ENTITY> sources) {
-        return sources.stream()
-                      .map(this::persist)
-                      .collect(toList());
     }
 
     /**
@@ -1232,23 +1132,6 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
         return sources.collect(Collectors.toMap(PrimaryKey::getId, Function.identity()));
     }
 
-
-    /**
-     * New instance entity.
-     *
-     * @param source the source
-     * @return the entity
-     */
-    public ENTITY newInstance(final ENTITY source) {
-        try {
-            final ENTITY entity = this.noArgsConstructor.newInstance();
-            entity.update(source);
-            return entity;
-        } catch (final InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     /**
      * Find entity named queries set.
      *
@@ -1267,5 +1150,23 @@ public class DataAccess<ENTITY extends PrimaryKey<PK> & Updatable<ENTITY>, PK> {
             entityNamedQueries.add(namedQuery.name());
         }
         return entityNamedQueries;
+    }
+
+    /**
+     * Begin transaction. To be used only in non server mode!
+     */
+    public void beginTransaction() {
+        final EntityTransaction transaction = this.em.getTransaction();
+        transaction.begin();
+    }
+
+    /**
+     * Commit transaction.To be used only in non server mode!
+     */
+    public void commitTransaction() {
+        this.em.flush();
+        final EntityTransaction transaction = this.em.getTransaction();
+        transaction.commit();
+        this.em.clear();
     }
 }

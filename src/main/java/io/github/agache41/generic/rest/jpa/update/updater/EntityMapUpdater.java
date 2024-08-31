@@ -17,8 +17,7 @@
 
 package io.github.agache41.generic.rest.jpa.update.updater;
 
-import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
+import io.github.agache41.generic.rest.jpa.update.TransferObject;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -29,116 +28,155 @@ import java.util.function.Supplier;
  * The updater for map of entity types (implementing PrimaryKey and Updatable).
  * It updates the field value in the target based on the value of the field value in the source.
  *
- * @param <TARGET> the type parameter
- * @param <SOURCE> the type parameter
- * @param <MAP>    the type parameter
- * @param <VALUE>  the type parameter
- * @param <KEY>    the type parameter
+ * @param <TO>      the type parameter
+ * @param <ENTITY>  the type parameter
+ * @param <TOMAP>   the type parameter
+ * @param <ENMAP>   the type parameter
+ * @param <TOVALUE> the type parameter
+ * @param <ENVALUE> the type parameter
+ * @param <KEY>     the type parameter
  */
-public class EntityMapUpdater<TARGET, SOURCE, MAP extends Map<KEY, VALUE>, VALUE extends Updatable<VALUE>, KEY> extends ValueUpdater<TARGET, SOURCE, MAP> {
+public class EntityMapUpdater<TO, ENTITY, TOMAP extends Map<KEY, TOVALUE>, ENMAP extends Map<KEY, ENVALUE>, TOVALUE extends TransferObject<TOVALUE, ENVALUE>, ENVALUE, KEY> extends BaseUpdater<TO, ENTITY, TOMAP, ENMAP> {
 
     /**
      * The Constructor.
      */
-    protected final Supplier<VALUE> constructor;
+    protected final Supplier<TOVALUE> toValueConstructor;
+
+    /**
+     * The Constructor.
+     */
+    protected final Supplier<ENVALUE> enValueConstructor;
 
     /**
      * Instantiates a new Entity map updater.
      *
-     * @param setter       the target setter
-     * @param getter       the target getter
-     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
-     * @param sourceGetter the source getter
-     * @param constructor  the entity constructor
+     * @param toGeter            the to geter
+     * @param toSetter           the to setter
+     * @param toValueConstructor the to value constructor
+     * @param dynamic            if the update should be dynamic processed and nulls will be ignored
+     * @param entityGetter       the entity getter
+     * @param entitySetter       the entity setter
+     * @param enValueConstructor the en value constructor
      */
-    public EntityMapUpdater(final BiConsumer<TARGET, MAP> setter,
-                            final Function<TARGET, MAP> getter,
+    public EntityMapUpdater(final Function<TO, TOMAP> toGeter,
+                            final BiConsumer<TO, TOMAP> toSetter,
+                            final Supplier<TOVALUE> toValueConstructor,
                             final boolean dynamic,
-                            final Function<SOURCE, MAP> sourceGetter,
-                            final Supplier<VALUE> constructor) {
-        super(setter, getter, dynamic, sourceGetter);
-        this.constructor = constructor;
+                            final Function<ENTITY, ENMAP> entityGetter,
+                            final BiConsumer<ENTITY, ENMAP> entitySetter,
+                            final Supplier<ENVALUE> enValueConstructor) {
+        super(toGeter, toSetter, dynamic, entityGetter, entitySetter);
+        this.toValueConstructor = toValueConstructor;
+        this.enValueConstructor = enValueConstructor;
     }
 
     /**
      * Convenient static method.
      * It updates the field value in the target based on the value of the field value in the source.
      *
-     * @param <T>          the type parameter of the target object
-     * @param <S>          the type parameter of the source object
-     * @param <C>          the type parameter
-     * @param <E>          the type parameter of the map value (the entity)
-     * @param <K>          the type parameter of the map key
-     * @param setter       the target setter
-     * @param getter       the target getter
-     * @param dynamic      if the update should be dynamic processed and nulls will be ignored
-     * @param sourceGetter the source getter
-     * @param constructor  the constructor for the map values
-     * @param target       the target
-     * @param source       the source
+     * @param <T>                the type parameter of the target object
+     * @param <E>                the type parameter of the map value (the entity)
+     * @param <CTV>              the type parameter
+     * @param <CEV>              the type parameter
+     * @param <TV>               the type parameter
+     * @param <EV>               the type parameter
+     * @param <K>                the type parameter of the map key
+     * @param toGetter           the to getter
+     * @param toSetter           the to setter
+     * @param toValueConstructor the to value constructor
+     * @param dynamic            if the update should be dynamic processed and nulls will be ignored
+     * @param entityGetter       the entity getter
+     * @param entitySetter       the entity setter
+     * @param enValueConstructor the en value constructor
+     * @param target             the target
+     * @param source             the source
      * @return true if the target changed
      */
-    public static <T, S, C extends Map<K, E>, E extends Updatable<E> & PrimaryKey<K>, K> boolean updateEntityMap(
-            final BiConsumer<T, C> setter,
-            final Function<T, C> getter,
-            final boolean dynamic,
-            final Function<S, C> sourceGetter,
-            final Supplier<E> constructor,
-            final T target,
-            final S source) {
-        return new EntityMapUpdater<>(setter, getter, dynamic, sourceGetter, constructor).update(target, source);
+    public static <T, E, CTV extends Map<K, TV>, CEV extends Map<K, EV>, TV extends TransferObject<TV, EV>, EV, K> boolean updateEntityMap(final Function<T, CTV> toGetter,
+                                                                                                                                           final BiConsumer<T, CTV> toSetter,
+                                                                                                                                           final Supplier<TV> toValueConstructor,
+                                                                                                                                           final boolean dynamic,
+                                                                                                                                           final Function<E, CEV> entityGetter,
+                                                                                                                                           final BiConsumer<E, CEV> entitySetter,
+                                                                                                                                           final Supplier<EV> enValueConstructor,
+                                                                                                                                           final T target,
+                                                                                                                                           final E source) {
+        return new EntityMapUpdater<>(toGetter, toSetter, toValueConstructor, dynamic, entityGetter, entitySetter, enValueConstructor).update(target, source);
     }
 
     /**
      * The method updates the field in target based on the field the source
      *
-     * @param target the target
-     * @param source the source
+     * @param entity         the target
+     * @param transferObject the source
      * @return true if the target changed
      */
     @Override
-    public boolean update(final TARGET target,
-                          final SOURCE source) {
-        // the sourceValue to be updated
-        final MAP sourceValue = this.sourceGetter.apply(source);
+    public boolean update(final TO transferObject,
+                          final ENTITY entity) {
+        // the toMap to be updated
+        final TOMAP toMap = this.toGetter.apply(transferObject);
         // nulls
-        if (sourceValue == null) {
-            if (this.dynamic || this.getter.apply(target) == null) // null ignore
+        if (toMap == null) {
+            if (this.dynamic || this.entityGetter.apply(entity) == null) // null ignore
             {
                 return false;
             } else {
-                this.setter.accept(target, null);
-                // todo: rise warning on map set. this can causes trouble in  Hibernate.
-                System.out.println("Warning : Setting map to null in Class " + target.getClass()
-                                                                                     .getSimpleName());
+                this.warnNullMap(transferObject);
+                this.entitySetter.accept(entity, null);
                 return true;
             }
         }
 
-        final Map<KEY, VALUE> targetValue = this.getter.apply(target);
+        final ENMAP enMap = this.entityGetter.apply(entity);
         // map not initialized
-        if (targetValue == null) {
-            this.setter.accept(target, sourceValue);
-            // todo: rise warning on map set. this can causes trouble in  Hibernate.
-            System.out.println("Warning : Found not initialized (null) map in Class " + target.getClass()
-                                                                                              .getSimpleName());
-            return true;
+        if (enMap == null) {
+            this.throwNullMap(entity);
+            return false;
         }
 
         // empty
-        if (sourceValue.isEmpty()) {
-            if (targetValue.isEmpty()) {
+        if (toMap.isEmpty()) {
+            if (enMap.isEmpty()) {
                 return false;
             }
-            targetValue.clear();
+            enMap.clear();
             return true;
         }
 
         // empty
-        final boolean updated = ValueUpdater.updateMap(targetValue, sourceValue, this.constructor);
+        final boolean updated = ValueUpdater.updateMap(toMap, enMap, this.enValueConstructor);
         if (updated) {
-            this.setter.accept(target, (MAP) targetValue);
+            this.entitySetter.accept(entity, enMap);
         }
         return updated;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void render(final TO transferObject,
+                       final ENTITY entity) {
+        final ENMAP enMapValue = this.entityGetter.apply(entity);
+        // no data
+        if (enMapValue == null) {
+            // no data no fun
+            this.warnNullMap(entity);
+            return;
+        }
+        // the sourceValue to be updated
+        final TOMAP toMapValue = this.toGetter.apply(transferObject);
+        // nulls
+        if (toMapValue == null) {
+            this.throwNullMap(transferObject);
+            return;
+        }
+        if (enMapValue.isEmpty()) {
+            return;
+        }
+        enMapValue.forEach((key, value) -> toMapValue.put(key, this.toValueConstructor.get()
+                                                                                      .render(value)));
     }
 }

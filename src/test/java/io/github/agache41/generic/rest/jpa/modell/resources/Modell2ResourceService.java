@@ -18,12 +18,18 @@
 package io.github.agache41.generic.rest.jpa.modell.resources;
 
 
+import io.github.agache41.generic.rest.jpa.modell.dataBinder.Modell2DataBinder;
 import io.github.agache41.generic.rest.jpa.modell.dataaccess.Modell2DataAccess;
 import io.github.agache41.generic.rest.jpa.modell.entities.Modell2;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImpl;
 import lombok.Getter;
 
 @Getter
-public class Modell2ResourceService extends AbstractResourceServiceImpl<Modell2, String> {
+public class Modell2ResourceService extends AbstractResourceServiceImpl<Modell2, Modell2, String> {
+    protected Modell2DataBinder dataBinder = new Modell2DataBinder();
     protected Modell2DataAccess dataAccess = new Modell2DataAccess();
+
+    public Modell2ResourceService() {
+        this.postConstruct();
+    }
 }

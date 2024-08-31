@@ -20,7 +20,6 @@ package io.github.agache41.generic.rest.jpa.resourceService;
 
 import io.github.agache41.generic.rest.jpa.dataAccess.PrimaryKey;
 import io.github.agache41.generic.rest.jpa.producer.Producer;
-import io.github.agache41.generic.rest.jpa.update.Updatable;
 import org.junit.jupiter.api.*;
 
 import java.util.List;
@@ -30,17 +29,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 @TestInstance(PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & Updatable<T>, K> extends AbstractResourceServiceBaseImplTest<T, K> {
-
-    @Deprecated
-    public AbstractResourceServiceImplTest(final Class<T> clazz,
-                                           final String path,
-                                           final List<T> insertData,
-                                           final List<T> updateData,
-                                           final String stringField) {
-        super(clazz, path, insertData, updateData, stringField);
-    }
-
+public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K>, K> extends AbstractResourceServiceBaseImplTest<T, K> {
     public AbstractResourceServiceImplTest(final Class<T> clazz,
                                            final String path,
                                            final List<T> insertData,
@@ -48,15 +37,6 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
                                            final String stringField,
                                            final Producer<T> producer) {
         super(clazz, path, insertData, updateData, stringField, producer);
-    }
-
-    @Deprecated
-    public AbstractResourceServiceImplTest(final ResourceService<T, K> client,
-                                           final Class<T> clazz,
-                                           final List<T> insertData,
-                                           final List<T> updateData,
-                                           final String stringField) {
-        super(client, clazz, insertData, updateData, stringField);
     }
 
     public AbstractResourceServiceImplTest(final ResourceService<T, K> client,
@@ -225,8 +205,8 @@ public abstract class AbstractResourceServiceImplTest<T extends PrimaryKey<K> & 
     @Override
     @Test
     @Order(140)
-    public void postFilterContentInAsList() {
-        super.postFilterContentInAsList();
+    public void testPostFilterContentInAsList() {
+        super.testPostFilterContentInAsList();
     }
 
 }

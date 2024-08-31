@@ -17,13 +17,18 @@
 
 package io.github.agache41.generic.rest.jpa.modell.resources;
 
+import io.github.agache41.generic.rest.jpa.modell.dataBinder.ModellFksDataBinder;
 import io.github.agache41.generic.rest.jpa.modell.dataaccess.ModellFksDataAccess;
 import io.github.agache41.generic.rest.jpa.modell.entities.ModellFks;
 import io.github.agache41.generic.rest.jpa.resourceService.AbstractResourceServiceImpl;
 import lombok.Getter;
 
 @Getter
-public class ModellFksResourceService extends AbstractResourceServiceImpl<ModellFks, Long> {
+public class ModellFksResourceService extends AbstractResourceServiceImpl<ModellFks, ModellFks, Long> {
+    protected ModellFksDataBinder dataBinder = new ModellFksDataBinder();
     protected ModellFksDataAccess dataAccess = new ModellFksDataAccess();
 
+    public ModellFksResourceService() {
+        this.postConstruct();
+    }
 }

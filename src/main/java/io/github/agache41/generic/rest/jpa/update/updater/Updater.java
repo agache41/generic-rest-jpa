@@ -21,17 +21,27 @@ package io.github.agache41.generic.rest.jpa.update.updater;
  * The Updater defines a single method meant to update a target based on data coming from a source.
  * The update process happens at field level and the implementing classes treat the cases for simpek types, collections ...
  *
- * @param <TARGET> the type parameter
- * @param <SOURCE> the type parameter
+ * @param <TO>     the type parameter
+ * @param <ENTITY> the type parameter
  */
-public interface Updater<TARGET, SOURCE> {
+public interface Updater<TO, ENTITY> {
     /**
-     * The method updates the field in target based on the field the source
+     * The method updates the fields in entity based on the fields from the transfer object
      *
-     * @param target the target
-     * @param source the source
-     * @return if the update introduced changes in the target
+     * @param transferObject the transfer object
+     * @param entity         the entity
+     * @return true if the method introduced changes in the target
      */
-    boolean update(TARGET target,
-                   SOURCE source);
+    boolean update(TO transferObject,
+                   ENTITY entity);
+
+
+    /**
+     * The method updates the fields in transfer object based on the fields from the entity
+     *
+     * @param transferObject the transfer object
+     * @param entity         the entity
+     */
+    void render(TO transferObject,
+                ENTITY entity);
 }

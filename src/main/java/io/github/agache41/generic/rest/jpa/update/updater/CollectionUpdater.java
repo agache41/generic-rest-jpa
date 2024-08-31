@@ -25,25 +25,27 @@ import java.util.function.Function;
  * The updater for collection of simple types (String, Integer).
  * It updates the field value in the target based on the value of the field value in the source.
  *
- * @param <TARGET> the type parameter
- * @param <SOURCE> the type parameter
+ * @param <TO>     the type parameter
+ * @param <ENTITY> the type parameter
  * @param <VALUE>  the type parameter
  */
-public class CollectionUpdater<TARGET, SOURCE, VALUE> extends ValueUpdater<TARGET, SOURCE, Collection<VALUE>> {
+public class CollectionUpdater<TO, ENTITY, VALUE> extends ValueUpdater<TO, ENTITY, Collection<VALUE>> {
 
     /**
      * Instantiates a new Collection updater.
      *
-     * @param setter       the target setter
-     * @param getter       the target getter
+     * @param toGetter     the target toGetter
+     * @param toSetter     the target entity
      * @param dynamic      if the update should be dynamic processed and nulls will be ignored
-     * @param sourceGetter the source getter
+     * @param entityGetter the source toGetter
+     * @param entitySetter the entity setter
      */
-    public CollectionUpdater(final BiConsumer<TARGET, Collection<VALUE>> setter,
-                             final Function<TARGET, Collection<VALUE>> getter,
+    public CollectionUpdater(final Function<TO, Collection<VALUE>> toGetter,
+                             final BiConsumer<TO, Collection<VALUE>> toSetter,
                              final boolean dynamic,
-                             final Function<SOURCE, Collection<VALUE>> sourceGetter) {
-        super(setter, getter, dynamic, sourceGetter);
+                             final Function<ENTITY, Collection<VALUE>> entityGetter,
+                             final BiConsumer<ENTITY, Collection<VALUE>> entitySetter) {
+        super(toGetter, toSetter, dynamic, entityGetter, entitySetter);
     }
 
     /**
@@ -53,68 +55,94 @@ public class CollectionUpdater<TARGET, SOURCE, VALUE> extends ValueUpdater<TARGE
      * @param <T>          the type parameter of the target object
      * @param <S>          the type parameter of the source object
      * @param <V>          the type parameter of the collection values
-     * @param setter       the target setter
-     * @param getter       the target getter
+     * @param toGetter     the target toGetter
+     * @param toSetter     the target toSetter
      * @param dynamic      if the update should be dynamic processed and nulls will be ignored
-     * @param sourceGetter the source getter
+     * @param entityGetter the source toGetter
+     * @param entitySetter the entity setter
      * @param target       the target
      * @param source       the source
      * @return true if the target changed
      */
-    public static <T, S, V> boolean updateCollection(
-            final BiConsumer<T, Collection<V>> setter,
-            final Function<T, Collection<V>> getter,
-            final boolean dynamic,
-            final Function<S, Collection<V>> sourceGetter,
-            final T target,
-            final S source) {
-        return new CollectionUpdater<>(setter, getter, dynamic, sourceGetter).update(target, source);
+    public static <T, S, V> boolean updateCollection(final Function<T, Collection<V>> toGetter,
+                                                     final BiConsumer<T, Collection<V>> toSetter,
+                                                     final boolean dynamic,
+                                                     final Function<S, Collection<V>> entityGetter,
+                                                     final BiConsumer<S, Collection<V>> entitySetter,
+                                                     final T target,
+                                                     final S source) {
+        return new CollectionUpdater<>(toGetter, toSetter, dynamic, entityGetter, entitySetter).update(target, source);
     }
 
     /**
-     * The method updates the field in target based on the field the source
-     *
-     * @param target the target
-     * @param source the source
-     * @return true if the target changed
+     * {@inheritDoc}
      */
     @Override
-    public boolean update(final TARGET target,
-                          final SOURCE source) {
+    public boolean update(final TO transferObject,
+                          final ENTITY entity) {
         // the sourceValue to be updated
-        final Collection<VALUE> sourceValue = this.sourceGetter.apply(source);
+        final Collection<VALUE> toValue = this.toGetter.apply(transferObject);
         // nulls
-        if (sourceValue == null) {
-            if (this.dynamic || this.getter.apply(target) == null) // null ignore
+        if (toValue == null) {
+            if (this.dynamic || this.entityGetter.apply(entity) == null) // null ignore
             {
                 return false;
             } else {
-                this.setter.accept(target, null);
+                this.warnNullCollection(transferObject);
+                this.entitySetter.accept(entity, null);
                 return true;
             }
         }
-        final Collection<VALUE> targetValue = this.getter.apply(target);
+        final Collection<VALUE> enValue = this.entityGetter.apply(entity);
         // collection not initialized
-        if (targetValue == null) {
-            this.setter.accept(target, sourceValue);
+        if (enValue == null) {
+            this.warnNullCollection(entity);
+            this.entitySetter.accept(entity, toValue);
             return true;
         }
         // empty
-        if (sourceValue.isEmpty()) {
-            if (targetValue.isEmpty()) {
+        if (toValue.isEmpty()) {
+            if (enValue.isEmpty()) {
                 return false;
             }
-            targetValue.clear();
+            enValue.clear();
             return true;
         }
         // empty
 
         // collection work
-        targetValue.clear();
-        targetValue.addAll(sourceValue);
+        enValue.clear();
+        enValue.addAll(toValue);
         // collection work
         // re-set it
-        this.setter.accept(target, targetValue);
+        this.entitySetter.accept(entity, enValue);
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void render(final TO transferObject,
+                       final ENTITY entity) {
+        final Collection<VALUE> enValue = this.entityGetter.apply(entity);
+        // no data
+        if (enValue == null) {
+            // no data no fun
+            this.warnNullCollection(entity);
+            return;
+        }
+        // the sourceValue to be updated
+        final Collection<VALUE> toValue = this.toGetter.apply(transferObject);
+        // nulls
+        if (toValue == null) {
+            this.warnNullCollection(transferObject);
+            this.toSetter.accept(transferObject, enValue);
+            return;
+        }
+        if (enValue.isEmpty()) {
+            return;
+        }
+        toValue.addAll(enValue);
     }
 }
