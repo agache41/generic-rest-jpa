@@ -91,6 +91,7 @@ public class EntityMapUpdater<TO, ENTITY, TOMAP extends Map<KEY, TOVALUE>, ENMAP
      * @param enValueConstructor the en value constructor
      * @param target             the target
      * @param source             the source
+     * @param context            the context
      * @return true if the target changed
      */
     public static <T, E, CTV extends Map<K, TV>, CEV extends Map<K, EV>, TV extends TransferObject<TV, EV>, EV, K> boolean updateEntityMap(final Function<T, CTV> toGetter,
@@ -101,8 +102,9 @@ public class EntityMapUpdater<TO, ENTITY, TOMAP extends Map<KEY, TOVALUE>, ENMAP
                                                                                                                                            final BiConsumer<E, CEV> entitySetter,
                                                                                                                                            final Supplier<EV> enValueConstructor,
                                                                                                                                            final T target,
-                                                                                                                                           final E source) {
-        return new EntityMapUpdater<>(toGetter, toSetter, toValueConstructor, dynamic, entityGetter, entitySetter, enValueConstructor).update(target, source);
+                                                                                                                                           final E source,
+                                                                                                                                           final Object context) {
+        return new EntityMapUpdater<>(toGetter, toSetter, toValueConstructor, dynamic, entityGetter, entitySetter, enValueConstructor).update(target, source, context);
     }
 
     /**
@@ -114,7 +116,8 @@ public class EntityMapUpdater<TO, ENTITY, TOMAP extends Map<KEY, TOVALUE>, ENMAP
      */
     @Override
     public boolean update(final TO transferObject,
-                          final ENTITY entity) {
+                          final ENTITY entity,
+                          final Object context) {
         // the toMap to be updated
         final TOMAP toMap = this.toGetter.apply(transferObject);
         // nulls
@@ -146,7 +149,7 @@ public class EntityMapUpdater<TO, ENTITY, TOMAP extends Map<KEY, TOVALUE>, ENMAP
         }
 
         // empty
-        final boolean updated = ValueUpdater.updateMap(toMap, enMap, this.enValueConstructor);
+        final boolean updated = ValueUpdater.updateMap(toMap, enMap, this.enValueConstructor, context);
         if (updated) {
             this.entitySetter.accept(entity, enMap);
         }
@@ -158,7 +161,8 @@ public class EntityMapUpdater<TO, ENTITY, TOMAP extends Map<KEY, TOVALUE>, ENMAP
      */
     @Override
     public void render(final TO transferObject,
-                       final ENTITY entity) {
+                       final ENTITY entity,
+                       final Object context) {
         final ENMAP enMapValue = this.entityGetter.apply(entity);
         // no data
         if (enMapValue == null) {
@@ -177,6 +181,6 @@ public class EntityMapUpdater<TO, ENTITY, TOMAP extends Map<KEY, TOVALUE>, ENMAP
             return;
         }
         enMapValue.forEach((key, value) -> toMapValue.put(key, this.toValueConstructor.get()
-                                                                                      .render(value)));
+                                                                                      .render(value, context)));
     }
 }

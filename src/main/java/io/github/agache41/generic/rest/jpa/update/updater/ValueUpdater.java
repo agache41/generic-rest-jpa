@@ -64,6 +64,7 @@ public class ValueUpdater<TO, ENTITY, VALUE> extends BaseUpdater<TO, ENTITY, VAL
      * @param entitySetter   the entity setter
      * @param transferObject the transfer object
      * @param entity         the entity
+     * @param context        the context
      * @return true if the target changed
      */
     public static <T, E, V> boolean updateValue(final Function<T, V> toGetter,
@@ -72,8 +73,9 @@ public class ValueUpdater<TO, ENTITY, VALUE> extends BaseUpdater<TO, ENTITY, VAL
                                                 final Function<E, V> entityGetter,
                                                 final BiConsumer<E, V> entitySetter,
                                                 final T transferObject,
-                                                final E entity) {
-        return new ValueUpdater<>(toGetter, toSetter, dynamic, entityGetter, entitySetter).update(transferObject, entity);
+                                                final E entity,
+                                                final Object context) {
+        return new ValueUpdater<>(toGetter, toSetter, dynamic, entityGetter, entitySetter).update(transferObject, entity, context);
     }
 
 
@@ -82,7 +84,8 @@ public class ValueUpdater<TO, ENTITY, VALUE> extends BaseUpdater<TO, ENTITY, VAL
      */
     @Override
     public boolean update(final TO transferObject,
-                          final ENTITY entity) {
+                          final ENTITY entity,
+                          final Object context) {
         // the toValue to be updated
         final VALUE toValue = this.toGetter.apply(transferObject);
         // nulls
@@ -109,7 +112,8 @@ public class ValueUpdater<TO, ENTITY, VALUE> extends BaseUpdater<TO, ENTITY, VAL
      */
     @Override
     public void render(final TO transferObject,
-                       final ENTITY entity) {
+                       final ENTITY entity,
+                       final Object context) {
         this.toSetter.accept(transferObject, this.entityGetter.apply(entity));
     }
 }

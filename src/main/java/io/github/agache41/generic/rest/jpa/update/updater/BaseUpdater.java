@@ -100,11 +100,13 @@ public abstract class BaseUpdater<TO, ENTITY, TOVALUE, ENVALUE> implements Updat
      * @param toMap              the source value
      * @param enMap              the target value
      * @param enValueConstructor the enValueConstructor
+     * @param context            the context
      * @return true if the target map has changed
      */
     protected static <KEY, TVALUE extends TransferObject<TVALUE, ENVALUE>, ENVALUE> boolean updateMap(final Map<KEY, TVALUE> toMap,
                                                                                                       final Map<KEY, ENVALUE> enMap,
-                                                                                                      final Supplier<ENVALUE> enValueConstructor) {
+                                                                                                      final Supplier<ENVALUE> enValueConstructor,
+                                                                                                      final Object context) {
 
         final Set<KEY> enKeys = enMap.keySet();
         // make a copy to not change the input
@@ -114,7 +116,7 @@ public abstract class BaseUpdater<TO, ENTITY, TOVALUE, ENVALUE> implements Updat
         //update all that remained in the intersection
         updated = enKeys.stream()
                         .map(k -> toMap.get(k)
-                                       .update(enMap.get(k)))
+                                       .update(enMap.get(k), context))
                         .reduce(updated, (u, n) -> u || n);
         //remove those that are updated
         toKeys.removeAll(enKeys);
@@ -124,7 +126,7 @@ public abstract class BaseUpdater<TO, ENTITY, TOVALUE, ENVALUE> implements Updat
                             .map(key -> {
                                 final ENVALUE newValue = enValueConstructor.get();
                                 final boolean upd = toMap.get(key)
-                                                         .update(newValue);
+                                                         .update(newValue, context);
                                 enMap.put(key, newValue);
                                 return upd;
                             })
@@ -140,14 +142,16 @@ public abstract class BaseUpdater<TO, ENTITY, TOVALUE, ENVALUE> implements Updat
      * @param <EVALUE>           the type parameter
      * @param toList             the to list
      * @param enValueConstructor the enValueConstructor
+     * @param context            the context
      * @return true if the target list has changes
      */
     protected static <TVALUE extends TransferObject<TVALUE, EVALUE>, EVALUE> List<EVALUE> updateList(final List<TVALUE> toList,
-                                                                                                     final Supplier<EVALUE> enValueConstructor) {
+                                                                                                     final Supplier<EVALUE> enValueConstructor,
+                                                                                                     final Object context) {
         return toList.stream()
                      .map(toValue -> {
                          final EVALUE enValue = enValueConstructor.get();
-                         toValue.update(enValue);
+                         toValue.update(enValue, context);
                          return enValue;
                      })
                      .collect(Collectors.toList());
@@ -160,13 +164,15 @@ public abstract class BaseUpdater<TO, ENTITY, TOVALUE, ENVALUE> implements Updat
      * @param <EVALUE>           the type parameter
      * @param enValueCollection  the en value collection
      * @param toValueConstructor the to value constructor
+     * @param context            the context
      * @return the collection
      */
     protected static <TVALUE extends TransferObject<TVALUE, EVALUE>, EVALUE> Collection<TVALUE> renderCollection(final Collection<EVALUE> enValueCollection,
-                                                                                                                 final Supplier<TVALUE> toValueConstructor) {
+                                                                                                                 final Supplier<TVALUE> toValueConstructor,
+                                                                                                                 final Object context) {
         return enValueCollection.stream()
                                 .map(envalue -> toValueConstructor.get()
-                                                                  .render(envalue))
+                                                                  .render(envalue, context))
                                 .collect(Collectors.toList());
     }
 

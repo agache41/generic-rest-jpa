@@ -69,6 +69,7 @@ public class MapUpdater<TO, ENTITY, VALUE, KEY> extends ValueUpdater<TO, ENTITY,
      * @param enSetter the en setter
      * @param target   the target
      * @param source   the source
+     * @param context  the context
      * @return true if the target changed
      */
     public static <T, S, V, K> boolean updateMap(final Function<T, Map<K, V>> toGetter,
@@ -77,17 +78,23 @@ public class MapUpdater<TO, ENTITY, VALUE, KEY> extends ValueUpdater<TO, ENTITY,
                                                  final Function<S, Map<K, V>> enGetter,
                                                  final BiConsumer<S, Map<K, V>> enSetter,
                                                  final T target,
-                                                 final S source) {
-        return new MapUpdater<>(toGetter, toSetter, dynamic, enGetter, enSetter).update(target, source);
+                                                 final S source,
+                                                 final Object context) {
+        return new MapUpdater<>(toGetter, toSetter, dynamic, enGetter, enSetter).update(target, source, context);
     }
 
 
     /**
      * {@inheritDoc}
+     *
+     * @param transferObject the transfer object
+     * @param entity         the entity
+     * @return the boolean
      */
     @Override
     public boolean update(final TO transferObject,
-                          final ENTITY entity) {
+                          final ENTITY entity,
+                          final Object context) {
         // the toMap to be updated
         final Map<KEY, VALUE> toMap = this.toGetter.apply(transferObject);
         // nulls
@@ -143,10 +150,14 @@ public class MapUpdater<TO, ENTITY, VALUE, KEY> extends ValueUpdater<TO, ENTITY,
 
     /**
      * {@inheritDoc}
+     *
+     * @param transferObject the transfer object
+     * @param entity         the entity
      */
     @Override
     public void render(final TO transferObject,
-                       final ENTITY entity) {
+                       final ENTITY entity,
+                       final Object context) {
         final Map<KEY, VALUE> enValue = this.entityGetter.apply(entity);
         // no data
         if (enValue == null) {

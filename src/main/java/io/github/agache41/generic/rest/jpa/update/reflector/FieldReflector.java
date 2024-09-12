@@ -330,11 +330,13 @@ public final class FieldReflector<T, S, TV, SV> {
      *
      * @param transferObject the transferObject
      * @param entity         the entity
+     * @param context        the context
      * @return true if the update has made changes, false otherwise
      */
     public boolean update(final T transferObject,
-                          final S entity) {
-        return this.updater.update(transferObject, entity);
+                          final S entity,
+                          final Object context) {
+        return this.updater.update(transferObject, entity, context);
     }
 
     /**
@@ -345,10 +347,12 @@ public final class FieldReflector<T, S, TV, SV> {
      *
      * @param transferObject the transferObject
      * @param entity         the entity
+     * @param context        the context
      */
     public void render(final T transferObject,
-                       final S entity) {
-        this.updater.render(transferObject, entity);
+                       final S entity,
+                       final Object context) {
+        this.updater.render(transferObject, entity, context);
     }
 
     /**
@@ -760,5 +764,5 @@ public final class FieldReflector<T, S, TV, SV> {
         }
         return result;
     }
-    
+
 }

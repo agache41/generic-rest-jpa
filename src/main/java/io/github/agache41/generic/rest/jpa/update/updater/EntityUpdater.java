@@ -83,6 +83,7 @@ public class EntityUpdater<TO, ENTITY, TOVALUE extends TransferObject<TOVALUE, E
      * @param enValueConstructor the en value constructor
      * @param transferObject     the transferObject
      * @param entity             the entity
+     * @param context            the context
      * @return true if the transferObject changed
      */
     public static <T, E, TV extends TransferObject<TV, EV>, EV> boolean updateEntity(final Function<T, TV> toGetter,
@@ -93,8 +94,9 @@ public class EntityUpdater<TO, ENTITY, TOVALUE extends TransferObject<TOVALUE, E
                                                                                      final BiConsumer<E, EV> entitySetter,
                                                                                      final Supplier<EV> enValueConstructor,
                                                                                      final T transferObject,
-                                                                                     final E entity) {
-        return new EntityUpdater<>(toGetter, toSetter, toValueConstructor, dynamic, entityGetter, entitySetter, enValueConstructor).update(transferObject, entity);
+                                                                                     final E entity,
+                                                                                     final Object context) {
+        return new EntityUpdater<>(toGetter, toSetter, toValueConstructor, dynamic, entityGetter, entitySetter, enValueConstructor).update(transferObject, entity, context);
     }
 
     /**
@@ -102,7 +104,8 @@ public class EntityUpdater<TO, ENTITY, TOVALUE extends TransferObject<TOVALUE, E
      */
     @Override
     public boolean update(final TO transferObject,
-                          final ENTITY entity) {
+                          final ENTITY entity,
+                          final Object context) {
         // the toValue to be updated
         final TOVALUE toValue = this.toGetter.apply(transferObject);
         // nulls
@@ -119,11 +122,11 @@ public class EntityUpdater<TO, ENTITY, TOVALUE extends TransferObject<TOVALUE, E
         if (entityValue == null) {
             // previous toValue was null, we assign the new one
             final ENVALUE newValue = this.enValueConstructor.get();
-            final boolean updated = toValue.update(newValue);
+            final boolean updated = toValue.update(newValue, context);
             this.entitySetter.accept(entity, newValue);
             return updated;
         }
-        final boolean updated = toValue.update(entityValue);
+        final boolean updated = toValue.update(entityValue, context);
         if (updated) {
             this.entitySetter.accept(entity, entityValue);
         }
@@ -135,7 +138,8 @@ public class EntityUpdater<TO, ENTITY, TOVALUE extends TransferObject<TOVALUE, E
      */
     @Override
     public void render(final TO transferObject,
-                       final ENTITY entity) {
+                       final ENTITY entity,
+                       final Object context) {
         // the enValue to be rendered
         final ENVALUE envalue = this.entityGetter.apply(entity);
         if (envalue == null) {
@@ -149,7 +153,7 @@ public class EntityUpdater<TO, ENTITY, TOVALUE extends TransferObject<TOVALUE, E
             toValue = this.toValueConstructor.get();
         }
         //the value renders self
-        toValue.render(envalue);
+        toValue.render(envalue, context);
         this.toSetter.accept(transferObject, toValue);
     }
 }

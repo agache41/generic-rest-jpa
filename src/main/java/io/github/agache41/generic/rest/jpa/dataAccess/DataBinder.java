@@ -249,7 +249,7 @@ public class DataBinder<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, 
      * @return the to
      */
     public TO persist(final TO to) {
-        final ENTITY entity = to.create(this.entityCreator.create());
+        final ENTITY entity = to.create(this.entityCreator.create(), this);
         final ENTITY inserted = this.getDataAccess()
                                     .persist(entity);
         return this.render(inserted);
@@ -274,7 +274,7 @@ public class DataBinder<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, 
      * @return the to
      */
     public TO merge(final TO to) {
-        final ENTITY entity = to.create(this.entityCreator.create());
+        final ENTITY entity = to.create(this.entityCreator.create(), this);
         final ENTITY merged = this.getDataAccess()
                                   .merge(entity);
         return this.render(merged);
@@ -306,7 +306,7 @@ public class DataBinder<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, 
     public TO updateById(final TO to) {
         final ENTITY persisted = this.getDataAccess()
                                      .findPersisted(to);
-        to.update(persisted);
+        to.update(persisted, this);
         return this.render(persisted);
     }
 
@@ -330,7 +330,7 @@ public class DataBinder<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, 
                                final PK id = to.getId();
                                if (persistedMap.containsKey(id)) {
                                    final ENTITY entity = persistedMap.get(id);
-                                   to.update(entity);
+                                   to.update(entity, this);
                                    return this.render(entity);
                                } else if (allExpected) {
                                    throw new UnexpectedException(this.name + ": Missing Entity in Update for PK=" + id.toString());
@@ -370,7 +370,7 @@ public class DataBinder<TO extends PrimaryKey<PK> & TransferObject<TO, ENTITY>, 
      */
     protected TO render(final ENTITY entity) {
         return this.toCreator.create()
-                             .render(entity);
+                             .render(entity, this);
     }
 
     private List<TO> render(final List<ENTITY> entities) {

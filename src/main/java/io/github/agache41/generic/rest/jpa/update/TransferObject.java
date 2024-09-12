@@ -34,12 +34,14 @@ public interface TransferObject<TO extends TransferObject<TO, ENTITY>, ENTITY> {
      * Is to be used in POST - create request
      * The returned entity is to be inserted or merged in the db.
      *
-     * @param entity the entity
-     * @return entity
+     * @param entity  the entity
+     * @param context the context
+     * @return entity entity
      */
     @Transient
-    default ENTITY create(final ENTITY entity) {
-        this.update(entity);
+    default ENTITY create(final ENTITY entity,
+                          final Object context) {
+        this.update(entity, context);
         return entity;
     }
 
@@ -49,13 +51,15 @@ public interface TransferObject<TO extends TransferObject<TO, ENTITY>, ENTITY> {
      * Is to be used in PUT - update request
      * The returned entity is to be updated or merged in the db.
      *
-     * @param entity the entity
-     * @return entity
+     * @param entity  the entity
+     * @param context the context
+     * @return entity boolean
      */
     @Transient
-    default boolean update(final ENTITY entity) {
+    default boolean update(final ENTITY entity,
+                           final Object context) {
         return ClassReflector.ofObject(this, entity)
-                             .update(this, entity);
+                             .update(this, entity, context);
     }
 
 
@@ -63,13 +67,15 @@ public interface TransferObject<TO extends TransferObject<TO, ENTITY>, ENTITY> {
      * Updates the fields in TO from the entity.
      * Is to be used in GET - reder request
      *
-     * @param entity the entity
-     * @return to
+     * @param entity  the entity
+     * @param context the context
+     * @return to to
      */
     @Transient
-    default TO render(final ENTITY entity) {
+    default TO render(final ENTITY entity,
+                      final Object context) {
         ClassReflector.ofObject(this, entity)
-                      .render(this, entity);
+                      .render(this, entity, context);
         return (TO) this;
     }
 

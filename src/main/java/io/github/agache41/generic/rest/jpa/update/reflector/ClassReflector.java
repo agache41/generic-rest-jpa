@@ -245,7 +245,7 @@ public final class ClassReflector<T, S> {
     public static <R> R clone(final R transferObject) {
         final ClassReflector<R, R> classReflector = ClassReflector.ofObject(transferObject);
         final R result = classReflector.newInstance();
-        classReflector.update(transferObject, result);
+        classReflector.update(transferObject, result, null);
         return result;
     }
 
@@ -281,13 +281,15 @@ public final class ClassReflector<T, S> {
      *
      * @param transferObject the transferObject
      * @param entity         the entity
+     * @param context        the context
      * @return the transferObject
      */
     public boolean update(final T transferObject,
-                          final S entity) {
+                          final S entity,
+                          final Object context) {
         boolean updated = false;
         for (final FieldReflector reflector : this.updateReflectorsArray) {
-            updated |= reflector.update(transferObject, entity);
+            updated |= reflector.update(transferObject, entity, context);
         }
         return updated;
     }
@@ -300,13 +302,15 @@ public final class ClassReflector<T, S> {
      *
      * @param transferObject the transferObject
      * @param entity         the entity
+     * @param context        the context
      * @return the transferObject
      */
     public T render(final T transferObject,
-                    final S entity) {
+                    final S entity,
+                    final Object context) {
         final boolean updated = false;
         for (final FieldReflector reflector : this.updateReflectorsArray) {
-            reflector.render(transferObject, entity);
+            reflector.render(transferObject, entity, context);
         }
         return transferObject;
     }

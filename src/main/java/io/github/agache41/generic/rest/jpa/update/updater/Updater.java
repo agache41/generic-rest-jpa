@@ -30,10 +30,12 @@ public interface Updater<TO, ENTITY> {
      *
      * @param transferObject the transfer object
      * @param entity         the entity
+     * @param context        the context
      * @return true if the method introduced changes in the target
      */
     boolean update(TO transferObject,
-                   ENTITY entity);
+                   ENTITY entity,
+                   final Object context);
 
 
     /**
@@ -41,7 +43,9 @@ public interface Updater<TO, ENTITY> {
      *
      * @param transferObject the transfer object
      * @param entity         the entity
+     * @param context        the context
      */
     void render(TO transferObject,
-                ENTITY entity);
+                ENTITY entity,
+                final Object context);
 }

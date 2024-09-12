@@ -62,6 +62,7 @@ public class CollectionUpdater<TO, ENTITY, VALUE> extends ValueUpdater<TO, ENTIT
      * @param entitySetter the entity setter
      * @param target       the target
      * @param source       the source
+     * @param context      the context
      * @return true if the target changed
      */
     public static <T, S, V> boolean updateCollection(final Function<T, Collection<V>> toGetter,
@@ -70,16 +71,22 @@ public class CollectionUpdater<TO, ENTITY, VALUE> extends ValueUpdater<TO, ENTIT
                                                      final Function<S, Collection<V>> entityGetter,
                                                      final BiConsumer<S, Collection<V>> entitySetter,
                                                      final T target,
-                                                     final S source) {
-        return new CollectionUpdater<>(toGetter, toSetter, dynamic, entityGetter, entitySetter).update(target, source);
+                                                     final S source,
+                                                     final Object context) {
+        return new CollectionUpdater<>(toGetter, toSetter, dynamic, entityGetter, entitySetter).update(target, source, context);
     }
 
     /**
      * {@inheritDoc}
+     *
+     * @param transferObject the transfer object
+     * @param entity         the entity
+     * @return the boolean
      */
     @Override
     public boolean update(final TO transferObject,
-                          final ENTITY entity) {
+                          final ENTITY entity,
+                          final Object context) {
         // the sourceValue to be updated
         final Collection<VALUE> toValue = this.toGetter.apply(transferObject);
         // nulls
@@ -121,10 +128,14 @@ public class CollectionUpdater<TO, ENTITY, VALUE> extends ValueUpdater<TO, ENTIT
 
     /**
      * {@inheritDoc}
+     *
+     * @param transferObject the transfer object
+     * @param entity         the entity
      */
     @Override
     public void render(final TO transferObject,
-                       final ENTITY entity) {
+                       final ENTITY entity,
+                       final Object context) {
         final Collection<VALUE> enValue = this.entityGetter.apply(entity);
         // no data
         if (enValue == null) {

@@ -34,7 +34,8 @@ public interface SelfTransferObject<ENTITY extends TransferObject<ENTITY, ENTITY
 
     @Override
     @Transient
-    default ENTITY render(final ENTITY entity) {
+    default ENTITY render(final ENTITY entity,
+                          final Object context) {
         return entity;
     }
 }

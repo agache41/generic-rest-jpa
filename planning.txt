@@ -26,9 +26,8 @@ Done:
 - fix add . in orderBy regex
 - add Named query for delete all
 Undergoing:
-- add TransferObject - undergoing
+- add TransferObject dedicated tests
 - !!! clarify add equals for update fields
-- !!! fix verify
 - add messages to fails
 - add logging to put each field
 - add logging when autocomplete cuts

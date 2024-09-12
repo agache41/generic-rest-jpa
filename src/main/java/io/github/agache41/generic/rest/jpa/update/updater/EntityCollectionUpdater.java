@@ -92,20 +92,20 @@ public class EntityCollectionUpdater<TO, ENTITY, TOCOLLECTION extends Collection
      * @param enValueConstructor the en value constructor
      * @param target             the target
      * @param source             the source
+     * @param context            the context
      * @return true if the target changed
      */
-    public static <T, E, CTV extends Collection<TV>, CEV extends Collection<EV>, TV extends TransferObject<TV, EV> & PrimaryKey<K>, EV extends PrimaryKey<K>, K>
-    boolean updateEntityCollection(
-            final Function<T, CTV> toGetter,
-            final BiConsumer<T, CTV> toSetter,
-            final Supplier<TV> toValueConstructor,
-            final boolean dynamic,
-            final Function<E, CEV> entityGetter,
-            final BiConsumer<E, CEV> entitySetter,
-            final Supplier<EV> enValueConstructor,
-            final T target,
-            final E source) {
-        return new EntityCollectionUpdater<>(toGetter, toSetter, toValueConstructor, dynamic, entityGetter, entitySetter, enValueConstructor).update(target, source);
+    public static <T, E, CTV extends Collection<TV>, CEV extends Collection<EV>, TV extends TransferObject<TV, EV> & PrimaryKey<K>, EV extends PrimaryKey<K>, K> boolean updateEntityCollection(final Function<T, CTV> toGetter,
+                                                                                                                                                                                                final BiConsumer<T, CTV> toSetter,
+                                                                                                                                                                                                final Supplier<TV> toValueConstructor,
+                                                                                                                                                                                                final boolean dynamic,
+                                                                                                                                                                                                final Function<E, CEV> entityGetter,
+                                                                                                                                                                                                final BiConsumer<E, CEV> entitySetter,
+                                                                                                                                                                                                final Supplier<EV> enValueConstructor,
+                                                                                                                                                                                                final T target,
+                                                                                                                                                                                                final E source,
+                                                                                                                                                                                                final Object context) {
+        return new EntityCollectionUpdater<>(toGetter, toSetter, toValueConstructor, dynamic, entityGetter, entitySetter, enValueConstructor).update(target, source, context);
     }
 
     /**
@@ -113,7 +113,8 @@ public class EntityCollectionUpdater<TO, ENTITY, TOCOLLECTION extends Collection
      */
     @Override
     public boolean update(final TO transferObject,
-                          final ENTITY entity) {
+                          final ENTITY entity,
+                          final Object context) {
         // the toCollection to be updated
         final TOCOLLECTION toCollection = this.toGetter.apply(transferObject);
         // nulls
@@ -165,8 +166,8 @@ public class EntityCollectionUpdater<TO, ENTITY, TOCOLLECTION extends Collection
             }
         }
 
-        final boolean updated = ValueUpdater.updateMap(toMap, enMap, this.enValueConstructor);
-        final List<ENVALUE> targetValueList = ValueUpdater.updateList(toList, this.enValueConstructor);
+        final boolean updated = ValueUpdater.updateMap(toMap, enMap, this.enValueConstructor, context);
+        final List<ENVALUE> targetValueList = ValueUpdater.updateList(toList, this.enValueConstructor, context);
 
         if (!targetValueList.isEmpty() || updated) {
             enCollection.clear();
@@ -187,7 +188,8 @@ public class EntityCollectionUpdater<TO, ENTITY, TOCOLLECTION extends Collection
      */
     @Override
     public void render(final TO transferObject,
-                       final ENTITY entity) {
+                       final ENTITY entity,
+                       final Object context) {
         final ENCOLLECTION enCollectionValue = this.entityGetter.apply(entity);
         // no data
         if (enCollectionValue == null) {
@@ -207,7 +209,7 @@ public class EntityCollectionUpdater<TO, ENTITY, TOCOLLECTION extends Collection
         }
         enCollectionValue.stream()
                          .map(envalue -> this.toValueConstructor.get()
-                                                                .render(envalue))
+                                                                .render(envalue, context))
                          .forEach(toCollectionValue::add);
     }
 }
